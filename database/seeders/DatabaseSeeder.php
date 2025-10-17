@@ -21,5 +21,10 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'admin@testing.com',
         ]);
+
+        $this->call([
+            CategorySeeder::class,
+            BookSeeder::class,
+        ]);
     }
 }
