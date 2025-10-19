@@ -1,0 +1,25 @@
+<?php
+
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Penalty>
+ */
+class PenaltyFactory extends Factory
+{
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'transaction_id' => \App\Models\Transaction::factory(),
+            'image' => fake()->imageUrl(),
+            'status' => fake()->randomElement(['Lunas', 'Belum Lunas']),
+        ];
+    }
+}
