@@ -20,7 +20,6 @@ class Transaction extends Model
     ];
 
     protected $fillable = [
-        'code',
         'book_id',
         'user_id',
         'borrow_date',
@@ -28,6 +27,33 @@ class Transaction extends Model
         'status_id',
         'penalty_total',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($transaction) {
+            // Auto-generate kode transaksi unik
+            $transaction->code = static::generateUniqueCode();
+
+            // Set default status ke 'dipinjam' jika tidak ada status yang diset
+            if (! $transaction->status_id) {
+                $defaultStatus = Status::where('name', 'Konfirmasi Pinjam')->first();
+                if ($defaultStatus) {
+                    $transaction->status_id = $defaultStatus->id;
+                }
+            }
+        });
+    }
+
+    public static function generateUniqueCode()
+    {
+        do {
+            $code = 'TRX-'.date('Ymd').'-'.str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        } while (static::where('code', $code)->exists());
+
+        return $code;
+    }
 
     /**
      * Get the user that owns the Transaction
