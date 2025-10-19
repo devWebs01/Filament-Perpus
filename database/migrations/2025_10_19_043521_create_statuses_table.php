@@ -16,6 +16,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('amount')->nullable();
             $table->timestamps();
+            $table->softDeletes();
+            $table->userstamps();
+            $table->userstampSoftDeletes();
         });
     }
 

@@ -27,6 +27,9 @@ return new class extends Migration
             $table->string('price')->nullable();
             $table->enum('type', ['Umum', 'Paket']);
             $table->timestamps();
+            $table->softDeletes();
+            $table->userstamps();
+            $table->userstampSoftDeletes();
         });
     }
 

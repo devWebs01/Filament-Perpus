@@ -19,11 +19,11 @@ class SettingSeeder extends Seeder
         if ($imageContents === false) {
             throw new \Exception('Could not get contents from URL.');
         }
-        $imageName = Str::random(20) . '.jpg';
-        $imagePath = 'setting/' . $imageName;
+        $imageName = Str::random(20).'.jpg';
+        $imagePath = 'setting/'.$imageName;
         Storage::put($imagePath, $imageContents);
 
-        Log::info('Image for Library System saved to ' . $imagePath);
+        Log::info('Image for Library System saved to '.$imagePath);
         Setting::create([
             'name' => 'Library System',
             'logo' => $imagePath,
