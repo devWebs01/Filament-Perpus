@@ -15,20 +15,20 @@ class SettingSeeder extends Seeder
      */
     public function run(): void
     {
-        $imageContents = file_get_contents('https://i.gojekapi.com/darkroom/gofood-indonesia/v2/images/uploads/50c3438b-c1b3-451e-ac7d-032ab5d5f8cb_Go-Food-Merchant_20250603_014347.jpeg?auto=format');
+        $imageContents = file_get_contents('https://sman1singgahan.sch.id/wp-content/uploads/2023/04/Logo-Tut-Wuri-Handayani-PNG-Warna.png');
         if ($imageContents === false) {
             throw new \Exception('Could not get contents from URL.');
         }
-        $imageName = Str::random(20).'.jpg';
-        $imagePath = 'setting/'.$imageName;
+        $imageName = Str::random(20) . '.jpg';
+        $imagePath = 'setting/' . $imageName;
         Storage::put($imagePath, $imageContents);
 
-        Log::info('Image for Ayam Geprek Mother saved to '.$imagePath);
+        Log::info('Image for Library System saved to ' . $imagePath);
         Setting::create([
-            'name' => 'Ayam Geprek Mother',
+            'name' => 'Library System',
             'logo' => $imagePath,
-            'address' => 'Jl. Tanjung Pinang rt 30 Jambi Timur',
-            'phone' => '555-1234',
+            'address' => fake()->address(),
+            'phone' => fake()->phoneNumber(),
         ]);
     }
 }

@@ -39,7 +39,9 @@ class StatusResource extends Resource
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('amount')
-                    ->searchable(),
+                    ->searchable()
+                    ->numeric()
+                    ->default(0),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -53,8 +55,8 @@ class StatusResource extends Resource
                 //
             ])
             ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
+                EditAction::make()->button(),
+                DeleteAction::make()->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
