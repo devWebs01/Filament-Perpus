@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "laravel-boost": {
+      "command": "php",
+      "args": ["artisan", "mcp:server"],
+      "cwd": "/media/adptra01/Data/laragon/www/Personal/filament-perpus",
+      "env": {
+        "LARAVEL_MCP_SERVER": "true"
+      }
+    }
+  }
+}

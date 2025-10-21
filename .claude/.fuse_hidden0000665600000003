@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan make:model:*)",
+      "Read(//home/adptra01/**)",
+      "Bash(claude mcp add:*)",
+      "Bash(php artisan make:migration:*)",
+      "Bash(php artisan make:factory:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

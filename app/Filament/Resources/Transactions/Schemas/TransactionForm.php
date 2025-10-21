@@ -23,7 +23,7 @@ class TransactionForm
                             ->required()
                             ->searchable()
                             ->preload()
-                            ->getOptionLabelFromRecordUsing(fn($record) => "{$record->title} - {$record->author}")
+                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->title} - {$record->author}")
                             ->columnSpanFull(),
 
                         Select::make('user_id')
