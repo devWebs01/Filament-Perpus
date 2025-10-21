@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
-use App\Models\UserDetails;
+use App\Models\UserDetail;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,19 +23,19 @@ class CreateUser extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         // Extract user details data
-        $userDetailsData = $data['userDetails'] ?? [];
+        $userDetailData = $data['userDetail'] ?? [];
         $roles = $data['roles'] ?? [];
 
         // Remove user details and roles from user data
-        unset($data['userDetails'], $data['roles']);
+        unset($data['userDetail'], $data['roles']);
 
         // Create the user
         $user = static::getModel()::create($data);
 
         // Create user details if provided
-        if (! empty($userDetailsData)) {
-            $userDetailsData['user_id'] = $user->id;
-            UserDetails::create($userDetailsData);
+        if (! empty($userDetailData)) {
+            $userDetailData['user_id'] = $user->id;
+            UserDetail::create($userDetailData);
         }
 
         // Assign roles to the user

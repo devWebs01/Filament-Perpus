@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use App\Models\User;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -9,7 +11,6 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -32,7 +33,7 @@ class UsersTable
             ->columns([
                 // User Information
                 TextColumn::make('name')
-                    ->label('Name')
+                    ->label('Nama')
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
@@ -42,50 +43,73 @@ class UsersTable
                     ->searchable()
                     ->sortable()
                     ->copyable()
-                    ->copyMessage('Email copied to clipboard')
+                    ->copyMessage('Email disalin ke clipboard')
                     ->copyMessageDuration(1500),
 
-                // User Details
-                TextColumn::make('userDetails.phone_number')
-                    ->label('Phone')
+                // User Details - Only show if UserDetail relationship exists
+                TextColumn::make('UserDetail.phone_number')
+                    ->label('Telepon')
                     ->searchable()
-                    ->placeholder('N/A')
-                    ->toggleable(),
+                    ->placeholder('Tidak Ada')
+                    ->toggleable()
+                    ->getStateUsing(function (User $record): ?string {
+                        try {
+                            return $record->UserDetail?->phone_number;
+                        } catch (\Exception $e) {
+                            return null;
+                        }
+                    }),
 
-                TextColumn::make('userDetails.user_type_display_name')
-                    ->label('User Type')
+                TextColumn::make('user_type')
+                    ->label('Tipe Pengguna')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'Library Head' => 'danger',
-                        'Library Staff' => 'warning',
-                        'Student' => 'success',
+                        'super_admin' => 'danger',
+                        'ketua_perpustakaan' => 'warning',
+                        'petugas' => 'info',
+                        'siswa' => 'success',
                         default => 'gray',
+                    })
+                    ->getStateUsing(function (User $record): ?string {
+                        try {
+                            return $record->UserDetail?->user_type_display_name;
+                        } catch (\Exception $e) {
+                            // Get user type from role as fallback
+                            return $record->roles->first()?->name;
+                        }
                     })
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('userDetails.class')
-                    ->label('Class')
+                TextColumn::make('UserDetail.class')
+                    ->label('Kelas')
                     ->searchable()
-                    ->placeholder('N/A')
-                    ->toggleable(),
+                    ->placeholder('Tidak Ada')
+                    ->toggleable()
+                    ->getStateUsing(function (User $record): ?string {
+                        try {
+                            return $record->UserDetail?->class;
+                        } catch (\Exception $e) {
+                            return null;
+                        }
+                    }),
 
                 // Roles and Permissions
                 TextColumn::make('roles.name')
-                    ->label('Roles')
+                    ->label('Peran')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'super_admin' => 'danger',
-                        'library_head' => 'warning',
-                        'staff' => 'info',
-                        'student' => 'success',
+                        'ketua_perpustakaan' => 'warning',
+                        'petugas' => 'info',
+                        'siswa' => 'success',
                         default => 'gray',
                     })
                     ->searchable()
                     ->separator(','),
 
                 IconColumn::make('email_verified_at')
-                    ->label('Verified')
+                    ->label('Terverifikasi')
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('warning')
@@ -93,8 +117,8 @@ class UsersTable
                     ->falseIcon('heroicon-o-x-circle')
                     ->sortable(),
 
-                TextColumn::make('userDetails.membership_status_display_name')
-                    ->label('Membership')
+                TextColumn::make('UserDetail.membership_status_display_name')
+                    ->label('Keanggotaan')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'Active' => 'success',
@@ -106,13 +130,13 @@ class UsersTable
 
                 // Timestamps
                 TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label('Dibuat')
                     ->dateTime('M j, Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('updated_at')
-                    ->label('Updated')
+                    ->label('Diperbarui')
                     ->dateTime('M j, Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -121,48 +145,29 @@ class UsersTable
             ->filters([
                 // Role Filter
                 SelectFilter::make('role')
-                    ->label('Role')
+                    ->label('Peran')
                     ->relationship('roles', 'name')
                     ->searchable()
                     ->preload()
-                    ->indicator('Role'),
+                    ->indicator('Peran'),
 
                 // User Type Filter
                 Filter::make('user_type')
-                    ->label('User Type')
+                    ->label('Tipe Pengguna')
                     ->form([
                         \Filament\Forms\Components\CheckboxList::make('types')
-                            ->label('Select User Types')
+                            ->label('Pilih Tipe Pengguna')
                             ->options([
-                                'student' => 'Student',
-                                'library_head' => 'Library Head',
-                                'staff' => 'Library Staff',
+                                'siswa' => 'Siswa',
+                                'ketua_perpustakaan' => 'Ketua Perpustakaan',
+                                'petugas' => 'Petugas Perpustakaan',
                             ])
                             ->columns(3),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when($data['types'], function (Builder $query, array $types) {
-                            $query->whereHas('userDetails', function (Builder $query) use ($types) {
-                                if (in_array('student', $types)) {
-                                    $query->orWhere(function (Builder $q) {
-                                        $q->whereNotNull('nis')->orWhereNotNull('nisn');
-                                    });
-                                }
-                                if (in_array('library_head', $types)) {
-                                    $query->orWhereHas('user', function (Builder $q) {
-                                        $q->where('email', 'admin@testing.com');
-                                    });
-                                }
-                                if (in_array('staff', $types)) {
-                                    $query->orWhere(function (Builder $q) {
-                                        $q->whereNull('nis')
-                                            ->whereNull('nisn')
-                                            ->whereNotNull('join_date')
-                                            ->whereHas('user', function (Builder $u) {
-                                                $u->where('email', '!=', 'admin@testing.com');
-                                            });
-                                    });
-                                }
+                            $query->whereHas('roles', function (Builder $query) use ($types) {
+                                $query->whereIn('name', $types);
                             });
                         });
                     })
@@ -171,29 +176,34 @@ class UsersTable
                             return null;
                         }
 
-                        return 'User Types: '.implode(', ', $data['types']);
+                        return 'Jenis Pengguna: '.implode(', ', $data['types']);
                     }),
 
-                // Membership Status Filter
+                // Membership Status Filter (Only show if UserDetail table exists)
                 SelectFilter::make('membership_status')
-                    ->label('Membership Status')
+                    ->label('Status Keanggotaan')
                     ->options([
-                        'active' => 'Active',
-                        'suspended' => 'Suspended',
-                        'expired' => 'Expired',
+                        'active' => 'Aktif',
+                        'suspended' => 'Ditangguhkan',
+                        'expired' => 'Kadaluarsa',
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when($data['value'], function (Builder $query, string $value) {
-                            $query->whereHas('userDetails', function (Builder $query) use ($value) {
-                                $query->where('membership_status', $value);
-                            });
+                            try {
+                                $query->whereHas('UserDetail', function (Builder $query) use ($value) {
+                                    $query->where('membership_status', $value);
+                                });
+                            } catch (\Exception $e) {
+                                // Skip filter if UserDetail doesn't exist
+                                return $query;
+                            }
                         });
                     })
-                    ->indicator('Membership'),
+                    ->indicator('Keanggotaan'),
 
                 // Email Verification Filter
                 Filter::make('verified')
-                    ->label('Email Verification')
+                    ->label('Verifikasi Email')
                     ->query(fn (Builder $query): Builder => $query->whereNotNull('email_verified_at'))
                     ->toggle(),
 
@@ -215,16 +225,18 @@ class UsersTable
 
                 // Manage Permissions Action
                 Action::make('manage_permissions')
-                    ->label('Permissions')
+                    ->label('Izin Akses')
                     ->icon('heroicon-o-shield-check')
                     ->color('warning')
-                    ->visible(fn (): bool => auth()->user()->can('role_update'))
-                    ->url(fn ($record): string => route('filament.admin.resources.roles.edit', $record->roles->first()))
+                    ->visible(fn ($record): bool => auth()->user()->can('role_update') &&
+                    $record->roles()->exists()
+                    )
+                    ->url(fn ($record): string => route('filament.admin.resources.shield.roles.edit', ['record' => $record->roles->first()->id]))
                     ->openUrlInNewTab(),
 
                 // Reset Password Action
                 Action::make('reset_password')
-                    ->label('Reset Password')
+                    ->label('Reset Kata Sandi')
                     ->icon('heroicon-o-key')
                     ->color('danger')
                     ->visible(fn (): bool => auth()->user()->can('user_update'))
@@ -233,8 +245,8 @@ class UsersTable
                         // This would typically trigger a password reset email
                         // For now, we'll just show a success message
                         \Filament\Notifications\Notification::make()
-                            ->title('Password Reset Email Sent')
-                            ->body("A password reset link has been sent to {$record->email}")
+                            ->title('Email Reset Kata Sandi Terkirim')
+                            ->body("Tautan reset kata sandi telah dikirim ke {$record->email}")
                             ->success()
                             ->send();
                     }),
@@ -249,11 +261,11 @@ class UsersTable
                         ->visible(fn (): bool => auth()->user()->can('user_delete')),
                 ]),
             ])
-            ->emptyStateHeading('No users found')
-            ->emptyStateDescription('Create your first user to get started.')
-            ->emptyStateActions([
-                \Filament\Tables\Actions\CreateAction::make()
-                    ->visible(fn (): bool => auth()->user()->can('user_create')),
-            ]);
+            ->emptyStateHeading('Tidak ada pengguna ditemukan')
+            ->emptyStateDescription('Buat pengguna pertama Anda untuk memulai.');
+        // ->emptyStateActions([
+        //     \Filament\Actions\CreateAction::make()
+        //         ->visible(fn (): bool => auth()->user()->can('user_create')),
+        // ])
     }
 }

@@ -3,17 +3,17 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\UserDetails;
+use App\Models\UserDetail;
 use Illuminate\Database\Seeder;
 
 /**
- * Library UserDetails Seeder
+ * Library UserDetail Seeder
  *
  * This seeder creates sample user details for the library information system.
  * It works with the existing user_details table structure and creates realistic
  * data for students, library head, and staff members.
  */
-class LibraryUserDetailsSeeder extends Seeder
+class LibraryUserDetailSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -22,8 +22,8 @@ class LibraryUserDetailsSeeder extends Seeder
     {
         // Create library head user details
         $libraryHead = User::where('email', 'admin@testing.com')->first();
-        if ($libraryHead && ! $libraryHead->userDetails) {
-            UserDetails::create([
+        if ($libraryHead && ! $libraryHead->UserDetail) {
+            UserDetail::create([
                 'user_id' => $libraryHead->id,
                 'nik' => '1234567890123456',
                 'address' => '123 Library Street, Book City, BC 12345',
@@ -64,8 +64,8 @@ class LibraryUserDetailsSeeder extends Seeder
                 ]
             );
 
-            if (! $user->userDetails) {
-                UserDetails::create([
+            if (! $user->UserDetail) {
+                UserDetail::create([
                     'user_id' => $user->id,
                     'nik' => '320101'.str_pad($index + 1, 12, '0', STR_PAD_LEFT),
                     'nis' => $data['nis'],
@@ -100,8 +100,8 @@ class LibraryUserDetailsSeeder extends Seeder
                 ]
             );
 
-            if (! $user->userDetails) {
-                UserDetails::create([
+            if (! $user->UserDetail) {
+                UserDetail::create([
                     'user_id' => $user->id,
                     'nik' => '320102'.str_pad($index + 100, 12, '0', STR_PAD_LEFT),
                     'address' => fake()->address(),

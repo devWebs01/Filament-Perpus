@@ -3,19 +3,19 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\UserDetails;
+use App\Models\UserDetail;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 /**
- * UserDetailsSeeder
+ * UserDetailSeeder
  *
  * This seeder creates sample user details for different types of library users:
  * - Students: Regular library users with student IDs and class information
  * - Library Head: Administrator with highest privileges
  * - Staff: Library employees with various positions
  */
-class UserDetailsSeeder extends Seeder
+class UserDetailSeeder extends Seeder
 {
     use WithoutModelEvents;
 
@@ -27,7 +27,7 @@ class UserDetailsSeeder extends Seeder
         // Create user details for the admin user
         $adminUser = User::where('email', 'admin@testing.com')->first();
         if ($adminUser) {
-            UserDetails::create([
+            UserDetail::create([
                 'user_id' => $adminUser->id,
                 'user_type' => 'library_head',
                 'phone_number' => '+6281234567890',
@@ -53,7 +53,7 @@ class UserDetailsSeeder extends Seeder
         // Create sample student users with details
         $students = User::factory(15)->create();
         foreach ($students as $index => $student) {
-            UserDetails::factory()->student()->create([
+            UserDetail::factory()->student()->create([
                 'user_id' => $student->id,
                 'membership_number' => 'LIB'.str_pad($index + 1001, 6, '0', STR_PAD_LEFT),
             ]);
@@ -64,7 +64,7 @@ class UserDetailsSeeder extends Seeder
         $positions = ['Library Assistant', 'Circulation Staff', 'Cataloging Staff'];
 
         foreach ($staffUsers as $index => $staff) {
-            UserDetails::factory()->staff()->create([
+            UserDetail::factory()->staff()->create([
                 'user_id' => $staff->id,
                 'position' => $positions[$index],
                 'employee_id' => 'EMP'.str_pad($index + 2, 6, '0', STR_PAD_LEFT),
@@ -75,7 +75,7 @@ class UserDetailsSeeder extends Seeder
         // Create some users with expired memberships
         $expiredUsers = User::factory(3)->create();
         foreach ($expiredUsers as $index => $user) {
-            UserDetails::factory()->student()->expiredMembership()->create([
+            UserDetail::factory()->student()->expiredMembership()->create([
                 'user_id' => $user->id,
                 'membership_number' => 'LIB'.str_pad($index + 3001, 6, '0', STR_PAD_LEFT),
             ]);
@@ -84,13 +84,13 @@ class UserDetailsSeeder extends Seeder
         // Create some users with suspended memberships
         $suspendedUsers = User::factory(2)->create();
         foreach ($suspendedUsers as $index => $user) {
-            UserDetails::factory()->student()->suspendedMembership()->create([
+            UserDetail::factory()->student()->suspendedMembership()->create([
                 'user_id' => $user->id,
                 'membership_number' => 'LIB'.str_pad($index + 4001, 6, '0', STR_PAD_LEFT),
             ]);
         }
 
-        $this->command->info('✅ UserDetails seeder completed successfully!');
+        $this->command->info('✅ UserDetail seeder completed successfully!');
         $this->command->info('📊 Created user details for:');
         $this->command->info('   - 1 Library Head (admin user)');
         $this->command->info('   - 15 Students');

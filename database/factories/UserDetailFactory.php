@@ -6,9 +6,9 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\UserDetails>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\UserDetail>
  */
-class UserDetailsFactory extends Factory
+class UserDetailFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -19,21 +19,21 @@ class UserDetailsFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'user_type' => $this->faker->randomElement(['student', 'library_head', 'staff']),
+            'nik' => $this->faker->numerify('##################'), // 16-digit national ID
+            'nis' => $this->faker->optional(0.8)->numerify('STU########'), // Student ID
+            'nisn' => $this->faker->optional(0.8)->numerify('##########'), // National Student ID (10 digits)
+            'class' => $this->faker->optional(0.7)->randomElement(['12A', '12B', '11A', '11B', '10A', '10B']),
+            'major' => $this->faker->optional(0.7)->randomElement(['Science', 'Social', 'Language', 'Computer', 'Arts']),
+            'semester' => $this->faker->optional(0.7)->numberBetween(1, 6),
+            'address' => $this->faker->address(),
             'phone_number' => $this->faker->phoneNumber(),
             'birth_date' => $this->faker->date('Y-m-d', '-16 years'), // At least 16 years old
-            'gender' => $this->faker->randomElement(['male', 'female', 'other']),
-            'address' => $this->faker->address(),
-            'membership_number' => 'LIB'.$this->faker->unique()->numerify('######'),
-            'membership_date' => $this->faker->date('Y-m-d', '-2 years'),
+            'birth_place' => $this->faker->city(),
+            'gender' => $this->faker->randomElement(['L', 'P']), // Indonesian format
+            'religion' => $this->faker->randomElement(['Islam', 'Christian', 'Catholic', 'Hindu', 'Buddhist']),
+            'join_date' => $this->faker->optional(0.6)->date('Y-m-d', '-5 years'), // For staff
             'membership_status' => 'active',
-            'membership_expiry' => $this->faker->date('Y-m-d', '+1 year'),
-            'notes' => $this->faker->optional(0.3)->sentence(),
-            'preferences' => [
-                'email_notifications' => $this->faker->boolean(80),
-                'sms_notifications' => $this->faker->boolean(30),
-                'language' => $this->faker->randomElement(['en', 'id']),
-            ],
+            'profile_photo' => $this->faker->optional(0.3)->imageUrl(800, 600, 'people'),
         ];
     }
 
@@ -43,10 +43,11 @@ class UserDetailsFactory extends Factory
     public function student(): static
     {
         return $this->state(fn (array $attributes) => [
-            'user_type' => 'student',
-            'student_id' => 'STU'.$this->faker->unique()->numerify('######'),
+            'nis' => 'STU'.$this->faker->unique()->numerify('########'),
+            'nisn' => $this->faker->unique()->numerify('##########'),
             'class' => $this->faker->randomElement(['10A', '10B', '11A', '11B', '12A', '12B']),
             'major' => $this->faker->randomElement(['Science', 'Social', 'Language', 'Computer']),
+            'semester' => $this->faker->numberBetween(1, 6),
         ]);
     }
 
@@ -56,10 +57,8 @@ class UserDetailsFactory extends Factory
     public function libraryHead(): static
     {
         return $this->state(fn (array $attributes) => [
-            'user_type' => 'library_head',
-            'employee_id' => 'EMP'.$this->faker->unique()->numerify('######'),
-            'position' => 'Head Librarian',
-            'hire_date' => $this->faker->date('Y-m-d', '-5 years'),
+            'join_date' => $this->faker->date('Y-m-d', '-5 years'),
+            'membership_status' => 'active',
         ]);
     }
 
@@ -69,10 +68,8 @@ class UserDetailsFactory extends Factory
     public function staff(): static
     {
         return $this->state(fn (array $attributes) => [
-            'user_type' => 'staff',
-            'employee_id' => 'EMP'.$this->faker->unique()->numerify('######'),
-            'position' => $this->faker->randomElement(['Library Assistant', 'Circulation Staff', 'Cataloging Staff']),
-            'hire_date' => $this->faker->date('Y-m-d', '-3 years'),
+            'join_date' => $this->faker->date('Y-m-d', '-3 years'),
+            'membership_status' => 'active',
         ]);
     }
 
@@ -83,7 +80,6 @@ class UserDetailsFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'membership_status' => 'expired',
-            'membership_expiry' => $this->faker->date('Y-m-d', '-1 month'),
         ]);
     }
 

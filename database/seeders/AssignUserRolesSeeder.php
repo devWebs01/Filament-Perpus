@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\UserDetails;
+use App\Models\UserDetail;
 use Illuminate\Database\Seeder;
 
 /**
@@ -24,14 +24,14 @@ class AssignUserRolesSeeder extends Seeder
         $assignedCount = 0;
 
         // Get all users with their details
-        $usersWithDetails = User::with('userDetails')->get();
+        $usersWithDetails = User::with('UserDetail')->get();
 
         foreach ($usersWithDetails as $user) {
-            if (! $user->userDetails) {
+            if (! $user->UserDetail) {
                 continue;
             }
 
-            $role = $this->determineUserRole($user->userDetails);
+            $role = $this->determineUserRole($user->UserDetail);
 
             if ($role && ! $user->hasRole($role)) {
                 $user->assignRole($role);
@@ -47,20 +47,20 @@ class AssignUserRolesSeeder extends Seeder
     /**
      * Determine the appropriate role for a user based on their details
      */
-    private function determineUserRole(UserDetails $userDetails): ?string
+    private function determineUserRole(UserDetail $UserDetail): ?string
     {
         // Library Head - Admin email or special conditions
-        if ($userDetails->isLibraryHead()) {
+        if ($UserDetail->isLibraryHead()) {
             return 'library_head';
         }
 
         // Staff - Non-students with join dates
-        if ($userDetails->isStaff()) {
+        if ($UserDetail->isStaff()) {
             return 'staff';
         }
 
         // Students - Users with student IDs
-        if ($userDetails->isStudent()) {
+        if ($UserDetail->isStudent()) {
             return 'student';
         }
 

@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
-use App\Models\UserDetails;
+use App\Models\UserDetail;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
@@ -41,23 +41,23 @@ class EditUser extends EditRecord
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
         // Extract user details data and roles
-        $userDetailsData = $data['userDetails'] ?? [];
+        $userDetailData = $data['userDetail'] ?? [];
         $roles = $data['roles'] ?? [];
 
         // Remove user details and roles from user data
-        unset($data['userDetails'], $data['roles']);
+        unset($data['userDetail'], $data['roles']);
 
         // Update the user
         $record->update($data);
 
         // Update or create user details
-        if (! empty($userDetailsData)) {
-            $userDetails = $record->userDetails;
-            if ($userDetails) {
-                $userDetails->update($userDetailsData);
+        if (! empty($userDetailData)) {
+            $userDetail = $record->userDetail;
+            if ($userDetail) {
+                $userDetail->update($userDetailData);
             } else {
-                $userDetailsData['user_id'] = $record->id;
-                UserDetails::create($userDetailsData);
+                $userDetailData['user_id'] = $record->id;
+                UserDetail::create($userDetailData);
             }
         }
 
@@ -79,8 +79,8 @@ class EditUser extends EditRecord
         $record = $this->getRecord();
 
         // Add user details data to form
-        if ($record->userDetails) {
-            $data['userDetails'] = $record->userDetails->toArray();
+        if ($record->userDetail) {
+            $data['userDetail'] = $record->userDetail->toArray();
         }
 
         // Add user roles to form

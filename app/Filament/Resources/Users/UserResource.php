@@ -22,6 +22,14 @@ class UserResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
     /**
+     * The navigation label for the resource.
+     */
+    public static function getNavigationLabel(): string
+    {
+        return 'Pengguna';
+    }
+
+    /**
      * The permissions required to access this resource.
      */
     public static function getPermissionPrefixes(): array
@@ -37,6 +45,30 @@ class UserResource extends Resource
     public static function canAccess(): bool
     {
         return auth()->user()->can('user_access');
+    }
+
+    /**
+     * Get the title for the resource page.
+     */
+    public static function getTitle(): string
+    {
+        return 'Pengguna';
+    }
+
+    /**
+     * Get the plural model label for the resource.
+     */
+    public static function getPluralModelLabel(): string
+    {
+        return 'Pengguna';
+    }
+
+    /**
+     * Get the model label for the resource.
+     */
+    public static function getModelLabel(): string
+    {
+        return 'Pengguna';
     }
 
     public static function form(Schema $schema): Schema

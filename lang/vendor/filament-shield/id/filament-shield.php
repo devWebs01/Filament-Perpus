@@ -8,7 +8,7 @@ return [
     */
 
     'column.name' => 'Nama',
-    'column.guard_name' => 'Nama Penjaga',
+    'column.guard_name' => 'Nama Peran',
     'column.roles' => 'Peran',
     'column.permissions' => 'Izin',
     'column.updated_at' => 'Dirubah',
@@ -20,7 +20,7 @@ return [
     */
 
     'field.name' => 'Nama',
-    'field.guard_name' => 'Nama Penjaga',
+    'field.guard_name' => 'Nama Peran',
     'field.permissions' => 'Izin',
     'field.select_all.name' => 'Pilih Semua',
     'field.select_all.message' => 'Aktifkan semua izin yang <span class="text-primary font-medium">Tersedia</span> untuk Peran ini.',
