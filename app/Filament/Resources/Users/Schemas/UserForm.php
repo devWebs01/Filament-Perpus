@@ -46,16 +46,16 @@ class UserForm
                         TextInput::make('password')
                             ->label('Kata Sandi')
                             ->password()
-                            ->dehydrateStateUsing(fn ($state) => $state ? Hash::make($state) : null)
-                            ->dehydrated(fn ($state) => filled($state))
-                            ->required(fn (string $context): bool => $context === 'create')
-                            ->placeholder(fn (string $context): string => $context === 'edit' ? 'Kosongkan untuk tetap menggunakan kata sandi saat ini' : '')
+                            ->dehydrateStateUsing(fn($state) => $state ? Hash::make($state) : null)
+                            ->dehydrated(fn($state) => filled($state))
+                            ->required(fn(string $context): bool => $context === 'create')
+                            ->placeholder(fn(string $context): string => $context === 'edit' ? 'Kosongkan untuk tetap menggunakan kata sandi saat ini' : '')
                             ->columnSpanFull(),
 
                         TextInput::make('password_confirmation')
                             ->label('Ulangi Kata Sandi')
                             ->password()
-                            ->required(fn (string $context): bool => $context === 'create')
+                            ->required(fn(string $context): bool => $context === 'create')
                             ->dehydrated(false)
                             ->same('password')
                             ->placeholder('Masukkan kembali kata sandi untuk konfirmasi')
@@ -80,10 +80,10 @@ class UserForm
                             ->relationship('roles', 'name')
                             ->options(function () {
                                 $availableRoles = [
-                                    'super_admin' => '🔴 Super Admin - Akses penuh ke sistem',
-                                    'ketua_perpustakaan' => '🟠 Ketua Perpustakaan - Kontrol administratif penuh',
-                                    'petugas' => '🔵 Petugas Perpustakaan - Pengelolaan operasional harian',
-                                    'siswa' => '🟢 Siswa - Akses sumber daya perpustakaan',
+                                    'super_admin' => 'Super Admin - Akses penuh ke sistem',
+                                    'ketua_perpustakaan' => 'Ketua Perpustakaan - Kontrol administratif penuh',
+                                    'petugas' => 'Petugas Perpustakaan - Pengelolaan operasional harian',
+                                    'siswa' => 'Siswa - Akses sumber daya perpustakaan',
                                 ];
 
                                 // Only show roles that current user can assign
