@@ -12,6 +12,7 @@
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "stichoza/google-translate-php": "^5.3",
+        "tonegabes/filament-better-options": "^1.2",
         "wildside/userstamps": "^3.1"
     },
     "require-dev": {

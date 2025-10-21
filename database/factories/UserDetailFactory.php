@@ -19,7 +19,7 @@ class UserDetailFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'nik' => $this->faker->numerify('##################'), // 16-digit national ID
+            'nik' => $this->faker->optional(0.7)->numerify('##################'), // 16-digit national ID (optional)
             'nis' => $this->faker->optional(0.8)->numerify('STU########'), // Student ID
             'nisn' => $this->faker->optional(0.8)->numerify('##########'), // National Student ID (10 digits)
             'class' => $this->faker->optional(0.7)->randomElement(['12A', '12B', '11A', '11B', '10A', '10B']),

@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
-use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -10,7 +9,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\HtmlString;
+use ToneGabes\BetterOptions\Forms\Components\CheckboxCards;
 
 /**
  * User Form Schema
@@ -50,7 +49,7 @@ class UserForm
                             ->dehydrateStateUsing(fn ($state) => $state ? Hash::make($state) : null)
                             ->dehydrated(fn ($state) => filled($state))
                             ->required(fn (string $context): bool => $context === 'create')
-                            ->helperText(fn (string $context): string => $context === 'edit' ? 'Kosongkan untuk tetap menggunakan kata sandi saat ini' : '')
+                            ->placeholder(fn (string $context): string => $context === 'edit' ? 'Kosongkan untuk tetap menggunakan kata sandi saat ini' : '')
                             ->columnSpanFull(),
 
                         TextInput::make('password_confirmation')
@@ -59,12 +58,12 @@ class UserForm
                             ->required(fn (string $context): bool => $context === 'create')
                             ->dehydrated(false)
                             ->same('password')
-                            ->helperText('Masukkan kembali kata sandi untuk konfirmasi')
+                            ->placeholder('Masukkan kembali kata sandi untuk konfirmasi')
                             ->columnSpanFull(),
 
                         DateTimePicker::make('email_verified_at')
                             ->label('Email Terverifikasi Pada')
-                            ->helperText('Kapan email diverifikasi. Kosongkan untuk belum diverifikasi.')
+                            ->placeholder('Kapan email diverifikasi. Kosongkan untuk belum diverifikasi.')
                             ->columnSpanFull()
                             ->default(now())
                             ->hidden(),
@@ -76,7 +75,7 @@ class UserForm
                     ->description('Tetapkan peran pengguna dan izin akses ke sistem')
                     ->icon('heroicon-o-shield-check')
                     ->schema([
-                        CheckboxList::make('roles')
+                        CheckboxCards::make('roles')
                             ->label('Tetapkan Peran')
                             ->relationship('roles', 'name')
                             ->options(function () {
@@ -94,16 +93,25 @@ class UserForm
 
                                 return $availableRoles;
                             })
+                            ->descriptions(function () {
+                                $availableRoles = [
+                                    'super_admin' => 'Akses penuh ke semua fitur sistem',
+                                    'ketua_perpustakaan' => 'Kontrol administratif, kelola pengguna & laporan',
+                                    'petugas' => 'Kelola buku, transaksi peminjaman/pengembalian',
+                                    'siswa' => 'Akses katalog buku dan lihat transaksi pribadi',
+                                ];
+
+                                // Only show roles that current user can assign
+                                if (! auth()->user()->hasRole('super_admin')) {
+                                    unset($availableRoles['super_admin']);
+                                }
+
+                                return $availableRoles;
+                            })
                             ->bulkToggleable()
-                            ->helperText(new HtmlString('
-                                <strong>Informasi Peran & Izin Akses:</strong><br>
-                                • <strong>🔴 Super Admin:</strong> Akses penuh ke semua fitur sistem<br>
-                                • <strong>🟠 Ketua Perpustakaan:</strong> Kontrol administratif, kelola pengguna & laporan<br>
-                                • <strong>🔵 Petugas Perpustakaan:</strong> Kelola buku, transaksi peminjaman/pengembalian<br>
-                                • <strong>🟢 Siswa:</strong> Akses katalog buku dan lihat transaksi pribadi
-                            '))
                             ->required()
-                            ->columns(1),
+                            ->columns(1)
+                            ->icons(['heroicon-o-user', 'heroicon-o-shield-check', 'heroicon-o-cog', 'heroicon-o-academic-cap']),
                     ])
                     ->columns(1),
 
@@ -115,12 +123,14 @@ class UserForm
                         TextInput::make('UserDetail.phone_number')
                             ->label('Nomor Telepon')
                             ->tel()
+                            ->numeric()
                             ->maxLength(20),
 
                         TextInput::make('UserDetail.nik')
                             ->label('NIK (Nomor Induk Kependudukan)')
                             ->maxLength(16)
-                            ->helperText('Nomor identitas nasional 16 digit'),
+                            ->numeric()
+                            ->placeholder('Opsional'),
 
                         TextInput::make('UserDetail.birth_place')
                             ->label('Tempat Lahir')
@@ -150,12 +160,14 @@ class UserForm
                         TextInput::make('UserDetail.nis')
                             ->label('NIS (Nomor Induk Siswa)')
                             ->maxLength(20)
-                            ->helperText('Nomor identitas siswa'),
+                            ->numeric()
+                            ->placeholder('Nomor identitas siswa'),
 
                         TextInput::make('UserDetail.nisn')
                             ->label('NISN (Nomor Induk Siswa Nasional)')
                             ->maxLength(10)
-                            ->helperText('Nomor identitas siswa nasional 10 digit'),
+                            ->numeric()
+                            ->placeholder('NISN 10 digit'),
 
                         TextInput::make('UserDetail.class')
                             ->label('Kelas')
