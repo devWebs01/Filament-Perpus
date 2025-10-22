@@ -31,8 +31,8 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'nav.group' => 'Pelindung',
-    'nav.role.label' => 'Peran',
+    'nav.group' => 'Managemen Akun',
+    'nav.role.label' => 'Peran & Hak Akses',
     'nav.role.icon' => 'heroicon-o-shield-check',
     'resource.label.role' => 'Peran',
     'resource.label.roles' => 'Peran',

@@ -22,12 +22,21 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class StatusResource extends Resource
 {
     protected static ?string $model = Status::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|UnitEnum|null $navigationGroup = 'Managemen Transaksi';
+
+    protected static ?string $navigationLabel = 'Status Peminjaman';
+
+    protected static ?string $modelLabel = 'Status Peminjaman';
+
+    protected static ?string $pluralModelLabel = 'Status Peminjaman';
 
     protected static ?string $recordTitleAttribute = 'name';
 

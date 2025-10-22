@@ -23,13 +23,13 @@ class TransactionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Manajemen Data';
+    protected static string|UnitEnum|null $navigationGroup = 'Managemen Transaksi';
 
-    protected static ?string $navigationLabel = 'Transaksi';
+    protected static ?string $navigationLabel = 'Peminjaman & Pengembalian';
 
-    protected static ?string $modelLabel = 'Transaksi';
+    protected static ?string $modelLabel = 'Peminjaman & Pengembalian';
 
-    protected static ?string $pluralModelLabel = 'Transaksi';
+    protected static ?string $pluralModelLabel = 'Peminjaman & Pengembalian';
 
     protected static ?string $recordTitleAttribute = 'code';
 
