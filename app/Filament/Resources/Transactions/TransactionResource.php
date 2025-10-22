@@ -66,4 +66,20 @@ class TransactionResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+    /**
+     * Get the redirect URL after creating a new transaction
+     */
+    public static function getRedirectUrlAfterCreate(): string
+    {
+        return static::getUrl('index');
+    }
+
+    /**
+     * Get the redirect URL after editing a transaction
+     */
+    public static function getRedirectUrlAfterEdit(): string
+    {
+        return static::getUrl('index');
+    }
 }

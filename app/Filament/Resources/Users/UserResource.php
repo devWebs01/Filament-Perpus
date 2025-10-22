@@ -21,13 +21,13 @@ class UserResource extends Resource
     protected static ?string $model = User::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-users';
+
     protected static string|UnitEnum|null $navigationGroup = 'Managemen Akun';
 
     /**
      * The navigation label for the resource.
      */
     protected static ?string $navigationLabel = 'Pengguna';
-
 
     /**
      * The permissions required to access this resource.
@@ -80,6 +80,61 @@ class UserResource extends Resource
         return parent::getRecordRouteBindingEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->with(['userDetail', 'roles']); // Eager load relationships
+    }
+
+    /**
+     * Handle the creation of a new user with roles
+     */
+    public static function create(array $data): User
+    {
+        $roles = $data['roles'] ?? [];
+        unset($data['roles']);
+
+        $user = new User($data);
+        $user->save();
+
+        if (! empty($roles)) {
+            $user->syncRoles($roles);
+        }
+
+        return $user;
+    }
+
+    /**
+     * Handle the update of an existing user with roles
+     */
+    public static function update(User $record, array $data): User
+    {
+        $roles = $data['roles'] ?? [];
+        unset($data['roles']);
+
+        $record->fill($data);
+        $record->save();
+
+        if (! empty($roles)) {
+            $record->syncRoles($roles);
+        } else {
+            $record->syncRoles([]);
+        }
+
+        return $record;
+    }
+
+    /**
+     * Get the redirect URL after creating a new user
+     */
+    public static function getRedirectUrlAfterCreate(): string
+    {
+        return static::getUrl('index');
+    }
+
+    /**
+     * Get the redirect URL after editing a user
+     */
+    public static function getRedirectUrlAfterEdit(): string
+    {
+        return static::getUrl('index');
     }
 }

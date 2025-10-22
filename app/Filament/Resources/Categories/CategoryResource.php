@@ -98,6 +98,7 @@ class CategoryResource extends Resource
             ->filters([
                 TrashedFilter::make(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->recordActions([
                 EditAction::make()->button(),
                 DeleteAction::make()->button(),
@@ -126,5 +127,21 @@ class CategoryResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    /**
+     * Get the redirect URL after creating a new category
+     */
+    public static function getRedirectUrlAfterCreate(): string
+    {
+        return static::getUrl('index');
+    }
+
+    /**
+     * Get the redirect URL after editing a category
+     */
+    public static function getRedirectUrlAfterEdit(): string
+    {
+        return static::getUrl('index');
     }
 }

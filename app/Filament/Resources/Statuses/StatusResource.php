@@ -103,6 +103,7 @@ class StatusResource extends Resource
             ->filters([
                 TrashedFilter::make(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->recordActions([
                 EditAction::make()->button(),
                 DeleteAction::make()->button(),
@@ -131,5 +132,21 @@ class StatusResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    /**
+     * Get the redirect URL after creating a new status
+     */
+    public static function getRedirectUrlAfterCreate(): string
+    {
+        return static::getUrl('index');
+    }
+
+    /**
+     * Get the redirect URL after editing a status
+     */
+    public static function getRedirectUrlAfterEdit(): string
+    {
+        return static::getUrl('index');
     }
 }

@@ -111,7 +111,19 @@ class UserForm
                             ->bulkToggleable()
                             ->required()
                             ->columns(1)
-                            ->icons(['heroicon-o-user', 'heroicon-o-shield-check', 'heroicon-o-cog', 'heroicon-o-academic-cap']),
+                            ->icons(['heroicon-o-user', 'heroicon-o-shield-check', 'heroicon-o-cog', 'heroicon-o-academic-cap'])
+                            ->reactive()
+                            ->dehydrateStateUsing(fn ($state) => is_array($state) ? $state : [])
+                            ->afterStateUpdated(function ($state, $record) {
+                                if ($record && $record->exists) {
+                                    $record->syncRoles($state);
+                                }
+                            })
+                            ->saveRelationshipsUsing(function ($record, $state) {
+                                if ($record && $record->exists) {
+                                    $record->syncRoles($state);
+                                }
+                            }),
                     ])
                     ->columns(1),
 

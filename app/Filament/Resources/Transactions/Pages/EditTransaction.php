@@ -20,4 +20,12 @@ class EditTransaction extends EditRecord
             RestoreAction::make(),
         ];
     }
+
+    /**
+     * Get the redirect URL after saving
+     */
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

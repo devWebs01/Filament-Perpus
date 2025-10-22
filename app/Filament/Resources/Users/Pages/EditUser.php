@@ -9,6 +9,7 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Edit User Page
@@ -37,12 +38,26 @@ class EditUser extends EditRecord
      */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        // Extract user details data and roles
-        $userDetailData = $data['userDetail'] ?? [];
+        // Debug: Log incoming data
+        Log::info('Edit User handleRecordUpdate - Raw Data:', [
+            'data_keys' => array_keys($data),
+            'roles_raw' => $data['roles'] ?? [],
+            'UserDetail_keys' => array_keys($data['UserDetail'] ?? []),
+            'record_id' => $record->id,
+        ]);
+
+        // Extract user details data and roles (handle both UserDetail and userDetail keys)
+        $userDetailData = $data['UserDetail'] ?? $data['userDetail'] ?? [];
         $roles = $data['roles'] ?? [];
 
+        Log::info('Edit User handleRecordUpdate - Extracted Data:', [
+            'userDetail_count' => count($userDetailData),
+            'roles_count' => count($roles),
+            'roles_values' => $roles,
+        ]);
+
         // Remove user details and roles from user data
-        unset($data['userDetail'], $data['roles']);
+        unset($data['UserDetail'], $data['userDetail'], $data['roles']);
 
         // Update the user
         $record->update($data);
@@ -58,12 +73,8 @@ class EditUser extends EditRecord
             }
         }
 
-        // Update user roles
-        if (! empty($roles)) {
-            $record->syncRoles($roles);
-        } else {
-            $record->syncRoles([]);
-        }
+        // Note: Roles are automatically synced by Filament's CheckboxCards component
+        // We don't need manual syncRoles() here as it causes conflicts
 
         return $record;
     }
@@ -75,14 +86,62 @@ class EditUser extends EditRecord
     {
         $record = $this->getRecord();
 
-        // Add user details data to form
+        // Ensure relationships are loaded
+        $record->load(['userDetail', 'roles']);
+
+        // Add user details data to form with proper key mapping
         if ($record->userDetail) {
-            $data['userDetail'] = $record->userDetail->toArray();
+            $userDetailData = $record->userDetail->toArray();
+            // Transform to match form field naming convention (UserDetail.*)
+            $data['UserDetail'] = $userDetailData;
+        } else {
+            $data['UserDetail'] = [];
         }
 
         // Add user roles to form
-        $data['roles'] = $record->roles->pluck('name')->toArray();
+        $rolesArray = $record->roles->pluck('name')->toArray();
+        $data['roles'] = $rolesArray;
+
+        // Debug: Log what we're setting
+        Log::info('mutateFormDataBeforeFill - Setting data:', [
+            'roles' => $rolesArray,
+            'userDetail' => $data['UserDetail'],
+            'record_id' => $record->id,
+        ]);
 
         return $data;
+    }
+
+    /**
+     * Handle form mount to ensure data is properly loaded
+     */
+    public function mount(int|string $record): void
+    {
+        parent::mount($record);
+
+        // Refresh the record with relationships
+        $this->record->load(['userDetail', 'roles']);
+
+        // Ensure roles data is properly set as array for CheckboxCards
+        $rolesArray = $this->record->roles->pluck('name')->toArray();
+        $this->data['roles'] = $rolesArray;
+
+        // Ensure UserDetail data is properly set
+        $this->data['UserDetail'] = $this->record->userDetail?->toArray() ?? [];
+
+        // Debug: Log the data to verify
+        Log::info('Edit User Mount Data:', [
+            'roles' => $this->data['roles'],
+            'userDetail' => $this->data['UserDetail'],
+            'record_id' => $this->record->id,
+        ]);
+    }
+
+    /**
+     * Get the redirect URL after saving
+     */
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
     }
 }

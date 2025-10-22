@@ -220,15 +220,6 @@ class UsersTable
                 // Delete Action
                 DeleteAction::make()->button(),
 
-                // Manage Permissions Action
-                Action::make('manage_permissions')
-                    ->label('Izin Akses')
-                    ->icon('heroicon-o-shield-check')
-                    ->color('success')
-                    ->button()
-                    ->url(fn ($record): string => route('filament.admin.resources.shield.roles.edit', ['record' => $record->roles->first()->id]))
-                    ->openUrlInNewTab(),
-
                 // Reset Password Action
                 Action::make('reset_password')
                     ->label('Reset Kata Sandi')

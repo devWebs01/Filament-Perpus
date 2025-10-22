@@ -16,4 +16,12 @@ class EditBook extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+    /**
+     * Get the redirect URL after saving
+     */
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

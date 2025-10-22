@@ -56,4 +56,20 @@ class BookResource extends Resource
             'edit' => EditBook::route('/{record}/edit'),
         ];
     }
+
+    /**
+     * Get the redirect URL after creating a new book
+     */
+    public static function getRedirectUrlAfterCreate(): string
+    {
+        return static::getUrl('index');
+    }
+
+    /**
+     * Get the redirect URL after editing a book
+     */
+    public static function getRedirectUrlAfterEdit(): string
+    {
+        return static::getUrl('index');
+    }
 }
