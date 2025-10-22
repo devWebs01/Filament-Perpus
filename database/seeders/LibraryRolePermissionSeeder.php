@@ -36,6 +36,9 @@ class LibraryRolePermissionSeeder extends Seeder
         Role::query()->delete();
         Schema::enableForeignKeyConstraints();
 
+        // Clear cache again after deletion
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
         $this->command->info('🏛️  Membuat Role & Permission untuk Sistem Perpustakaan...');
 
         // Step 1: Create all permissions
@@ -62,76 +65,10 @@ class LibraryRolePermissionSeeder extends Seeder
         $this->command->info('📝 Membuat permissions...');
 
         $permissions = [
-            // Panel & Navigation
-            'panel_access' => 'Akses ke panel admin',
-            'dashboard_access' => 'Akses ke dashboard',
-
-            // User Management Permissions
-            'user_access' => 'Lihat daftar pengguna',
-            'user_create' => 'Tambah pengguna baru',
-            'user_read' => 'Lihat detail pengguna',
-            'user_update' => 'Edit data pengguna',
-            'user_delete' => 'Hapus pengguna',
-
-            // Role & Permission Management
-            'role_access' => 'Lihat daftar role',
-            'role_create' => 'Buat role baru',
-            'role_read' => 'Lihat detail role',
-            'role_update' => 'Edit role',
-            'role_delete' => 'Hapus role',
-            'permission_access' => 'Lihat daftar permission',
-            'permission_read' => 'Lihat detail permission',
-
-            // Book Management (Manajemen Buku)
-            'book_access' => 'Lihat daftar buku',
-            'book_create' => 'Tambah buku baru',
-            'book_read' => 'Lihat detail buku',
-            'book_update' => 'Edit data buku',
-            'book_delete' => 'Hapus buku',
-
-            // Category Management (Manajemen Kategori)
-            'category_access' => 'Lihat daftar kategori',
-            'category_create' => 'Tambah kategori baru',
-            'category_read' => 'Lihat detail kategori',
-            'category_update' => 'Edit kategori',
-            'category_delete' => 'Hapus kategori',
-
-            // Transaction Management (Manajemen Transaksi)
-            'transaction_access' => 'Lihat daftar transaksi',
-            'transaction_create' => 'Buat transaksi baru',
-            'transaction_read' => 'Lihat detail transaksi',
-            'transaction_update' => 'Edit transaksi',
-            'transaction_delete' => 'Hapus transaksi',
-            'transaction_checkout' => 'Proses peminjaman buku',
-            'transaction_checkin' => 'Proses pengembalian buku',
-
-            // Status Management (Manajemen Status)
-            'status_access' => 'Lihat daftar status',
-            'status_read' => 'Lihat detail status',
-
-            // Penalty Management (Manajemen Denda)
-            'penalty_access' => 'Lihat daftar denda',
-            'penalty_create' => 'Buat denda baru',
-            'penalty_read' => 'Lihat detail denda',
-            'penalty_update' => 'Edit denda',
-            'penalty_delete' => 'Hapus denda',
-            'penalty_payment' => 'Proses pembayaran denda',
-
-            // Settings Management (Pengaturan Sistem)
-            'setting_access' => 'Lihat pengaturan sistem',
-            'setting_update' => 'Edit pengaturan sistem',
-
-            // Report & Analytics
-            'report_access' => 'Akses laporan',
-            'report_view' => 'Lihat laporan',
-            'report_export' => 'Export laporan',
-
-            // User Details Management
-            'user_details_access' => 'Lihat detail pengguna perpustakaan',
-            'user_details_create' => 'Buat detail pengguna',
-            'user_details_read' => 'Lihat detail pengguna',
-            'user_details_update' => 'Edit detail pengguna',
-            'user_details_delete' => 'Hapus detail pengguna',
+            // Simple permission structure
+            'admin_access' => 'Akses admin penuh - semua fitur',
+            'staff_access' => 'Akses staff - kelola buku dan transaksi',
+            'member_access' => 'Akses member - lihat katalog dan pinjam buku',
         ];
 
         foreach ($permissions as $name => $description) {
@@ -195,74 +132,26 @@ class LibraryRolePermissionSeeder extends Seeder
     {
         $this->command->info('🔐 Mengassign permissions ke role...');
 
-        $allPermissions = Permission::all();
+        // Get permission objects
+        $adminPermission = Permission::where('name', 'admin_access')->first();
+        $staffPermission = Permission::where('name', 'staff_access')->first();
+        $memberPermission = Permission::where('name', 'member_access')->first();
 
-        // Super Admin - Semua permissions
-        $roles['super_admin']->givePermissionTo($allPermissions);
-        $this->command->info('   ✅ Super Admin: Semua permissions ('.$allPermissions->count().')');
+        // Super Admin - Akses admin penuh
+        $roles['super_admin']->givePermissionTo($adminPermission);
+        $this->command->info('   ✅ Super Admin: admin_access');
 
-        // Ketua Perpustakaan - Hampir semua permissions kecuali role management
-        $ketuaPermissions = $allPermissions->filter(function ($permission) {
-            // Ketua tidak bisa menghapus role atau permission
-            return ! in_array($permission->name, [
-                'role_delete',
-                'permission_delete',
-            ]);
-        });
-        $roles['ketua_perpustakaan']->givePermissionTo($ketuaPermissions);
-        $this->command->info('   ✅ Ketua Perpustakaan: '.$ketuaPermissions->count().' permissions');
+        // Ketua Perpustakaan - Akses admin penuh
+        $roles['ketua_perpustakaan']->givePermissionTo($adminPermission);
+        $this->command->info('   ✅ Ketua Perpustakaan: admin_access');
 
-        // Petugas - Permissions operasional
-        $petugasPermissions = Permission::whereIn('name', [
-            'panel_access',
-            'dashboard_access',
-            'book_access',
-            'book_create',
-            'book_read',
-            'book_update',
-            'category_access',
-            'category_read',
-            'transaction_access',
-            'transaction_create',
-            'transaction_read',
-            'transaction_update',
-            'transaction_checkout',
-            'transaction_checkin',
-            'status_access',
-            'status_read',
-            'penalty_access',
-            'penalty_create',
-            'penalty_read',
-            'penalty_update',
-            'penalty_payment',
-            'user_details_access',
-            'user_details_read',
-            'user_details_update',
-            'report_access',
-            'report_view',
-        ])->get();
-        $roles['petugas']->givePermissionTo($petugasPermissions);
-        $this->command->info('   ✅ Petugas: '.$petugasPermissions->count().' permissions');
+        // Petugas - Akses staff
+        $roles['petugas']->givePermissionTo($staffPermission);
+        $this->command->info('   ✅ Petugas: staff_access');
 
-        // Siswa - Permissions terbatas untuk akses sumber daya
-        $siswaPermissions = Permission::whereIn('name', [
-            'panel_access',
-            'dashboard_access',
-            'book_access',
-            'book_read',
-            'category_access',
-            'category_read',
-            'transaction_access',
-            'transaction_read',
-            'status_access',
-            'status_read',
-            'penalty_access',
-            'penalty_read',
-            'user_details_access',
-            'user_details_read',
-        ])->get();
-        $roles['siswa']->givePermissionTo($siswaPermissions);
-        $this->command->info('   ✅ Siswa: '.$siswaPermissions->count().' permissions');
+        // Siswa - Akses member
+        $roles['siswa']->givePermissionTo($memberPermission);
+        $this->command->info('   ✅ Siswa: member_access');
     }
 
     /**
@@ -351,26 +240,30 @@ class LibraryRolePermissionSeeder extends Seeder
     private function displayRoleSummary(): void
     {
         $this->command->info('');
-        $this->command->info('📊 RINGKASAN ROLE & PERMISSION SISTEM PERPUSTAKAAN');
-        $this->command->info(str_repeat('=', 60));
+        $this->command->info('📊 RINGKASAN ROLE & PERMISSION SISTEM PERPUSTAKAAN (SIMPLIFIED)');
+        $this->command->info(str_repeat('=', 70));
         $this->command->info('');
 
         $roles = Role::with('permissions')->get();
 
         foreach ($roles as $role) {
             $this->command->info('🎭 '.strtoupper($role->name));
-            $this->command->info('   📋 Total Permissions: '.$role->permissions->count());
+            $this->command->info('   📋 Permission: '.$role->permissions->pluck('name')->first());
 
-            // Group permissions by resource
-            $groupedPermissions = $role->permissions->groupBy(function ($permission) {
-                return explode('_', $permission->name)[0];
-            });
-
-            foreach ($groupedPermissions as $resource => $permissions) {
-                $actions = $permissions->map(function ($permission) {
-                    return explode('_', $permission->name)[1];
-                })->implode(', ');
-                $this->command->info('   📚 '.ucfirst($resource).': '.$actions);
+            // Describe what each permission allows
+            $permission = $role->permissions->first();
+            if ($permission) {
+                switch ($permission->name) {
+                    case 'admin_access':
+                        $this->command->info('   🔑 Akses: Semua fitur sistem (users, roles, settings, reports)');
+                        break;
+                    case 'staff_access':
+                        $this->command->info('   🔑 Akses: Kelola buku, transaksi, laporan dasar');
+                        break;
+                    case 'member_access':
+                        $this->command->info('   🔑 Akses: Lihat katalog, pinjam/kembali buku');
+                        break;
+                }
             }
             $this->command->info('');
         }
@@ -380,6 +273,8 @@ class LibraryRolePermissionSeeder extends Seeder
         $this->command->info('   Ketua Perpus: ketua@perpustakaan.sch.id');
         $this->command->info('   Petugas: petugas1@perpustakaan.sch.id / petugas2@perpustakaan.sch.id');
         $this->command->info('   Siswa: siswa1@siswa.sch.id / siswa2@siswa.sch.id');
+        $this->command->info('');
+        $this->command->info('🎯 Sistem permission disederhanakan menjadi 3 tingkat akses');
         $this->command->info('');
     }
 }

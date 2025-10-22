@@ -40,14 +40,6 @@ class UserResource extends Resource
     }
 
     /**
-     * Determine if this resource should be displayed in the navigation.
-     */
-    public static function canAccess(): bool
-    {
-        return auth()->user()->can('user_access');
-    }
-
-    /**
      * Get the title for the resource page.
      */
     public static function getTitle(): string

@@ -51,15 +51,7 @@ class AdminSuperAdminSeeder extends Seeder
 
         // Verify critical permissions
         $criticalPermissions = [
-            'panel_access',
-            'user_access',
-            'user_create',
-            'user_delete',
-            'role_access',
-            'book_access',
-            'transaction_access',
-            'setting_access',
-            'report_access',
+            'admin_access',  // Single permission for full access
         ];
 
         $allPermissionsGranted = true;
@@ -71,9 +63,9 @@ class AdminSuperAdminSeeder extends Seeder
         }
 
         if ($allPermissionsGranted) {
-            $this->command->info('🎉 All critical permissions verified and working!');
+            $this->command->info('🎉 Admin access permission verified and working!');
         } else {
-            $this->command->warning('⚠️  Some permissions may be missing');
+            $this->command->warning('⚠️  Admin access permission may be missing');
         }
 
         $this->command->info('');

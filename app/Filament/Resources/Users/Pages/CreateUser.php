@@ -53,12 +53,4 @@ class CreateUser extends CreateRecord
     {
         return $this->getResource()::getUrl('index');
     }
-
-    /**
-     * Check if the current user can create users
-     */
-    public static function canAccess(array $parameters = []): bool
-    {
-        return auth()->user()->can('user_create');
-    }
 }

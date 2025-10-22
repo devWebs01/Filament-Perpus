@@ -26,12 +26,9 @@ class EditUser extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make()
-                ->visible(fn (): bool => auth()->user()->can('user_delete')),
-            ForceDeleteAction::make()
-                ->visible(fn (): bool => auth()->user()->can('user_delete')),
-            RestoreAction::make()
-                ->visible(fn (): bool => auth()->user()->can('user_delete')),
+            DeleteAction::make(),
+            ForceDeleteAction::make(),
+            RestoreAction::make(),
         ];
     }
 
@@ -87,13 +84,5 @@ class EditUser extends EditRecord
         $data['roles'] = $record->roles->pluck('name')->toArray();
 
         return $data;
-    }
-
-    /**
-     * Check if the current user can edit this user
-     */
-    public static function canAccess(array $parameters = []): bool
-    {
-        return auth()->user()->can('user_update');
     }
 }

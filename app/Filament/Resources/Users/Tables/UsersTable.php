@@ -212,25 +212,20 @@ class UsersTable
             ])
             ->actions([
                 // View Action
-                ViewAction::make()
-                    ->visible(fn (): bool => auth()->user()->can('user_read')),
+                ViewAction::make()->button(),
 
                 // Edit Action
-                EditAction::make()
-                    ->visible(fn (): bool => auth()->user()->can('user_update')),
+                EditAction::make()->button(),
 
                 // Delete Action
-                DeleteAction::make()
-                    ->visible(fn (): bool => auth()->user()->can('user_delete')),
+                DeleteAction::make()->button(),
 
                 // Manage Permissions Action
                 Action::make('manage_permissions')
                     ->label('Izin Akses')
                     ->icon('heroicon-o-shield-check')
-                    ->color('warning')
-                    ->visible(fn ($record): bool => auth()->user()->can('role_update') &&
-                    $record->roles()->exists()
-                    )
+                    ->color('success')
+                    ->button()
                     ->url(fn ($record): string => route('filament.admin.resources.shield.roles.edit', ['record' => $record->roles->first()->id]))
                     ->openUrlInNewTab(),
 
@@ -238,8 +233,8 @@ class UsersTable
                 Action::make('reset_password')
                     ->label('Reset Kata Sandi')
                     ->icon('heroicon-o-key')
-                    ->color('danger')
-                    ->visible(fn (): bool => auth()->user()->can('user_update'))
+                    ->color('info')
+                    ->button()
                     ->requiresConfirmation()
                     ->action(function ($record) {
                         // This would typically trigger a password reset email
@@ -253,19 +248,15 @@ class UsersTable
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->visible(fn (): bool => auth()->user()->can('user_delete')),
-                    ForceDeleteBulkAction::make()
-                        ->visible(fn (): bool => auth()->user()->can('user_delete')),
-                    RestoreBulkAction::make()
-                        ->visible(fn (): bool => auth()->user()->can('user_delete')),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
             ])
             ->emptyStateHeading('Tidak ada pengguna ditemukan')
-            ->emptyStateDescription('Buat pengguna pertama Anda untuk memulai.');
-        // ->emptyStateActions([
-        //     \Filament\Actions\CreateAction::make()
-        //         ->visible(fn (): bool => auth()->user()->can('user_create')),
-        // ])
+            ->emptyStateDescription('Buat pengguna pertama Anda untuk memulai.')
+            ->emptyStateActions([
+                \Filament\Actions\CreateAction::make(),
+            ]);
     }
 }

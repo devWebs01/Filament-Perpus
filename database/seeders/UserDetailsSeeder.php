@@ -15,7 +15,7 @@ use Illuminate\Database\Seeder;
  * - Library Head: Administrator with highest privileges
  * - Staff: Library employees with various positions
  */
-class UserDetailSeeder extends Seeder
+class UserDetailsSeeder extends Seeder
 {
     use WithoutModelEvents;
 
@@ -29,64 +29,47 @@ class UserDetailSeeder extends Seeder
         if ($adminUser) {
             UserDetail::create([
                 'user_id' => $adminUser->id,
-                'user_type' => 'library_head',
                 'phone_number' => '+6281234567890',
                 'birth_date' => '1985-05-15',
-                'gender' => 'male',
+                'birth_place' => 'Jakarta',
+                'gender' => 'L',
                 'address' => 'Jl. Pendidikan No. 1, Jakarta Pusat, Indonesia',
-                'employee_id' => 'EMP000001',
-                'position' => 'Head Librarian',
-                'hire_date' => '2020-01-15',
-                'membership_number' => 'LIB000001',
-                'membership_date' => '2020-01-15',
+                'religion' => 'Islam',
+                'join_date' => '2020-01-15',
                 'membership_status' => 'active',
-                'membership_expiry' => '2030-01-15',
-                'notes' => 'Head Librarian with full system access',
-                'preferences' => [
-                    'email_notifications' => true,
-                    'sms_notifications' => true,
-                    'language' => 'en',
-                ],
             ]);
         }
 
         // Create sample student users with details
         $students = User::factory(15)->create();
-        foreach ($students as $index => $student) {
+        foreach ($students as $student) {
             UserDetail::factory()->student()->create([
                 'user_id' => $student->id,
-                'membership_number' => 'LIB'.str_pad($index + 1001, 6, '0', STR_PAD_LEFT),
             ]);
         }
 
         // Create sample library staff
         $staffUsers = User::factory(3)->create();
-        $positions = ['Library Assistant', 'Circulation Staff', 'Cataloging Staff'];
 
-        foreach ($staffUsers as $index => $staff) {
+        foreach ($staffUsers as $staff) {
             UserDetail::factory()->staff()->create([
                 'user_id' => $staff->id,
-                'position' => $positions[$index],
-                'employee_id' => 'EMP'.str_pad($index + 2, 6, '0', STR_PAD_LEFT),
-                'membership_number' => 'LIB'.str_pad($index + 2001, 6, '0', STR_PAD_LEFT),
             ]);
         }
 
         // Create some users with expired memberships
         $expiredUsers = User::factory(3)->create();
-        foreach ($expiredUsers as $index => $user) {
+        foreach ($expiredUsers as $user) {
             UserDetail::factory()->student()->expiredMembership()->create([
                 'user_id' => $user->id,
-                'membership_number' => 'LIB'.str_pad($index + 3001, 6, '0', STR_PAD_LEFT),
             ]);
         }
 
         // Create some users with suspended memberships
         $suspendedUsers = User::factory(2)->create();
-        foreach ($suspendedUsers as $index => $user) {
+        foreach ($suspendedUsers as $user) {
             UserDetail::factory()->student()->suspendedMembership()->create([
                 'user_id' => $user->id,
-                'membership_number' => 'LIB'.str_pad($index + 4001, 6, '0', STR_PAD_LEFT),
             ]);
         }
 

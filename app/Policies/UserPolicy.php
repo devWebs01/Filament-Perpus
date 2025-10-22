@@ -1,14 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
-use Spatie\Permission\Models\Role;
 
-class RolePolicy
+class UserPolicy
 {
     use HandlesAuthorization;
 
@@ -17,7 +14,7 @@ class RolePolicy
         return true;
     }
 
-    public function view(AuthUser $authUser, Role $role): bool
+    public function view(AuthUser $authUser): bool
     {
         return true;
     }
@@ -27,22 +24,22 @@ class RolePolicy
         return true;
     }
 
-    public function update(AuthUser $authUser, Role $role): bool
+    public function update(AuthUser $authUser): bool
     {
         return true;
     }
 
-    public function delete(AuthUser $authUser, Role $role): bool
+    public function delete(AuthUser $authUser): bool
     {
         return true;
     }
 
-    public function restore(AuthUser $authUser, Role $role): bool
+    public function restore(AuthUser $authUser): bool
     {
         return true;
     }
 
-    public function forceDelete(AuthUser $authUser, Role $role): bool
+    public function forceDelete(AuthUser $authUser): bool
     {
         return true;
     }
@@ -57,7 +54,7 @@ class RolePolicy
         return true;
     }
 
-    public function replicate(AuthUser $authUser, Role $role): bool
+    public function replicate(AuthUser $authUser): bool
     {
         return true;
     }

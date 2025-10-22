@@ -13,7 +13,7 @@ use Illuminate\Database\Seeder;
  * It works with the existing user_details table structure and creates realistic
  * data for students, library head, and staff members.
  */
-class LibraryUserDetailSeeder extends Seeder
+class LibraryUserDetailsSeeder extends Seeder
 {
     /**
      * Run the database seeds.

@@ -23,7 +23,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
-            UserDetailSeeder::class,
+            LibraryRolePermissionSeeder::class,
+            UserDetailsSeeder::class,  // User details untuk admin@testing.com
+            AssignUserRolesSeeder::class,
             CategorySeeder::class,
             BookSeeder::class,
             SettingSeeder::class,

@@ -49,22 +49,27 @@ class AssignUserRolesSeeder extends Seeder
      */
     private function determineUserRole(UserDetail $UserDetail): ?string
     {
+        // Super Admin - Admin email
+        if ($UserDetail->user && $UserDetail->user->email === 'admin@testing.com') {
+            return 'super_admin';
+        }
+
         // Library Head - Admin email or special conditions
         if ($UserDetail->isLibraryHead()) {
-            return 'library_head';
+            return 'ketua_perpustakaan';
         }
 
         // Staff - Non-students with join dates
         if ($UserDetail->isStaff()) {
-            return 'staff';
+            return 'petugas';
         }
 
         // Students - Users with student IDs
         if ($UserDetail->isStudent()) {
-            return 'student';
+            return 'siswa';
         }
 
         // Default to student role if no specific criteria met
-        return 'student';
+        return 'siswa';
     }
 }
