@@ -14,12 +14,11 @@ class StatusSeeder extends Seeder
     {
         $statuses = [
             [
-                // 'name' => 'Menunggu Konfirmasi', // 1
                 'name' => 'Menunggu Persetujuan', // 1
                 'amount' => 0,
             ],
             [
-                'name' => 'Konfirmasi Pinjam', // 2
+                'name' => 'Dipinjam', // 2
                 'amount' => 0,
             ],
             [

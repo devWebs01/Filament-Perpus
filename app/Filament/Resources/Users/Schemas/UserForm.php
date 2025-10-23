@@ -33,7 +33,12 @@ class UserForm
                             ->required()
                             ->maxLength(255)
                             ->autofocus()
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->validationMessages([
+                                'required' => 'Nama lengkap wajib diisi.',
+                                'max' => 'Nama lengkap maksimal 255 karakter.',
+                                'string' => 'Nama lengkap harus berupa teks.',
+                            ]),
 
                         TextInput::make('email')
                             ->label('Alamat Email')
@@ -41,7 +46,13 @@ class UserForm
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255)
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->validationMessages([
+                                'required' => 'Alamat email wajib diisi.',
+                                'email' => 'Format email tidak valid.',
+                                'unique' => 'Email ini sudah terdaftar, gunakan email lain.',
+                                'max' => 'Email maksimal 255 karakter.',
+                            ]),
 
                         TextInput::make('password')
                             ->label('Kata Sandi')
@@ -50,7 +61,12 @@ class UserForm
                             ->dehydrated(fn ($state) => filled($state))
                             ->required(fn (string $context): bool => $context === 'create')
                             ->placeholder(fn (string $context): string => $context === 'edit' ? 'Kosongkan untuk tetap menggunakan kata sandi saat ini' : '')
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->validationMessages([
+                                'required' => 'Kata sandi wajib diisi saat membuat pengguna baru.',
+                                'min' => 'Kata sandi minimal 8 karakter.',
+                                'string' => 'Kata sandi harus berupa teks.',
+                            ]),
 
                         TextInput::make('password_confirmation')
                             ->label('Ulangi Kata Sandi')
@@ -59,7 +75,11 @@ class UserForm
                             ->dehydrated(false)
                             ->same('password')
                             ->placeholder('Masukkan kembali kata sandi untuk konfirmasi')
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->validationMessages([
+                                'required' => 'Konfirmasi kata sandi wajib diisi.',
+                                'same' => 'Konfirmasi kata sandi harus sama dengan kata sandi.',
+                            ]),
 
                         DateTimePicker::make('email_verified_at')
                             ->label('Email Terverifikasi Pada')
@@ -123,7 +143,11 @@ class UserForm
                                 if ($record && $record->exists) {
                                     $record->syncRoles($state);
                                 }
-                            }),
+                            })
+                            ->validationMessages([
+                                'required' => 'Peran pengguna wajib dipilih minimal satu.',
+                                'array' => 'Peran pengguna harus berupa pilihan yang valid.',
+                            ]),
                     ])
                     ->columns(1),
 
@@ -136,17 +160,33 @@ class UserForm
                             ->label('Nomor Telepon')
                             ->tel()
                             ->numeric()
-                            ->maxLength(20),
+                            ->maxLength(20)
+                            ->rules(['regex:/^[0-9+\-\s]+$/'])
+                            ->validationMessages([
+                                'numeric' => 'Nomor telepon hanya boleh berisi angka.',
+                                'regex' => 'Nomor telepon hanya boleh berisi angka, +, -, dan spasi.',
+                                'max' => 'Nomor telepon maksimal 20 karakter.',
+                            ]),
 
                         TextInput::make('UserDetail.nik')
                             ->label('NIK (Nomor Induk Kependudukan)')
                             ->maxLength(16)
                             ->numeric()
-                            ->placeholder('Opsional'),
+                            ->rules(['regex:/^[0-9]+$/'])
+                            ->placeholder('Opsional')
+                            ->validationMessages([
+                                'numeric' => 'NIK hanya boleh berisi angka.',
+                                'regex' => 'NIK hanya boleh berisi angka tanpa spasi atau karakter lain.',
+                                'max' => 'NIK maksimal 16 digit.',
+                            ]),
 
                         TextInput::make('UserDetail.birth_place')
                             ->label('Tempat Lahir')
-                            ->maxLength(100),
+                            ->maxLength(100)
+                            ->validationMessages([
+                                'max' => 'Tempat lahir maksimal 100 karakter.',
+                                'string' => 'Tempat lahir harus berupa teks.',
+                            ]),
 
                         Select::make('UserDetail.gender')
                             ->label('Jenis Kelamin')
@@ -154,37 +194,67 @@ class UserForm
                                 'L' => 'Laki-laki',
                                 'P' => 'Perempuan',
                             ])
-                            ->searchable(),
+                            ->searchable()
+                            ->validationMessages([
+                                'required' => 'Jenis kelamin wajib dipilih.',
+                                'in' => 'Jenis kelamin tidak valid.',
+                            ]),
 
                         DateTimePicker::make('UserDetail.birth_date')
                             ->label('Tanggal Lahir')
                             ->date()
                             ->maxDate(now())
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->validationMessages([
+                                'date' => 'Format tanggal lahir tidak valid.',
+                                'max' => 'Tanggal lahir tidak boleh melebihi hari ini.',
+                                'required' => 'Tanggal lahir wajib diisi.',
+                            ]),
 
                         Textarea::make('UserDetail.address')
                             ->label('Alamat')
                             ->rows(3)
                             ->maxLength(500)
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->validationMessages([
+                                'max' => 'Alamat maksimal 500 karakter.',
+                                'string' => 'Alamat harus berupa teks.',
+                            ]),
 
                         // Student Information
                         TextInput::make('UserDetail.nis')
                             ->label('NIS (Nomor Induk Siswa)')
                             ->maxLength(20)
                             ->numeric()
-                            ->placeholder('Nomor identitas siswa'),
+                            ->rules(['regex:/^[0-9]+$/'])
+                            ->placeholder('Nomor identitas siswa')
+                            ->validationMessages([
+                                'numeric' => 'NIS hanya boleh berisi angka.',
+                                'regex' => 'NIS hanya boleh berisi angka tanpa spasi atau karakter lain.',
+                                'max' => 'NIS maksimal 20 digit.',
+                            ]),
 
                         TextInput::make('UserDetail.nisn')
                             ->label('NISN (Nomor Induk Siswa Nasional)')
                             ->maxLength(10)
                             ->numeric()
-                            ->placeholder('NISN 10 digit'),
+                            ->rules(['regex:/^[0-9]+$/'])
+                            ->placeholder('NISN 10 digit')
+                            ->validationMessages([
+                                'numeric' => 'NISN hanya boleh berisi angka.',
+                                'regex' => 'NISN hanya boleh berisi angka tanpa spasi atau karakter lain.',
+                                'max' => 'NISN harus tepat 10 digit.',
+                                'min' => 'NISN harus tepat 10 digit.',
+                            ]),
 
                         TextInput::make('UserDetail.class')
                             ->label('Kelas')
                             ->maxLength(10)
-                            ->placeholder('contoh: 12A'),
+                            ->placeholder('contoh: 12A')
+                            ->validationMessages([
+                                'max' => 'Kelas maksimal 10 karakter.',
+                                'string' => 'Kelas harus berupa teks.',
+                            ]),
 
                         Select::make('UserDetail.membership_status')
                             ->label('Status Keanggotaan Perpustakaan')
@@ -194,7 +264,11 @@ class UserForm
                                 'expired' => 'Kadaluarsa',
                             ])
                             ->default('active')
-                            ->required(),
+                            ->required()
+                            ->validationMessages([
+                                'required' => 'Status keanggotaan wajib dipilih.',
+                                'in' => 'Status keanggotaan tidak valid.',
+                            ]),
                     ])
                     ->columns(2),
 
