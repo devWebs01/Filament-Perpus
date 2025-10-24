@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@testing.com'],
             [
                 'name' => 'Test User',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]
         );
@@ -33,7 +33,6 @@ class DatabaseSeeder extends Seeder
             SettingSeeder::class,              // Library settings
 
             // 2. Reference Data
-            CategorySeeder::class,             // Book categories
             StatusSeeder::class,               // Transaction statuses
 
             // 3. User Data

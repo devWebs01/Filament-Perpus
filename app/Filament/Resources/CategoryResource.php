@@ -46,22 +46,6 @@ class CategoryResource extends Resource
                                     ->helperText('Auto-generated from category name')
                                     ->readonly(fn (string $operation): bool => $operation === 'edit'),
                             ]),
-
-                        Forms\Components\Textarea::make('description')
-                            ->label('Description')
-                            ->rows(3)
-                            ->helperText('Optional description of this book category')
-                            ->columnSpanFull(),
-
-                        Forms\Components\ColorPicker::make('color')
-                            ->label('Category Color')
-                            ->helperText('Color to distinguish this category in the UI')
-                            ->default('#3b82f6'),
-
-                        Forms\Components\TextInput::make('icon')
-                            ->label('Icon')
-                            ->placeholder('heroicon-o-book-open')
-                            ->helperText('Heroicon icon name for this category (optional)'),
                     ]),
             ]);
     }
@@ -83,9 +67,6 @@ class CategoryResource extends Resource
                     ->copyMessage('Slug copied to clipboard')
                     ->copyMessageDuration(1500)
                     ->color('gray'),
-
-                Tables\Columns\ColorColumn::make('color')
-                    ->label('Color'),
 
                 Tables\Columns\TextColumn::make('books_count')
                     ->label('Books')

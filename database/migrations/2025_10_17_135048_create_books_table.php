@@ -25,7 +25,14 @@ return new class extends Migration
             $table->string('bookshelf')->nullable();
             $table->string('source')->nullable();
             $table->string('price')->nullable();
-            $table->enum('type', ['Umum', 'Paket']);
+            $table->enum('type', [
+                'fiction',
+                'non-fiction',
+                'reference',
+                'textbook',
+                'journal',
+                'other',
+            ]);
             $table->timestamps();
             $table->softDeletes();
             $table->userstamps();
