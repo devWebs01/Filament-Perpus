@@ -41,7 +41,7 @@ return new class extends Migration
             $table->string('birth_place', 100)->nullable(); // Place of birth
 
             // Gender and Religion
-            $table->enum('gender', ['L', 'P'])->nullable(); // Gender (L=Male, P=Female)
+            $table->enum('gender', ['male', 'female'])->nullable(); // Gender (L=Male, P=Female)
             $table->string('religion')->nullable(); // Religion
 
             // Employment Information

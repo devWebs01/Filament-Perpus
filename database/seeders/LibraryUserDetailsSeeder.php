@@ -30,7 +30,7 @@ class LibraryUserDetailsSeeder extends Seeder
                 'phone_number' => '+1-555-010-0001',
                 'birth_date' => '1980-03-15',
                 'birth_place' => 'Jakarta',
-                'gender' => 'L', // Male (Laki-laki)
+                'gender' => fake()->randomElement(['male', 'female']), // L=Laki-laki (Male), P=Perempuan (Female)
                 'religion' => 'Islam',
                 'join_date' => '2020-01-01',
                 'membership_status' => 'active',
@@ -77,7 +77,7 @@ class LibraryUserDetailsSeeder extends Seeder
                     'phone_number' => fake()->phoneNumber(),
                     'birth_date' => fake()->date('Y-m-d', '-16 years'),
                     'birth_place' => fake()->city(),
-                    'gender' => fake()->randomElement(['L', 'P']), // L=Laki-laki (Male), P=Perempuan (Female)
+                    'gender' => fake()->randomElement(['male', 'female']), // L=Laki-laki (Male), P=Perempuan (Female)
                     'religion' => fake()->randomElement(['Islam', 'Christian', 'Catholic', 'Hindu', 'Buddhist']),
                     'join_date' => fake()->date('Y-m-d', '-2 years'),
                     'membership_status' => 'active',
@@ -108,7 +108,7 @@ class LibraryUserDetailsSeeder extends Seeder
                     'phone_number' => fake()->phoneNumber(),
                     'birth_date' => fake()->date('Y-m-d', '-25 years'),
                     'birth_place' => fake()->city(),
-                    'gender' => fake()->randomElement(['L', 'P']), // L=Laki-laki (Male), P=Perempuan (Female)
+                    'gender' => fake()->randomElement(['male', 'female']), // L=Laki-laki (Male), P=Perempuan (Female)
                     'religion' => fake()->randomElement(['Islam', 'Christian', 'Catholic', 'Hindu', 'Buddhist']),
                     'join_date' => fake()->date('Y-m-d', '-3 years'),
                     'membership_status' => 'active',

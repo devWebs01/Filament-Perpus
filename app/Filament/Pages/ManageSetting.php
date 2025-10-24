@@ -3,33 +3,31 @@
 namespace App\Filament\Pages;
 
 use App\Models\Setting;
-use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Schemas\Components\Section;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use UnitEnum;
 
 class ManageSetting extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    protected string $view = 'filament.pages.manage-setting';
+    public static string $view = 'filament.pages.manage-setting';
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cog-8-tooth';
+    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     protected static ?string $navigationLabel = 'Pengaturan';
 
     protected static ?string $title = 'Pengaturan';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Manajemen Data';
+    // protected static string|UnitEnum|null $navigationGroup = 'Manajemen Data';
 
     public function getBreadcrumbs(): array
     {

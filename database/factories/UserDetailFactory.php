@@ -19,21 +19,21 @@ class UserDetailFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'nik' => $this->faker->optional(0.7)->numerify('##################'), // 16-digit national ID (optional)
-            'nis' => $this->faker->optional(0.8)->numerify('STU########'), // Student ID
-            'nisn' => $this->faker->optional(0.8)->numerify('##########'), // National Student ID (10 digits)
-            'class' => $this->faker->optional(0.7)->randomElement(['12A', '12B', '11A', '11B', '10A', '10B']),
-            'major' => $this->faker->optional(0.7)->randomElement(['Science', 'Social', 'Language', 'Computer', 'Arts']),
-            'semester' => $this->faker->optional(0.7)->numberBetween(1, 6),
+            'nik' => $this->faker->optional(0.7, null)->numerify('##################'), // 16-digit national ID (optional)
+            'nis' => $this->faker->optional(0.8, null)->numerify('STU########'), // Student ID
+            'nisn' => $this->faker->optional(0.8, null)->numerify('##########'), // National Student ID (10 digits)
+            'class' => $this->faker->optional(0.7, null)->randomElement(['12A', '12B', '11A', '11B', '10A', '10B']),
+            'major' => $this->faker->optional(0.7, null)->randomElement(['Science', 'Social', 'Language', 'Computer', 'Arts']),
+            'semester' => $this->faker->optional(0.7, null)->numberBetween(1, 6),
             'address' => $this->faker->address(),
             'phone_number' => $this->faker->phoneNumber(),
             'birth_date' => $this->faker->date('Y-m-d', '-16 years'), // At least 16 years old
             'birth_place' => $this->faker->city(),
-            'gender' => $this->faker->randomElement(['L', 'P']), // Indonesian format
-            'religion' => $this->faker->randomElement(['Islam', 'Christian', 'Catholic', 'Hindu', 'Buddhist']),
-            'join_date' => $this->faker->optional(0.6)->date('Y-m-d', '-5 years'), // For staff
+            'gender' => $this->faker->randomElement(['male', 'female']), // Use English values
+            'religion' => $this->faker->randomElement(['islam', 'christian', 'catholic', 'hindu', 'buddhist', 'other']),
+            'join_date' => $this->faker->optional(0.6, null)->date('Y-m-d', '-5 years'), // For staff
             'membership_status' => 'active',
-            'profile_photo' => $this->faker->optional(0.3)->imageUrl(800, 600, 'people'),
+            'profile_photo' => $this->faker->optional(0.3, null)->imageUrl(800, 600, 'people'),
         ];
     }
 

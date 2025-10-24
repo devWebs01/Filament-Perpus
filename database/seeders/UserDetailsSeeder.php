@@ -32,7 +32,7 @@ class UserDetailsSeeder extends Seeder
                 'phone_number' => '+6281234567890',
                 'birth_date' => '1985-05-15',
                 'birth_place' => 'Jakarta',
-                'gender' => 'L',
+                'gender' => fake()->randomElement(['male', 'female']), // L=Laki-laki (Male), P=Perempuan (Female)
                 'address' => 'Jl. Pendidikan No. 1, Jakarta Pusat, Indonesia',
                 'religion' => 'Islam',
                 'join_date' => '2020-01-15',
