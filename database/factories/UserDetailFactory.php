@@ -33,7 +33,13 @@ class UserDetailFactory extends Factory
             'religion' => $this->faker->randomElement(['islam', 'christian', 'catholic', 'hindu', 'buddhist', 'other']),
             'join_date' => $this->faker->optional(0.6, null)->date('Y-m-d', '-5 years'), // For staff
             'membership_status' => 'active',
-            'profile_photo' => $this->faker->optional(0.3, null)->imageUrl(800, 600, 'people'),
+            'profile_photo' => $this->faker->optional(0.8, null)->randomElement([
+                'default-user-1.jpg',
+                'default-user-2.jpg',
+                'default-user-3.jpg',
+                'default-user-4.jpg',
+                'default-user-5.jpg',
+            ]),
         ];
     }
 

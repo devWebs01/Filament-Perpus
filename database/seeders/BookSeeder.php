@@ -35,8 +35,8 @@ class BookSeeder extends Seeder
         foreach ($categories as $query => $categoryNameInIndonesian) {
             $this->command->info("Mengambil buku untuk kategori: {$categoryNameInIndonesian}...");
 
-            // Lakukan pencarian API untuk setiap kategori tanpa limit
-            $booksResponse = Http::get('https://www.dbooks.org/api/search/' . $query)->json();
+            // Lakukan pencarian API untuk setiap kategori dengan timeout
+            $booksResponse = Http::timeout(30)->get('https://www.dbooks.org/api/search/'.$query)->json();
 
             if (isset($booksResponse['books'])) {
                 // Batasi jumlah buku yang akan diproses
@@ -44,14 +44,20 @@ class BookSeeder extends Seeder
 
                 foreach ($books as $book) {
                     if (isset($book['id'])) {
-                        $bookDetails = Http::get('https://www.dbooks.org/api/book/' . $book['id'])->json();
+                        try {
+                            $bookDetails = Http::timeout(30)->get('https://www.dbooks.org/api/book/'.$book['id'])->json();
+                        } catch (\Exception $e) {
+                            $this->command->warn('Gagal mengambil detail buku '.$book['id'].': '.$e->getMessage());
+
+                            continue; // Skip ke buku berikutnya
+                        }
 
                         if (isset($bookDetails['image'])) {
                             // Terjemahkan kategori jika perlu
                             try {
                                 $categoryName = $translator->translate($categoryNameInIndonesian);
                             } catch (\Exception $e) {
-                                $this->command->warn('Gagal menerjemahkan kategori: ' . $e->getMessage());
+                                $this->command->warn('Gagal menerjemahkan kategori: '.$e->getMessage());
                                 $categoryName = $categoryNameInIndonesian;
                             }
 
@@ -67,21 +73,21 @@ class BookSeeder extends Seeder
                             try {
                                 $title = $translator->translate($bookDetails['title']);
                             } catch (\Exception $e) {
-                                $this->command->warn('Gagal menerjemahkan judul: ' . $e->getMessage());
+                                $this->command->warn('Gagal menerjemahkan judul: '.$e->getMessage());
                                 $title = $bookDetails['title'];
                             }
 
                             try {
                                 $synopsis = $translator->translate($bookDetails['description']);
                             } catch (\Exception $e) {
-                                $this->command->warn('Gagal menerjemahkan deskripsi: ' . $e->getMessage());
+                                $this->command->warn('Gagal menerjemahkan deskripsi: '.$e->getMessage());
                                 $synopsis = $bookDetails['description'];
                             }
 
                             // Simpan data buku
                             $bookData = [
                                 'title' => $title,
-                                'image' => 'images/' . $imageName,
+                                'image' => $imageName,
                                 'category_id' => $category->id,
                                 'isbn' => $bookDetails['id'],
                                 'author' => $bookDetails['authors'],
@@ -90,7 +96,7 @@ class BookSeeder extends Seeder
                                 'synopsis' => $synopsis,
                                 'book_count' => rand(1, 100),
                                 'source' => 'Pembelian Langsung',
-                                'bookshelf' => 'Rak ' . rand(1, 20),
+                                'bookshelf' => 'Rak '.rand(1, 20),
                                 'type' => Arr::random([
                                     'fiction',
                                     'non-fiction',
@@ -99,17 +105,25 @@ class BookSeeder extends Seeder
                                     'journal',
                                     'other',
                                 ]),
-                                'price' => rand(25, 90) . 0000,
+                                'price' => rand(25, 90). 0000,
                             ];
 
                             $bookModel = Book::create($bookData);
 
-                            // Simpan gambar ke storage
+                            // Simpan gambar ke storage public dengan timeout
                             $imageUrl = $bookDetails['image'];
-                            $imageData = file_get_contents($imageUrl);
-                            Storage::put('books/' . $imageName, $imageData);
+                            try {
+                                $imageResponse = Http::timeout(30)->get($imageUrl);
+                                if ($imageResponse->successful()) {
+                                    Storage::disk('public')->put("books/{$imageName}", $imageResponse->body());
+                                } else {
+                                    $this->command->warn('Gagal mengunduh gambar untuk buku: '.$bookModel->title);
+                                }
+                            } catch (\Exception $e) {
+                                $this->command->warn('Gagal mengunduh gambar untuk buku: '.$bookModel->title.' - '.$e->getMessage());
+                            }
 
-                            $this->command->info('Buku ditambahkan: ' . $bookModel->title . ' - Kategori: ' . $category->name);
+                            $this->command->info('Buku ditambahkan: '.$bookModel->title.' - Kategori: '.$category->name);
                         } else {
                             $this->command->error('Struktur bookDetails tidak valid: gambar hilang');
                         }

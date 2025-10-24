@@ -87,7 +87,7 @@ class BookResource extends Resource
                             ->label('Book Cover')
                             ->image()
                             ->imageEditor()
-                            ->directory('book-covers')
+                            ->directory('books')
                             ->visibility('public')
                             ->columnSpanFull(),
 
@@ -147,16 +147,15 @@ class BookResource extends Resource
                     ->label('Cover')
                     ->size(60)
                     ->circular()
-                    ->defaultImageUrl(url('placeholder/book-cover.png')),
+                    ->disk('public')
+                    ->defaultImageUrl(asset('images/placeholder/book-cover.png')),
 
                 Tables\Columns\TextColumn::make('title')
                     ->label('Title')
                     ->searchable()
                     ->sortable()
                     ->limit(50)
-                    ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
-                        return $column->getState();
-                    }),
+                    ->tooltip(fn (Tables\Columns\TextColumn $column): ?string => $column->getState()),
 
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Category')

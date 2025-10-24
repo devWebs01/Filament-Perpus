@@ -59,103 +59,97 @@ class UserResource extends Resource
                 Forms\Components\Section::make('User Details')
                     ->description('Detailed information about the user')
                     ->schema([
-                        Forms\Components\Repeater::make('userDetail')
-                            ->label('User Details')
+                        Forms\Components\Grid::make(2)
                             ->schema([
-                                Forms\Components\Grid::make(2)
-                                    ->schema([
-                                        Forms\Components\TextInput::make('nik')
-                                            ->label('NIK (National ID)')
-                                            ->maxLength(255),
+                                Forms\Components\TextInput::make('nik')
+                                    ->label('NIK (National ID)')
+                                    ->maxLength(255),
 
-                                        Forms\Components\TextInput::make('nis')
-                                            ->label('NIS (Student ID)')
-                                            ->maxLength(255),
+                                Forms\Components\TextInput::make('nis')
+                                    ->label('NIS (Student ID)')
+                                    ->maxLength(255),
 
-                                        Forms\Components\TextInput::make('nisn')
-                                            ->label('NISN (National Student ID)')
-                                            ->maxLength(255),
+                                Forms\Components\TextInput::make('nisn')
+                                    ->label('NISN (National Student ID)')
+                                    ->maxLength(255),
 
-                                        Forms\Components\TextInput::make('phone_number')
-                                            ->label('Phone Number')
-                                            ->tel()
-                                            ->maxLength(255),
+                                Forms\Components\TextInput::make('phone_number')
+                                    ->label('Phone Number')
+                                    ->tel()
+                                    ->maxLength(255),
 
-                                        Forms\Components\TextInput::make('class')
-                                            ->label('Class')
-                                            ->placeholder('e.g., 12A, 10B'),
+                                Forms\Components\TextInput::make('class')
+                                    ->label('Class')
+                                    ->placeholder('e.g., 12A, 10B'),
 
-                                        Forms\Components\TextInput::make('major')
-                                            ->label('Major')
-                                            ->placeholder('e.g., Science, Social'),
+                                Forms\Components\TextInput::make('major')
+                                    ->label('Major')
+                                    ->placeholder('e.g., Science, Social'),
 
-                                        Forms\Components\TextInput::make('semester')
-                                            ->label('Semester')
-                                            ->numeric()
-                                            ->minValue(1)
-                                            ->maxValue(8),
+                                Forms\Components\TextInput::make('semester')
+                                    ->label('Semester')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(8),
 
-                                        Forms\Components\Select::make('gender')
-                                            ->label('Gender')
-                                            ->options([
-                                                'male' => 'Male',
-                                                'female' => 'Female',
-                                            ]),
-
-                                        Forms\Components\Select::make('religion')
-                                            ->label('Religion')
-                                            ->options([
-                                                'islam' => 'Islam',
-                                                'christian' => 'Christian',
-                                                'catholic' => 'Catholic',
-                                                'hindu' => 'Hindu',
-                                                'buddhist' => 'Buddhist',
-                                                'confucian' => 'Confucian',
-                                                'other' => 'Other',
-                                            ]),
-
-                                        Forms\Components\Select::make('membership_status')
-                                            ->label('Membership Status')
-                                            ->options([
-                                                'active' => 'Active',
-                                                'suspended' => 'Suspended',
-                                                'expired' => 'Expired',
-                                            ])
-                                            ->default('active')
-                                            ->required(),
+                                Forms\Components\Select::make('gender')
+                                    ->label('Gender')
+                                    ->options([
+                                        'male' => 'Male',
+                                        'female' => 'Female',
                                     ]),
 
-                                Forms\Components\Grid::make(2)
-                                    ->schema([
-                                        Forms\Components\DatePicker::make('birth_date')
-                                            ->label('Birth Date'),
-
-                                        Forms\Components\TextInput::make('birth_place')
-                                            ->label('Birth Place')
-                                            ->maxLength(255),
-
-                                        Forms\Components\DatePicker::make('join_date')
-                                            ->label('Join Date')
-                                            ->default(now()),
-
-                                        Forms\Components\FileUpload::make('profile_photo')
-                                            ->label('Profile Photo')
-                                            ->image()
-                                            ->imageEditor()
-                                            ->directory('profile-photos')
-                                            ->visibility('public')
-                                            ->avatar(),
+                                Forms\Components\Select::make('religion')
+                                    ->label('Religion')
+                                    ->options([
+                                        'islam' => 'Islam',
+                                        'christian' => 'Christian',
+                                        'catholic' => 'Catholic',
+                                        'hindu' => 'Hindu',
+                                        'buddhist' => 'Buddhist',
+                                        'confucian' => 'Confucian',
+                                        'other' => 'Other',
                                     ]),
 
-                                Forms\Components\Textarea::make('address')
-                                    ->label('Address')
-                                    ->rows(3)
+                                Forms\Components\Select::make('membership_status')
+                                    ->label('Membership Status')
+                                    ->options([
+                                        'active' => 'Active',
+                                        'suspended' => 'Suspended',
+                                        'expired' => 'Expired',
+                                    ])
+                                    ->default('active')
+                                    ->required(),
+                            ]),
+
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\DatePicker::make('birth_date')
+                                    ->label('Birth Date'),
+
+                                Forms\Components\TextInput::make('birth_place')
+                                    ->label('Birth Place')
+                                    ->maxLength(255),
+
+                                Forms\Components\DatePicker::make('join_date')
+                                    ->label('Join Date')
+                                    ->default(now())
+                                    ->hidden()
+                                    ->readOnly(),
+
+                                Forms\Components\FileUpload::make('profile_photo')
+                                    ->label('Profile Photo')
+                                    ->image()
+                                    ->imageEditor()
+                                    ->directory('users')
+                                    ->visibility('public')
                                     ->columnSpanFull(),
-                            ])
-                            ->columns(1)
-                            ->defaultItems(1)
-                            ->collapsible()
-                            ->collapsed(),
+                            ]),
+
+                        Forms\Components\Textarea::make('address')
+                            ->label('Address')
+                            ->rows(3)
+                            ->columnSpanFull(),
                     ]),
 
                 Forms\Components\Section::make('Role Assignment')
@@ -164,7 +158,6 @@ class UserResource extends Resource
                         Forms\Components\Select::make('roles')
                             ->label('Roles')
                             ->relationship('roles', 'name')
-                            ->multiple()
                             ->preload()
                             ->searchable()
                             ->helperText('Select one or more roles for this user'),
