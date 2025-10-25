@@ -28,7 +28,7 @@ class SettingSeeder extends Seeder
             'name' => 'Library System',
             'logo' => $imagePath,
             'address' => fake()->address(),
-            'phone' => fake()->phoneNumber(),
+            'phone' => '089786545677',
         ]);
     }
 }

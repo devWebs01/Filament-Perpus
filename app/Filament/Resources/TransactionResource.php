@@ -17,21 +17,31 @@ class TransactionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-path-rounded-square';
 
-    protected static ?string $navigationGroup = 'Library Management';
+    protected static ?string $navigationGroup = 'Manajemen Perpustakaan';
 
     protected static ?int $navigationSort = 3;
+
+    public static function getModelLabel(): string
+    {
+        return 'Transaksi';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Transaksi';
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Transaction Information')
-                    ->description('Library book borrowing and returning information')
+                Forms\Components\Section::make('Informasi Transaksi')
+                    ->description('Informasi peminjaman dan pengembalian buku perpustakaan')
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\Select::make('user_id')
-                                    ->label('User')
+                                    ->label('Pengguna')
                                     ->relationship('user', 'name')
                                     ->searchable()
                                     ->preload()
@@ -41,7 +51,7 @@ class TransactionResource extends Resource
                                     ),
 
                                 Forms\Components\Select::make('book_id')
-                                    ->label('Book')
+                                    ->label('Buku')
                                     ->relationship('book', 'title')
                                     ->searchable()
                                     ->preload()
@@ -51,42 +61,42 @@ class TransactionResource extends Resource
                                     ),
 
                                 Forms\Components\Select::make('status_id')
-                                    ->label('Transaction Status')
+                                    ->label('Status Transaksi')
                                     ->relationship('status', 'name')
                                     ->searchable()
                                     ->preload()
                                     ->required(),
 
                                 Forms\Components\TextInput::make('penalty_total')
-                                    ->label('Penalty Amount')
+                                    ->label('Jumlah Denda')
                                     ->numeric()
                                     ->prefix('Rp')
                                     ->step(0.01)
                                     ->placeholder('0.00')
-                                    ->helperText('Penalty amount if applicable'),
+                                    ->helperText('Jumlah denda jika ada'),
                             ]),
                     ]),
 
-                Forms\Components\Section::make('Transaction Dates')
-                    ->description('Important dates for this transaction')
+                Forms\Components\Section::make('Tanggal Transaksi')
+                    ->description('Tanggal-tanggal penting untuk transaksi ini')
                     ->schema([
                         Forms\Components\Grid::make(3)
                             ->schema([
                                 Forms\Components\DatePicker::make('borrow_date')
-                                    ->label('Borrow Date')
+                                    ->label('Tanggal Pinjam')
                                     ->required()
                                     ->default(now())
-                                    ->helperText('When the book was borrowed'),
+                                    ->helperText('Tanggal buku dipinjam'),
 
                                 Forms\Components\DatePicker::make('due_date')
-                                    ->label('Due Date')
+                                    ->label('Tanggal Jatuh Tempo')
                                     ->required()
                                     ->default(now()->addDays(7))
-                                    ->helperText('When the book should be returned'),
+                                    ->helperText('Tanggal buku harus dikembalikan'),
 
                                 Forms\Components\DatePicker::make('return_date')
-                                    ->label('Return Date')
-                                    ->helperText('When the book was actually returned')
+                                    ->label('Tanggal Kembali')
+                                    ->helperText('Tanggal buku benar-benar dikembalikan')
                                     ->reactive()
                                     ->afterStateUpdated(function ($state, callable $get, callable $set) {
                                         if ($state && $state > $get('due_date')) {
@@ -106,15 +116,15 @@ class TransactionResource extends Resource
                             ]),
                     ]),
 
-                Forms\Components\Section::make('Transaction Code')
-                    ->description('Unique transaction identifier')
+                Forms\Components\Section::make('Kode Transaksi')
+                    ->description('Identifier unik untuk transaksi')
                     ->schema([
                         Forms\Components\TextInput::make('code')
-                            ->label('Transaction Code')
+                            ->label('Kode Transaksi')
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->default(fn () => 'TRX-'.date('Ymd').'-'.strtoupper(uniqid()))
-                            ->helperText('Unique code for this transaction'),
+                            ->helperText('Kode unik untuk transaksi ini'),
                     ]),
             ]);
     }
@@ -124,21 +134,21 @@ class TransactionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('code')
-                    ->label('Transaction Code')
+                    ->label('Kode Transaksi')
                     ->searchable()
                     ->sortable()
                     ->copyable()
-                    ->copyMessage('Transaction code copied to clipboard')
+                    ->copyMessage('Kode transaksi disalin ke clipboard')
                     ->copyMessageDuration(1500),
 
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label('User')
+                    ->label('Pengguna')
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
 
                 Tables\Columns\TextColumn::make('book.title')
-                    ->label('Book')
+                    ->label('Buku')
                     ->searchable()
                     ->sortable()
                     ->limit(50)
@@ -157,37 +167,37 @@ class TransactionResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('borrow_date')
-                    ->label('Borrowed')
-                    ->date('M j, Y')
+                    ->label('Tanggal Pinjam')
+                    ->date('j M Y')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('due_date')
-                    ->label('Due Date')
-                    ->date('M j, Y')
+                    ->label('Jatuh Tempo')
+                    ->date('j M Y')
                     ->sortable()
                     ->badge()
                     ->color(fn ($record): string => $record->due_date < now() && $record->status?->name !== 'returned' ? 'danger' : 'primary'
                     ),
 
                 Tables\Columns\TextColumn::make('return_date')
-                    ->label('Returned')
-                    ->date('M j, Y')
+                    ->label('Tanggal Kembali')
+                    ->date('j M Y')
                     ->sortable()
-                    ->placeholder('Not returned')
+                    ->placeholder('Belum dikembalikan')
                     ->badge()
                     ->color(fn ($record): string => $record->return_date ? 'success' : 'warning'),
 
                 Tables\Columns\TextColumn::make('penalty_total')
-                    ->label('Penalty')
+                    ->label('Denda')
                     ->money('IDR')
                     ->sortable()
-                    ->placeholder('None')
+                    ->placeholder('Tidak ada')
                     ->badge()
                     ->color('danger'),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime('M j, Y H:i')
+                    ->label('Dibuat')
+                    ->dateTime('j M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -203,19 +213,19 @@ class TransactionResource extends Resource
                     ->query(fn (Builder $query): Builder => $query->where('due_date', '<', now())
                         ->whereHas('status', fn (Builder $q) => $q->where('name', '!=', 'returned'))
                     )
-                    ->label('Overdue Books'),
+                    ->label('Buku Terlambat'),
 
                 Tables\Filters\Filter::make('active')
                     ->query(fn (Builder $query): Builder => $query->whereHas('status', fn (Builder $q) => $q->where('name', 'borrowed'))
                     )
-                    ->label('Active Borrowings'),
+                    ->label('Peminjaman Aktif'),
 
                 Tables\Filters\Filter::make('date_range')
                     ->form([
                         Forms\Components\DatePicker::make('start_date')
-                            ->label('Start Date'),
+                            ->label('Tanggal Mulai'),
                         Forms\Components\DatePicker::make('end_date')
-                            ->label('End Date'),
+                            ->label('Tanggal Selesai'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -231,10 +241,10 @@ class TransactionResource extends Resource
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
                         if ($data['start_date'] ?? null) {
-                            $indicators[] = 'Start: '.$data['start_date'];
+                            $indicators[] = 'Mulai: '.$data['start_date'];
                         }
                         if ($data['end_date'] ?? null) {
-                            $indicators[] = 'End: '.$data['end_date'];
+                            $indicators[] = 'Selesai: '.$data['end_date'];
                         }
 
                         return $indicators;
@@ -244,13 +254,13 @@ class TransactionResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('return_book')
-                    ->label('Return Book')
+                    ->label('Kembalikan Buku')
                     ->icon('heroicon-o-arrow-uturn-left')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalHeading('Return Book')
-                    ->modalDescription('Mark this book as returned?')
-                    ->modalSubmitActionLabel('Yes, return book')
+                    ->modalHeading('Kembalikan Buku')
+                    ->modalDescription('Tandai buku ini sebagai dikembalikan?')
+                    ->modalSubmitActionLabel('Ya, kembalikan buku')
                     ->action(function (Transaction $record) {
                         $returnedStatus = \App\Models\Status::where('name', 'returned')->first();
                         if ($returnedStatus) {
@@ -270,13 +280,13 @@ class TransactionResource extends Resource
                         ->requiresConfirmation(),
                 ]),
                 Tables\Actions\BulkAction::make('mark_returned')
-                    ->label('Mark as Returned')
+                    ->label('Tandai Dikembalikan')
                     ->icon('heroicon-o-check')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalHeading('Mark Selected as Returned')
-                    ->modalDescription('Mark all selected books as returned?')
-                    ->modalSubmitActionLabel('Yes, mark as returned')
+                    ->modalHeading('Tandai yang Dipilih Dikembalikan')
+                    ->modalDescription('Tandai semua buku yang dipilih sebagai dikembalikan?')
+                    ->modalSubmitActionLabel('Ya, tandai dikembalikan')
                     ->action(function ($records) {
                         $returnedStatus = \App\Models\Status::where('name', 'returned')->first();
                         if ($returnedStatus) {
@@ -293,11 +303,11 @@ class TransactionResource extends Resource
                     ->deselectRecordsAfterCompletion()
                     ->visible(fn (): bool => auth()->user()->can('manage_transactions')),
             ])
-            ->emptyStateHeading('No transactions found')
-            ->emptyStateDescription('No library transactions have been recorded yet.')
+            ->emptyStateHeading('Tidak ada transaksi ditemukan')
+            ->emptyStateDescription('Belum ada transaksi perpustakaan yang dicatat.')
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make()
-                    ->label('Create first transaction'),
+                    ->label('Buat transaksi pertama'),
             ]);
     }
 

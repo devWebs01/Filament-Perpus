@@ -18,21 +18,31 @@ class CategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationGroup = 'Library Management';
+    protected static ?string $navigationGroup = 'Manajemen Perpustakaan';
 
     protected static ?int $navigationSort = 2;
+
+    public static function getModelLabel(): string
+    {
+        return 'Kategori';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Kategori';
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Category Information')
-                    ->description('Create a new book category for organizing library books')
+                Forms\Components\Section::make('Informasi Kategori')
+                    ->description('Buat kategori buku baru untuk mengorganisir buku perpustakaan')
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\TextInput::make('name')
-                                    ->label('Category Name')
+                                    ->label('Nama Kategori')
                                     ->required()
                                     ->maxLength(255)
                                     ->live(onBlur: true)
@@ -43,7 +53,7 @@ class CategoryResource extends Resource
                                     ->required()
                                     ->maxLength(255)
                                     ->unique(ignoreRecord: true)
-                                    ->helperText('Auto-generated from category name')
+                                    ->helperText('Dihasilkan otomatis dari nama kategori')
                                     ->readonly(fn (string $operation): bool => $operation === 'edit'),
                             ]),
                     ]),
@@ -55,7 +65,7 @@ class CategoryResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Category Name')
+                    ->label('Nama Kategori')
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
@@ -64,20 +74,20 @@ class CategoryResource extends Resource
                     ->label('Slug')
                     ->searchable()
                     ->copyable()
-                    ->copyMessage('Slug copied to clipboard')
+                    ->copyMessage('Slug disalin ke clipboard')
                     ->copyMessageDuration(1500)
                     ->color('gray'),
 
                 Tables\Columns\TextColumn::make('books_count')
-                    ->label('Books')
+                    ->label('Jumlah Buku')
                     ->counts('books')
                     ->badge()
                     ->color('primary')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime('M j, Y')
+                    ->label('Dibuat')
+                    ->dateTime('j M Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -90,9 +100,9 @@ class CategoryResource extends Resource
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
-                    ->modalHeading('Delete Category')
-                    ->modalDescription('Are you sure you want to delete this category? Existing books in this category will not be deleted.')
-                    ->modalSubmitActionLabel('Yes, delete it'),
+                    ->modalHeading('Hapus Kategori')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus kategori ini? Buku yang ada dalam kategori ini tidak akan dihapus.')
+                    ->modalSubmitActionLabel('Ya, hapus'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

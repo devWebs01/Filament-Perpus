@@ -17,28 +17,38 @@ class BookResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-book-open';
 
-    protected static ?string $navigationGroup = 'Library Management';
+    protected static ?string $navigationGroup = 'Manajemen Perpustakaan';
 
     protected static ?int $navigationSort = 1;
+
+    public static function getModelLabel(): string
+    {
+        return 'Buku';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Buku';
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 // Book Information Section
-                Forms\Components\Section::make('Book Information')
-                    ->description('Basic information about the book')
+                Forms\Components\Section::make('Informasi Buku')
+                    ->description('Informasi dasar tentang buku')
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\TextInput::make('title')
-                                    ->label('Book Title')
+                                    ->label('Judul Buku')
                                     ->required()
                                     ->maxLength(255)
                                     ->columnSpan(2),
 
                                 Forms\Components\Select::make('category_id')
-                                    ->label('Category')
+                                    ->label('Kategori')
                                     ->relationship('category', 'name')
                                     ->searchable()
                                     ->preload()
@@ -54,37 +64,37 @@ class BookResource extends Resource
                         Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\TextInput::make('author')
-                                    ->label('Author')
+                                    ->label('Penulis')
                                     ->required()
                                     ->maxLength(255),
 
                                 Forms\Components\TextInput::make('publisher')
-                                    ->label('Publisher')
+                                    ->label('Penerbit')
                                     ->required()
                                     ->maxLength(255),
 
                                 Forms\Components\TextInput::make('year_published')
-                                    ->label('Year Published')
+                                    ->label('Tahun Terbit')
                                     ->required()
                                     ->numeric()
                                     ->minValue(1000)
                                     ->maxValue(date('Y')),
 
                                 Forms\Components\Select::make('type')
-                                    ->label('Book Type')
+                                    ->label('Tipe Buku')
                                     ->options([
-                                        'fiction' => 'Fiction',
-                                        'non-fiction' => 'Non-Fiction',
-                                        'reference' => 'Reference',
-                                        'textbook' => 'Textbook',
-                                        'journal' => 'Journal',
-                                        'other' => 'Other',
+                                        'fiction' => 'Fiksi',
+                                        'non-fiction' => 'Non-Fiksi',
+                                        'reference' => 'Referensi',
+                                        'textbook' => 'Buku Teks',
+                                        'journal' => 'Jurnal',
+                                        'other' => 'Lainnya',
                                     ])
                                     ->required(),
                             ]),
 
                         Forms\Components\FileUpload::make('image')
-                            ->label('Book Cover')
+                            ->label('Sampul Buku')
                             ->image()
                             ->imageEditor()
                             ->directory('books')
@@ -92,7 +102,7 @@ class BookResource extends Resource
                             ->columnSpanFull(),
 
                         Forms\Components\RichEditor::make('synopsis')
-                            ->label('Synopsis')
+                            ->label('Sinopsis')
                             ->required()
                             ->columnSpanFull()
                             ->toolbarButtons([
@@ -106,35 +116,35 @@ class BookResource extends Resource
                     ]),
 
                 // Inventory Section
-                Forms\Components\Section::make('Inventory Information')
-                    ->description('Book inventory and location details')
+                Forms\Components\Section::make('Informasi Inventaris')
+                    ->description('Detail inventaris dan lokasi buku')
                     ->schema([
                         Forms\Components\Grid::make(3)
                             ->schema([
                                 Forms\Components\TextInput::make('book_count')
-                                    ->label('Total Copies')
+                                    ->label('Jumlah Eksemplar')
                                     ->required()
                                     ->numeric()
                                     ->default(1)
                                     ->minValue(0),
 
                                 Forms\Components\TextInput::make('bookshelf')
-                                    ->label('Bookshelf Location')
-                                    ->placeholder('e.g., A1, B2, etc.')
-                                    ->helperText('Physical location of the book'),
+                                    ->label('Lokasi Rak Buku')
+                                    ->placeholder('contoh: A1, B2, dll.')
+                                    ->helperText('Lokasi fisik buku'),
 
                                 Forms\Components\TextInput::make('source')
-                                    ->label('Source')
-                                    ->placeholder('e.g., Purchase, Donation')
-                                    ->helperText('How the book was acquired'),
+                                    ->label('Sumber')
+                                    ->placeholder('contoh: Pembelian, Donasi')
+                                    ->helperText('Cara buku diperoleh'),
                             ]),
 
                         Forms\Components\TextInput::make('price')
-                            ->label('Price')
+                            ->label('Harga')
                             ->numeric()
                             ->prefix('Rp')
                             ->step(0.01)
-                            ->helperText('Book price in Indonesian Rupiah'),
+                            ->helperText('Harga buku dalam Rupiah'),
                     ]),
             ]);
     }
@@ -144,27 +154,27 @@ class BookResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
-                    ->label('Cover')
+                    ->label('Sampul')
                     ->size(60)
                     ->circular()
                     ->disk('public')
                     ->defaultImageUrl(asset('images/placeholder/book-cover.png')),
 
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Title')
+                    ->label('Judul')
                     ->searchable()
                     ->sortable()
                     ->limit(50)
                     ->tooltip(fn (Tables\Columns\TextColumn $column): ?string => $column->getState()),
 
                 Tables\Columns\TextColumn::make('category.name')
-                    ->label('Category')
+                    ->label('Kategori')
                     ->sortable()
                     ->badge()
                     ->color('primary'),
 
                 Tables\Columns\TextColumn::make('author')
-                    ->label('Author')
+                    ->label('Penulis')
                     ->searchable()
                     ->sortable(),
 
@@ -172,11 +182,11 @@ class BookResource extends Resource
                     ->label('ISBN')
                     ->searchable()
                     ->copyable()
-                    ->copyMessage('ISBN copied to clipboard')
+                    ->copyMessage('ISBN disalin ke clipboard')
                     ->copyMessageDuration(1500),
 
                 Tables\Columns\TextColumn::make('book_count')
-                    ->label('Copies')
+                    ->label('Eksemplar')
                     ->numeric()
                     ->sortable()
                     ->badge()
