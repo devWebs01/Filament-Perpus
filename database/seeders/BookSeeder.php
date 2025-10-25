@@ -23,6 +23,7 @@ class BookSeeder extends Seeder
         if ($this->useOfflineMode()) {
             $this->command->info('📶 Menggunakan mode offline (fallback data lokal)');
             $this->seedOfflineBooks();
+
             return;
         }
 
@@ -76,16 +77,18 @@ class BookSeeder extends Seeder
                     ->retry(2, 1000) // 2 retry dengan 1 detik delay
                     ->get('https://www.dbooks.org/api/search/'.$query);
 
-                if (!$booksResponse->successful()) {
+                if (! $booksResponse->successful()) {
                     $this->command->warn("⚠️  Gagal mengambil data untuk kategori: {$categoryNameInIndonesian}");
                     $totalFailures++;
+
                     continue;
                 }
 
                 $data = $booksResponse->json();
-                if (!isset($data['books']) || empty($data['books'])) {
+                if (! isset($data['books']) || empty($data['books'])) {
                     $this->command->warn("⚠️  Tidak ada buku ditemukan untuk kategori: {$categoryNameInIndonesian}");
                     $totalFailures++;
+
                     continue;
                 }
 
@@ -93,7 +96,7 @@ class BookSeeder extends Seeder
                 $books = array_slice($data['books'], 0, $limitPerCategory);
 
                 foreach ($books as $book) {
-                    if (!isset($book['id'])) {
+                    if (! isset($book['id'])) {
                         continue;
                     }
 
@@ -117,6 +120,7 @@ class BookSeeder extends Seeder
         if ($totalFailures > $totalSuccess) {
             $this->command->warn('⚠️  Terlalu banyak kegagalan API, beralih ke mode offline...');
             $this->seedOfflineBooks();
+
             return;
         }
 
@@ -134,12 +138,12 @@ class BookSeeder extends Seeder
                 ->retry(1, 500)
                 ->get('https://www.dbooks.org/api/book/'.$book['id']);
 
-            if (!$bookDetailsResponse->successful()) {
+            if (! $bookDetailsResponse->successful()) {
                 return false;
             }
 
             $bookDetails = $bookDetailsResponse->json();
-            if (!isset($bookDetails['title']) || !isset($bookDetails['image'])) {
+            if (! isset($bookDetails['title']) || ! isset($bookDetails['image'])) {
                 return false;
             }
 
@@ -166,7 +170,7 @@ class BookSeeder extends Seeder
                 'source' => 'API External',
                 'bookshelf' => 'Rak '.rand(1, 20),
                 'type' => Arr::random([
-                    'fiction', 'non-fiction', 'reference', 'textbook', 'other'
+                    'fiction', 'non-fiction', 'reference', 'textbook', 'other',
                 ]),
                 'price' => rand(25000, 150000),
             ];
@@ -180,6 +184,7 @@ class BookSeeder extends Seeder
 
         } catch (\Exception $e) {
             $this->command->warn('Gagal memproses buku '.$book['id'].': '.$e->getMessage());
+
             return false;
         }
     }
@@ -191,7 +196,7 @@ class BookSeeder extends Seeder
     {
         try {
             // Pastikan direktori ada
-            if (!Storage::disk('public')->exists('books')) {
+            if (! Storage::disk('public')->exists('books')) {
                 Storage::disk('public')->makeDirectory('books');
             }
 
@@ -214,7 +219,7 @@ class BookSeeder extends Seeder
         $this->command->info('📚 Menggunakan data buku lokal...');
 
         // Pastikan direktori untuk gambar buku ada
-        if (!Storage::disk('public')->exists('books')) {
+        if (! Storage::disk('public')->exists('books')) {
             Storage::disk('public')->makeDirectory('books');
         }
 
@@ -317,7 +322,7 @@ class BookSeeder extends Seeder
             'slug' => Str::slug($bookData['category']),
         ]);
 
-        $imageName = 'book_' . Str::slug($bookData['title']) . '.jpg';
+        $imageName = 'book_'.Str::slug($bookData['title']).'.jpg';
 
         Book::create([
             'title' => $bookData['title'],
@@ -343,7 +348,7 @@ class BookSeeder extends Seeder
      */
     private function logApiFailure(string $category, string $error): void
     {
-        $logMessage = date('Y-m-d H:i:s') . " - Category: {$category} - Error: {$error}\n";
+        $logMessage = date('Y-m-d H:i:s')." - Category: {$category} - Error: {$error}\n";
         Storage::disk('local')->append('api_failures.log', $logMessage);
     }
 
@@ -369,6 +374,7 @@ class BookSeeder extends Seeder
     private function cleanDescription(string $description): string
     {
         $cleaned = html_entity_decode(strip_tags($description), ENT_QUOTES, 'UTF-8');
-        return strlen($cleaned) > 500 ? substr($cleaned, 0, 497) . '...' : $cleaned;
+
+        return strlen($cleaned) > 500 ? substr($cleaned, 0, 497).'...' : $cleaned;
     }
 }
