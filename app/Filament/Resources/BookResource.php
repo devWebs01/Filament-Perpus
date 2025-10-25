@@ -157,7 +157,7 @@ class BookResource extends Resource
                     ->label('Sampul')
                     ->size(60)
                     ->circular()
-                    ->disk('public')
+                    ->visibility('public')
                     ->defaultImageUrl(asset('images/placeholder/book-cover.png')),
 
                 Tables\Columns\TextColumn::make('title')

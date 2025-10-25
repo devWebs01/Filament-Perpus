@@ -163,58 +163,58 @@ class LibraryRolePermissionSeeder extends Seeder
 
         // Super Admin
         $superAdmin = User::firstOrCreate(
-            ['email' => 'admin@perpustakaan.sch.id'],
+            ['email' => 'admin@testing.com'],
             [
                 'name' => 'Super Admin Perpustakaan',
-                'password' => bcrypt('password123'),
+                'password' => bcrypt('password'),
                 'email_verified_at' => now(),
             ]
         );
         $superAdmin->syncRoles(['super_admin']);
-        $this->command->info('   ✅ Super Admin: admin@perpustakaan.sch.id');
+        $this->command->info('   ✅ Super Admin: admin@testing.com');
 
         // Ketua Perpustakaan
         $ketua = User::firstOrCreate(
-            ['email' => 'ketua@perpustakaan.sch.id'],
+            ['email' => 'ketua@testing.com'],
             [
                 'name' => 'Dr. Budi Santoso, M.Pd',
-                'password' => bcrypt('password123'),
+                'password' => bcrypt('password'),
                 'email_verified_at' => now(),
             ]
         );
         $ketua->syncRoles(['ketua_perpustakaan']);
-        $this->command->info('   ✅ Ketua Perpustakaan: ketua@perpustakaan.sch.id');
+        $this->command->info('   ✅ Ketua Perpustakaan: ketua@testing.com');
 
         // Petugas 1
         $petugas1 = User::firstOrCreate(
-            ['email' => 'petugas1@perpustakaan.sch.id'],
+            ['email' => 'petugas1@testing.com'],
             [
                 'name' => 'Siti Nurhaliza',
-                'password' => bcrypt('password123'),
+                'password' => bcrypt('password'),
                 'email_verified_at' => now(),
             ]
         );
         $petugas1->syncRoles(['petugas']);
-        $this->command->info('   ✅ Petugas 1: petugas1@perpustakaan.sch.id');
+        $this->command->info('   ✅ Petugas 1: petugas1@testing.com');
 
         // Petugas 2
         $petugas2 = User::firstOrCreate(
-            ['email' => 'petugas2@perpustakaan.sch.id'],
+            ['email' => 'petugas2@testing.com'],
             [
                 'name' => 'Ahmad Fauzi',
-                'password' => bcrypt('password123'),
+                'password' => bcrypt('password'),
                 'email_verified_at' => now(),
             ]
         );
         $petugas2->syncRoles(['petugas']);
-        $this->command->info('   ✅ Petugas 2: petugas2@perpustakaan.sch.id');
+        $this->command->info('   ✅ Petugas 2: petugas2@testing.com');
 
         // Siswa 1
         $siswa1 = User::firstOrCreate(
             ['email' => 'siswa1@siswa.sch.id'],
             [
                 'name' => 'Rani Permata Sari',
-                'password' => bcrypt('password123'),
+                'password' => bcrypt('password'),
                 'email_verified_at' => now(),
             ]
         );
@@ -226,7 +226,7 @@ class LibraryRolePermissionSeeder extends Seeder
             ['email' => 'siswa2@siswa.sch.id'],
             [
                 'name' => 'Muhammad Rizki',
-                'password' => bcrypt('password123'),
+                'password' => bcrypt('password'),
                 'email_verified_at' => now(),
             ]
         );
@@ -268,10 +268,10 @@ class LibraryRolePermissionSeeder extends Seeder
             $this->command->info('');
         }
 
-        $this->command->info('🔑 LOGIN INFO (Password: password123):');
-        $this->command->info('   Super Admin: admin@perpustakaan.sch.id');
-        $this->command->info('   Ketua Perpus: ketua@perpustakaan.sch.id');
-        $this->command->info('   Petugas: petugas1@perpustakaan.sch.id / petugas2@perpustakaan.sch.id');
+        $this->command->info('🔑 LOGIN INFO (Password: password):');
+        $this->command->info('   Super Admin: admin@testing.com');
+        $this->command->info('   Ketua Perpus: ketua@testing.com');
+        $this->command->info('   Petugas: petugas1@testing.com / petugas2@testing.com');
         $this->command->info('   Siswa: siswa1@siswa.sch.id / siswa2@siswa.sch.id');
         $this->command->info('');
         $this->command->info('🎯 Sistem permission disederhanakan menjadi 3 tingkat akses');

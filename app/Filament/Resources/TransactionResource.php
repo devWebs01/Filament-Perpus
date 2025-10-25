@@ -300,8 +300,7 @@ class TransactionResource extends Resource
                             });
                         }
                     })
-                    ->deselectRecordsAfterCompletion()
-                    ->visible(fn (): bool => auth()->user()->can('manage_transactions')),
+                    ->deselectRecordsAfterCompletion(),
             ])
             ->emptyStateHeading('Tidak ada transaksi ditemukan')
             ->emptyStateDescription('Belum ada transaksi perpustakaan yang dicatat.')
