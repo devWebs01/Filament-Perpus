@@ -15,5 +15,6 @@ class Setting extends Model
         'logo',
         'address',
         'phone',
+        'limit_day'
     ];
 }

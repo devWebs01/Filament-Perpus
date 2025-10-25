@@ -29,6 +29,7 @@ class SettingSeeder extends Seeder
             'logo' => $imagePath,
             'address' => fake()->address(),
             'phone' => '089786545677',
+            'limit_day' => 7,
         ]);
     }
 }

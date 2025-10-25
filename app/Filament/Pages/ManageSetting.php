@@ -60,6 +60,11 @@ class ManageSetting extends Page implements HasForms
                         ->required()
                         ->label('Telepon'),
 
+                    TextInput::make('data.limit_day')
+                        ->numeric()
+                        ->required()
+                        ->label('Batas Peminjaman'),
+
                     FileUpload::make('data.logo')
                         ->image()
                         ->imageEditor()

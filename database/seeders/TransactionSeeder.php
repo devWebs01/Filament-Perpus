@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Book;
+use App\Models\Setting;
 use App\Models\Status;
 use App\Models\Transaction;
 use App\Models\User;
@@ -17,9 +18,10 @@ class TransactionSeeder extends Seeder
     public function run(): void
     {
         // Pastikan data yang dibutuhkan sudah ada
-        $users = User::whereHas('userDetail')->get();
+        $users = User::where('role', 'siswa')->whereHas('userDetail')->get();
         $books = Book::all();
         $statuses = Status::all()->keyBy('name');
+        $limitDay = (int) (Setting::first()?->limit_day ?? 7);
 
         if ($users->isEmpty()) {
             $this->command->error('No users with details found. Please run LibraryUsersSeeder first.');

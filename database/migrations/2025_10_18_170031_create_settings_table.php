@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('logo')->nullable();
             $table->string('address')->nullable();
             $table->string('phone')->nullable();
+            $table->string('limit_day')->default(7);
             $table->timestamps();
             $table->softDeletes();
             $table->userstamps();

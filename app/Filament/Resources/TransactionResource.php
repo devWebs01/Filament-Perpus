@@ -3,7 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TransactionResource\Pages;
+use App\Models\Setting;
 use App\Models\Transaction;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -33,6 +35,8 @@ class TransactionResource extends Resource
 
     public static function form(Form $form): Form
     {
+        $limitDay = (int) (Setting::first()?->limit_day ?? 7);
+
         return $form
             ->schema([
                 Forms\Components\Section::make('Informasi Transaksi')
@@ -47,7 +51,8 @@ class TransactionResource extends Resource
                                     ->preload()
                                     ->required()
                                     ->reactive()
-                                    ->afterStateUpdated(fn ($state, callable $set) => $set('user_name', \App\Models\User::find($state)?->name)
+                                    ->afterStateUpdated(
+                                        fn($state, callable $set) => $set('user_name', \App\Models\User::find($state)?->name)
                                     ),
 
                                 Forms\Components\Select::make('book_id')
@@ -57,7 +62,8 @@ class TransactionResource extends Resource
                                     ->preload()
                                     ->required()
                                     ->reactive()
-                                    ->afterStateUpdated(fn ($state, callable $set) => $set('book_title', \App\Models\Book::find($state)?->title)
+                                    ->afterStateUpdated(
+                                        fn($state, callable $set) => $set('book_title', \App\Models\Book::find($state)?->title)
                                     ),
 
                                 Forms\Components\Select::make('status_id')
@@ -65,7 +71,15 @@ class TransactionResource extends Resource
                                     ->relationship('status', 'name')
                                     ->searchable()
                                     ->preload()
-                                    ->required(),
+                                    ->required()
+                                    ->reactive() // penting agar event dijalankan saat state berubah
+                                    ->afterStateUpdated(function ($state, callable $set) {
+                                        // Ambil status yang dipilih
+                                        $status = \App\Models\Status::find($state);
+
+                                        // Jika ditemukan, set penalty_total sesuai amount
+                                        $set('penalty_total', $status?->amount ?? 0);
+                                    }),
 
                                 Forms\Components\TextInput::make('penalty_total')
                                     ->label('Jumlah Denda')
@@ -73,14 +87,17 @@ class TransactionResource extends Resource
                                     ->prefix('Rp')
                                     ->step(0.01)
                                     ->placeholder('0.00')
-                                    ->helperText('Jumlah denda jika ada'),
+                                    ->helperText('Jumlah denda akan otomatis terisi sesuai status yang dipilih')
+                                    ->disabled() // optional, agar user tidak bisa ubah manual
+                                    ->dehydrated(true), // tetap tersimpan ke database walau disabled
+
                             ]),
                     ]),
 
                 Forms\Components\Section::make('Tanggal Transaksi')
                     ->description('Tanggal-tanggal penting untuk transaksi ini')
                     ->schema([
-                        Forms\Components\Grid::make(3)
+                        Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\DatePicker::make('borrow_date')
                                     ->label('Tanggal Pinjam')
@@ -91,8 +108,9 @@ class TransactionResource extends Resource
                                 Forms\Components\DatePicker::make('due_date')
                                     ->label('Tanggal Jatuh Tempo')
                                     ->required()
-                                    ->default(now()->addDays(7))
-                                    ->helperText('Tanggal buku harus dikembalikan'),
+                                    ->disabled()
+                                    ->default(fn() => Carbon::parse(now())->addDays($limitDay))
+                                    ->helperText(fn() => "Tanggal buku harus dikembalikan dalam {$limitDay} hari"),
 
                                 Forms\Components\DatePicker::make('return_date')
                                     ->label('Tanggal Kembali')
@@ -112,7 +130,10 @@ class TransactionResource extends Resource
                                                 $set('status_id', $returnedStatus->id);
                                             }
                                         }
-                                    }),
+                                    })
+
+                                    ->columnSpanFull()
+                                    ->visible(fn($livewire) => $livewire->record !== null), // 👈 hanya tampil saat edit
                             ]),
                     ]),
 
@@ -122,8 +143,9 @@ class TransactionResource extends Resource
                         Forms\Components\TextInput::make('code')
                             ->label('Kode Transaksi')
                             ->required()
+                            ->disabled()
                             ->unique(ignoreRecord: true)
-                            ->default(fn () => 'TRX-'.date('Ymd').'-'.strtoupper(uniqid()))
+                            ->default(fn() => 'TRX-' . date('Ymd') . '-' . strtoupper(uniqid()))
                             ->helperText('Kode unik untuk transaksi ini'),
                     ]),
             ]);
@@ -159,7 +181,7 @@ class TransactionResource extends Resource
                 Tables\Columns\TextColumn::make('status.name')
                     ->label('Status')
                     ->badge()
-                    ->color(fn ($record): string => match ($record->status?->name) {
+                    ->color(fn($record): string => match ($record->status?->name) {
                         'borrowed' => 'warning',
                         'returned' => 'success',
                         'overdue' => 'danger',
@@ -176,7 +198,8 @@ class TransactionResource extends Resource
                     ->date('j M Y')
                     ->sortable()
                     ->badge()
-                    ->color(fn ($record): string => $record->due_date < now() && $record->status?->name !== 'returned' ? 'danger' : 'primary'
+                    ->color(
+                        fn($record): string => $record->due_date < now() && $record->status?->name !== 'returned' ? 'danger' : 'primary'
                     ),
 
                 Tables\Columns\TextColumn::make('return_date')
@@ -185,7 +208,7 @@ class TransactionResource extends Resource
                     ->sortable()
                     ->placeholder('Belum dikembalikan')
                     ->badge()
-                    ->color(fn ($record): string => $record->return_date ? 'success' : 'warning'),
+                    ->color(fn($record): string => $record->return_date ? 'success' : 'warning'),
 
                 Tables\Columns\TextColumn::make('penalty_total')
                     ->label('Denda')
@@ -210,13 +233,15 @@ class TransactionResource extends Resource
                     ->preload(),
 
                 Tables\Filters\Filter::make('overdue')
-                    ->query(fn (Builder $query): Builder => $query->where('due_date', '<', now())
-                        ->whereHas('status', fn (Builder $q) => $q->where('name', '!=', 'returned'))
+                    ->query(
+                        fn(Builder $query): Builder => $query->where('due_date', '<', now())
+                            ->whereHas('status', fn(Builder $q) => $q->where('name', '!=', 'returned'))
                     )
                     ->label('Buku Terlambat'),
 
                 Tables\Filters\Filter::make('active')
-                    ->query(fn (Builder $query): Builder => $query->whereHas('status', fn (Builder $q) => $q->where('name', 'borrowed'))
+                    ->query(
+                        fn(Builder $query): Builder => $query->whereHas('status', fn(Builder $q) => $q->where('name', 'borrowed'))
                     )
                     ->label('Peminjaman Aktif'),
 
@@ -231,20 +256,20 @@ class TransactionResource extends Resource
                         return $query
                             ->when(
                                 $data['start_date'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('borrow_date', '>=', $date)
+                                fn(Builder $query, $date): Builder => $query->whereDate('borrow_date', '>=', $date)
                             )
                             ->when(
                                 $data['end_date'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('borrow_date', '<=', $date)
+                                fn(Builder $query, $date): Builder => $query->whereDate('borrow_date', '<=', $date)
                             );
                     })
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
                         if ($data['start_date'] ?? null) {
-                            $indicators[] = 'Mulai: '.$data['start_date'];
+                            $indicators[] = 'Mulai: ' . $data['start_date'];
                         }
                         if ($data['end_date'] ?? null) {
-                            $indicators[] = 'Selesai: '.$data['end_date'];
+                            $indicators[] = 'Selesai: ' . $data['end_date'];
                         }
 
                         return $indicators;
@@ -270,7 +295,7 @@ class TransactionResource extends Resource
                             ]);
                         }
                     })
-                    ->visible(fn (Transaction $record): bool => $record->status?->name === 'borrowed'),
+                    ->visible(fn(Transaction $record): bool => $record->status?->name === 'borrowed'),
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation(),
             ])
