@@ -6,19 +6,14 @@ use App\Models\User;
 use App\Models\UserDetail;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Schema;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 
 /**
  * Library System Seeder
  *
  * Seeder utama untuk sistem perpustakaan yang mencakup:
- * 1. Role & Permission setup
- * 2. Users creation dengan berbagai role
- * 3. UserDetails creation untuk semua users
- * 4. Role assignment otomatis
+ * 1. Users creation dengan berbagai role
+ * 2. UserDetails creation untuk semua users
+ * 3. Role assignment otomatis menggunakan field role langsung
  *
  * Digunakan untuk menggantikan multiple seeders yang sebelumnya terpisah.
  */
@@ -31,69 +26,11 @@ class LibrarySystemSeeder extends Seeder
     {
         $this->command->info('🚀 Memulai Library System Seeder...');
 
-        // Step 1: Setup roles & permissions
-        $this->setupRolesAndPermissions();
-
-        // Step 2: Create users dengan details lengkap
+        // Create users dengan details lengkap
         $this->createUsersWithDetails();
-
-        // Step 3: Assign roles ke semua users
-        $this->assignRolesToAllUsers();
 
         $this->command->info('✅ Library System Seeder berhasil dijalankan!');
         $this->displayLoginInfo();
-    }
-
-    /**
-     * Setup roles dan permissions untuk sistem
-     */
-    private function setupRolesAndPermissions(): void
-    {
-        $this->command->info('📝 Setup Roles & Permissions...');
-
-        // Clear cache dan reset
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
-        Schema::disableForeignKeyConstraints();
-        Permission::query()->delete();
-        Role::query()->delete();
-        Schema::enableForeignKeyConstraints();
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
-
-        // Create permissions
-        $permissions = [
-            'admin_access' => 'Akses admin penuh - semua fitur',
-            'staff_access' => 'Akses staff - kelola buku dan transaksi',
-            'member_access' => 'Akses member - lihat katalog dan pinjam buku',
-        ];
-
-        foreach ($permissions as $name => $description) {
-            Permission::create(['name' => $name, 'guard_name' => 'web']);
-        }
-
-        // Create roles
-        $roles = [
-            'super_admin' => 'Super Admin - Administrator sistem dengan akses penuh',
-            'ketua_perpustakaan' => 'Ketua Perpustakaan - Pemimpin dengan kontrol administratif penuh',
-            'petugas' => 'Petugas - Staf operasional untuk pengelolaan harian',
-            'siswa' => 'Siswa - Pengguna perpustakaan untuk akses sumber daya',
-        ];
-
-        foreach ($roles as $name => $description) {
-            Role::create(['name' => $name, 'guard_name' => 'web']);
-        }
-
-        // Assign permissions to roles
-        $adminPermission = Permission::where('name', 'admin_access')->first();
-        $staffPermission = Permission::where('name', 'staff_access')->first();
-        $memberPermission = Permission::where('name', 'member_access')->first();
-
-        Role::where('name', 'super_admin')->first()->givePermissionTo($adminPermission);
-        Role::where('name', 'ketua_perpustakaan')->first()->givePermissionTo($adminPermission);
-        Role::where('name', 'petugas')->first()->givePermissionTo($staffPermission);
-        Role::where('name', 'siswa')->first()->givePermissionTo($memberPermission);
-
-        $this->command->info('   ✅ '.count($permissions).' permissions dibuat');
-        $this->command->info('   ✅ '.count($roles).' roles dibuat');
     }
 
     /**
@@ -160,7 +97,7 @@ class LibrarySystemSeeder extends Seeder
                 'address' => 'Jl. Literasi No. 10, Jakarta',
             ],
             [
-                'email' => 'petugas3@testing.com',
+                'email' => 'staff@testing.com',
                 'name' => 'Michael Chen',
                 'nik' => '3201011234560004',
                 'birth_date' => '1990-06-25',
@@ -193,7 +130,7 @@ class LibrarySystemSeeder extends Seeder
         $students = [
             [
                 'name' => 'Rani Permata Sari',
-                'email' => 'siswa@siswa.sch.id',
+                'email' => 'siswa1@siswa.sch.id',
                 'nis' => '2021001',
                 'nisn' => '0051234567',
                 'class' => '12 IPA 1',
@@ -290,19 +227,19 @@ class LibrarySystemSeeder extends Seeder
         }
 
         // Create additional sample students with factory
-        $additionalStudents = User::factory(5)->create();
+        $additionalStudents = User::factory(5)->create(['role' => 'siswa']);
         foreach ($additionalStudents as $student) {
             UserDetail::factory()->student()->create(['user_id' => $student->id]);
         }
 
         // Create sample users with expired memberships
-        $expiredUsers = User::factory(2)->create();
+        $expiredUsers = User::factory(2)->create(['role' => 'siswa']);
         foreach ($expiredUsers as $user) {
             UserDetail::factory()->student()->expiredMembership()->create(['user_id' => $user->id]);
         }
 
         // Create sample users with suspended memberships
-        $suspendedUsers = User::factory(1)->create();
+        $suspendedUsers = User::factory(1)->create(['role' => 'siswa']);
         foreach ($suspendedUsers as $user) {
             UserDetail::factory()->student()->suspendedMembership()->create(['user_id' => $user->id]);
         }
@@ -319,6 +256,7 @@ class LibrarySystemSeeder extends Seeder
             ['email' => $data['email']],
             [
                 'name' => $data['name'],
+                'role' => $data['role'],
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]
@@ -328,65 +266,7 @@ class LibrarySystemSeeder extends Seeder
             UserDetail::create(array_merge(['user_id' => $user->id], $data['user_details']));
         }
 
-        // Assign role
-        $user->syncRoles([$data['role']]);
-
         return $user;
-    }
-
-    /**
-     * Assign roles ke semua existing users berdasarkan details
-     */
-    private function assignRolesToAllUsers(): void
-    {
-        $this->command->info('🔐 Assign roles ke semua users...');
-
-        $usersWithDetails = User::with('userDetail')->get();
-        $assignedCount = 0;
-
-        foreach ($usersWithDetails as $user) {
-            if (! $user->userDetail) {
-                continue;
-            }
-
-            $role = $this->determineUserRole($user->userDetail, $user);
-
-            if ($role && ! $user->hasRole($role)) {
-                $user->assignRole($role);
-                $assignedCount++;
-            }
-        }
-
-        $this->command->info("   ✅ Roles assigned ke {$assignedCount} users");
-    }
-
-    /**
-     * Determine user role berdasarkan details
-     */
-    private function determineUserRole(UserDetail $userDetail, User $user): ?string
-    {
-        // Super Admin - Admin email
-        if ($user->email === 'admin@testing.com') {
-            return 'super_admin';
-        }
-
-        // Ketua Perpustakaan
-        if ($user->email === 'ketua@testing.com' || $userDetail->isLibraryHead()) {
-            return 'ketua_perpustakaan';
-        }
-
-        // Staff - Non-students dengan join dates
-        if ($userDetail->isStaff()) {
-            return 'petugas';
-        }
-
-        // Students - Users dengan student IDs
-        if ($userDetail->isStudent()) {
-            return 'siswa';
-        }
-
-        // Default ke student role
-        return 'siswa';
     }
 
     /**
@@ -407,8 +287,14 @@ class LibrarySystemSeeder extends Seeder
         $this->command->info('🎯 Total Users Created:');
         $this->command->info('   • Super Admin: 1');
         $this->command->info('   • Ketua Perpustakaan: 1');
-        $this->command->info('   • Petugas/Staff: 4');
+        $this->command->info('   • Petugas/Staff: 3');
         $this->command->info('   • Siswa: 6 (manual) + 5 (factory) + 3 (various status) = 14');
+        $this->command->info('');
+        $this->command->info('🎯 Available Roles:');
+        $roles = User::getAvailableRoles();
+        foreach ($roles as $key => $displayName) {
+            $this->command->info("   • {$displayName}: {$key}");
+        }
         $this->command->info('');
         $this->command->info('🚀 Sistem siap digunakan!');
     }

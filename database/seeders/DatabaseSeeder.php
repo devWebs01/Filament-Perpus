@@ -18,8 +18,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             // 1. System Configuration
-            LibrarySystemSeeder::class,        // Combined: Users, Roles, Permissions, UserDetails
-            LibraryRolePermissionSeeder::class, // Additional roles/permissions if needed
+            LibrarySystemSeeder::class,        // Combined: Users, Roles, UserDetails
             SettingSeeder::class,              // Library settings
 
             // 2. Reference Data

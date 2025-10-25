@@ -24,6 +24,22 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    /**
+     * Determine if the resource can be viewed.
+     */
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->isAdmin() || auth()->user()->isStaff();
+    }
+
+    /**
+     * Determine if the resource can be created.
+     */
+    public static function canCreate(): bool
+    {
+        return auth()->user()->isAdmin();
+    }
+
     public static function getModelLabel(): string
     {
         return 'Pengguna';
@@ -36,7 +52,7 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['userDetail', 'roles']);
+        return parent::getEloquentQuery()->with(['userDetail']);
     }
 
     public static function form(Form $form): Form
@@ -168,14 +184,15 @@ class UserResource extends Resource
                     ]),
 
                 Forms\Components\Section::make('Penugasan Peran')
-                    ->description('Tetapkan peran dan izin untuk pengguna')
+                    ->description('Tetapkan peran untuk pengguna')
                     ->schema([
-                        Forms\Components\Select::make('roles')
+                        Forms\Components\Select::make('role')
                             ->label('Peran')
-                            ->relationship('roles', 'name')
-                            ->preload()
-                            ->searchable()
-                            ->helperText('Pilih satu atau beberapa peran untuk pengguna ini'),
+                            ->options(User::getAvailableRoles())
+                            ->required()
+                            ->default('siswa')
+                            ->helperText('Pilih peran untuk pengguna ini')
+                            ->disabled(fn (string $context): bool => $context === 'edit' && ! auth()->user()->isSuperAdmin()),
                     ]),
             ]);
     }
@@ -197,13 +214,15 @@ class UserResource extends Resource
                     ->copyMessage('Email disalin ke clipboard')
                     ->copyMessageDuration(1500),
 
-                Tables\Columns\TextColumn::make('userDetail.user_type_display_name')
-                    ->label('Tipe Pengguna')
+                Tables\Columns\TextColumn::make('role')
+                    ->label('Peran')
+                    ->formatStateUsing(fn ($state) => User::getAvailableRoles()[$state] ?? 'Unknown')
                     ->badge()
-                    ->color(fn ($record): string => match (true) {
-                        $record->userDetail?->isLibraryHead() => 'danger',
-                        $record->userDetail?->isStudent() => 'success',
-                        $record->userDetail?->isStaff() => 'warning',
+                    ->color(fn ($record): string => match ($record->role) {
+                        'super_admin' => 'danger',
+                        'ketua_perpustakaan' => 'warning',
+                        'petugas' => 'info',
+                        'siswa' => 'success',
                         default => 'gray',
                     }),
 
@@ -243,22 +262,11 @@ class UserResource extends Resource
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                Tables\Filters\SelectFilter::make('user_type')
-                    ->label('Tipe Pengguna')
-                    ->options([
-                        'student' => 'Siswa',
-                        'staff' => 'Staf Perpustakaan',
-                        'library_head' => 'Kepala Perpustakaan',
-                    ])
+                Tables\Filters\SelectFilter::make('role')
+                    ->label('Peran')
+                    ->options(User::getAvailableRoles())
                     ->query(function (Builder $query, array $data): Builder {
-                        return $query->whereHas('userDetail', function (Builder $query) use ($data) {
-                            return match ($data['value']) {
-                                'student' => $query->students(),
-                                'staff' => $query->staff(),
-                                'library_head' => $query->libraryHeads(),
-                                default => $query,
-                            };
-                        });
+                        return $query->where('role', $data['value']);
                     }),
 
                 Tables\Filters\SelectFilter::make('membership_status')

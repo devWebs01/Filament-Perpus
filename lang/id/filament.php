@@ -89,7 +89,6 @@ return [
     'Users' => 'Pengguna',
     'User Management' => 'Manajemen Pengguna',
     'Roles' => 'Peran',
-    'Permissions' => 'Izin',
 
     // Settings
     'Settings' => 'Pengaturan',

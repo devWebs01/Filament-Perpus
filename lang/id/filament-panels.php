@@ -30,7 +30,6 @@ return [
     'User Management' => 'Manajemen Pengguna',
     'Users' => 'Pengguna',
     'Roles' => 'Peran',
-    'Permissions' => 'Izin',
 
     // Library
     'Library Management' => 'Manajemen Perpustakaan',
