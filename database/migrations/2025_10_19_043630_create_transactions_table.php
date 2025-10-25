@@ -20,6 +20,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('status_id')->constrained()->onDelete('cascade');
             $table->string('penalty_total')->nullable();
+            $table->date('due_date')->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->userstamps();

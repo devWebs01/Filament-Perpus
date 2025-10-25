@@ -62,6 +62,10 @@ return new class extends Migration
             $table->index('membership_status');
             $table->index(['user_id', 'membership_status']);
         });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('role')->default('siswa')->after('email');
+        });
     }
 
     /**
@@ -70,5 +74,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('user_details');
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('role');
+        });
     }
 };

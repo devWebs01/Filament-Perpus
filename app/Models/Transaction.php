@@ -23,10 +23,25 @@ class Transaction extends Model
         'book_id',
         'user_id',
         'borrow_date',
+        'due_date',
         'return_date',
         'status_id',
         'penalty_total',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'borrow_date' => 'date',
+            'due_date' => 'date',
+            'return_date' => 'date',
+        ];
+    }
 
     protected static function boot()
     {
@@ -38,7 +53,7 @@ class Transaction extends Model
 
             // Set default status ke 'dipinjam' jika tidak ada status yang diset
             if (! $transaction->status_id) {
-                $defaultStatus = Status::where('name', 'Konfirmasi Pinjam')->first();
+                $defaultStatus = Status::where('name', 'Dipinjam')->first();
                 if ($defaultStatus) {
                     $transaction->status_id = $defaultStatus->id;
                 }

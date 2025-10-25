@@ -7,6 +7,7 @@ use App\Models\Setting;
 use App\Models\Status;
 use App\Models\Transaction;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -17,11 +18,12 @@ class TransactionSeeder extends Seeder
      */
     public function run(): void
     {
+        $limitDay = (int) (Setting::first()?->limit_day ?? 7);
+
         // Pastikan data yang dibutuhkan sudah ada
         $users = User::where('role', 'siswa')->whereHas('userDetail')->get();
         $books = Book::all();
         $statuses = Status::all()->keyBy('name');
-        $limitDay = (int) (Setting::first()?->limit_day ?? 7);
 
         if ($users->isEmpty()) {
             $this->command->error('No users with details found. Please run LibraryUsersSeeder first.');
@@ -61,6 +63,7 @@ class TransactionSeeder extends Seeder
                 'book_id' => $book->id,
                 'status_id' => $borrowedStatus->id,
                 'borrow_date' => $borrowDate->format('Y-m-d'),
+                'due_date' => Carbon::parse($borrowDate)->addDays($limitDay)->format('Y-m-d'),
                 'return_date' => null,
                 'penalty_total' => 0,
                 'created_at' => $borrowDate,
@@ -80,6 +83,7 @@ class TransactionSeeder extends Seeder
                 'book_id' => $book->id,
                 'status_id' => $overdueStatus->id,
                 'borrow_date' => $borrowDate->format('Y-m-d'),
+                'due_date' => Carbon::parse($borrowDate)->addDays($limitDay)->format('Y-m-d'),
                 'return_date' => null,
                 'penalty_total' => 5000, // Fixed penalty for overdue
                 'created_at' => $borrowDate,
@@ -105,6 +109,7 @@ class TransactionSeeder extends Seeder
                 'book_id' => $book->id,
                 'status_id' => $status->id,
                 'borrow_date' => $borrowDate->format('Y-m-d'),
+                'due_date' => Carbon::parse($borrowDate)->addDays($limitDay)->format('Y-m-d'),
                 'return_date' => $returnDate->format('Y-m-d'),
                 'penalty_total' => $penalty,
                 'created_at' => $borrowDate,
@@ -141,6 +146,8 @@ class TransactionSeeder extends Seeder
      */
     private function createDemoTransactions(): void
     {
+        $limitDay = (int) (Setting::first()?->limit_day ?? 7);
+
         // Get specific users for demo
         $demoUser = User::where('email', 'budi.santoso@siswa.sch.id')->first();
         $demoBook = Book::where('title', 'Pemrograman Web dengan Laravel')->first();
@@ -160,6 +167,7 @@ class TransactionSeeder extends Seeder
             'book_id' => $demoBook->id,
             'status_id' => $borrowedStatus->id,
             'borrow_date' => now()->subDays(3)->format('Y-m-d'),
+            'due_date' => Carbon::parse(now())->addDays($limitDay)->format('Y-m-d'),
             'return_date' => null,
             'penalty_total' => 0,
         ]);
@@ -173,6 +181,7 @@ class TransactionSeeder extends Seeder
                 'book_id' => $otherBook->id,
                 'status_id' => $returnedStatus->id,
                 'borrow_date' => now()->subDays(14)->format('Y-m-d'),
+                'due_date' => now()->subDays(7)->format('Y-m-d'),
                 'return_date' => now()->subDays(1)->format('Y-m-d'),
                 'penalty_total' => 0,
             ]);
@@ -189,6 +198,7 @@ class TransactionSeeder extends Seeder
                 'book_id' => $overdueBook->id,
                 'status_id' => $overdueStatus->id,
                 'borrow_date' => now()->subDays(20)->format('Y-m-d'),
+                'due_date' => now()->subDays(10)->format('Y-m-d'),
                 'return_date' => null,
                 'penalty_total' => 5000,
             ]);
