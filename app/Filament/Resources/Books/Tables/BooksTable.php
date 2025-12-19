@@ -29,7 +29,6 @@ class BooksTable
                 ImageColumn::make('image')
                     ->label('Sampul Buku')
                     ->circular()
-                    ->visibility('public')
                     ->defaultImageUrl(url('/images/no-cover.png')),
 
                 TextColumn::make('category.name')
@@ -42,7 +41,7 @@ class BooksTable
                     ->numeric()
                     ->sortable()
                     ->badge()
-                    ->color(fn($state) => $state > 0 ? 'success' : 'gray'),
+                    ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
 
             ])
             ->filters([

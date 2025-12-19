@@ -4,16 +4,14 @@ namespace App\Filament\Resources\Users\Schemas;
 
 use App\Models\User;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 
 class UserForm
 {
@@ -42,11 +40,12 @@ class UserForm
                         TextInput::make('password')
                             ->label('Kata Sandi')
                             ->password()
-                            ->dehydrateStateUsing(fn(string $state): string => Hash::make($state))
-                            ->dehydrated(fn(?string $state): bool => filled($state))
-                            ->required(fn(string $operation): bool => $operation === 'create')
-                            ->helperText(fn(string $context): string => $context === 'edit' ? 'Kosongkan untuk tetap menggunakan kata sandi saat ini' : 'Kata sandi harus minimal 8 karakter'),
-                    ]),
+                            ->dehydrateStateUsing(fn (string $state): string => Hash::make($state))
+                            ->dehydrated(fn (?string $state): bool => filled($state))
+                            ->required(fn (string $operation): bool => $operation === 'create')
+                            ->helperText(fn (string $context): string => $context === 'edit' ? 'Kosongkan untuk tetap menggunakan kata sandi saat ini' : 'Kata sandi harus minimal 8 karakter'),
+                    ])
+                    ->columnSpanFull(),
 
                 Section::make('Penugasan Peran')
                     ->description('Tetapkan peran untuk pengguna')
@@ -56,9 +55,8 @@ class UserForm
                             ->options(User::getAvailableRoles())
                             ->required()
                             ->default('siswa')
-                            ->helperText('Pilih peran untuk pengguna ini')
-                            ->disabled(fn(string $context): bool => $context === 'edit' && auth()->user()?->role !== 'super_admin'),
-                    ]),
+                            ->helperText('Pilih peran untuk pengguna ini'),
+                    ])->columnSpanFull(),
 
                 Section::make('Detail Pengguna')
                     ->description('Informasi detail tentang pengguna')
@@ -133,7 +131,7 @@ class UserForm
                                     ->dehydrated(false)
                                     ->displayFormat('d M Y')
                                     ->columnSpanFull()
-                                    ->visible(fn($livewire) => method_exists($livewire, 'getRecord') && $livewire->getRecord() !== null),
+                                    ->visible(fn ($livewire) => method_exists($livewire, 'getRecord') && $livewire->getRecord() !== null),
 
                                 FileUpload::make('profile_photo')
                                     ->label('Foto Profil')
@@ -148,7 +146,8 @@ class UserForm
                             ->label('Alamat')
                             ->rows(3)
                             ->columnSpanFull(),
-                    ]),
+                    ])->columnSpanFull(),
+
             ]);
     }
 }
