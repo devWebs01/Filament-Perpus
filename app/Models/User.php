@@ -10,9 +10,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Mattiverse\Userstamps\Traits\Userstamps;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable 
+class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasRoles, Notifiable, SoftDeletes, Userstamps;
@@ -52,6 +53,14 @@ class User extends Authenticatable
         ];
     }
 
+    public static function getAvailableRoles(): array
+    {
+        return Role::query()
+            ->orderBy('name')
+            ->pluck('name', 'name')
+            ->toArray();
+    }
+
     /**
      * Get the user details associated with the user.
      *
@@ -81,5 +90,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(Bookmark::class);
     }
-
 }
