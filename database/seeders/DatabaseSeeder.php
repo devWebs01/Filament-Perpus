@@ -2,12 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,23 +13,28 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-    { // 1. Pastikan role super_admin ada
-        $superAdminRole = Role::firstOrCreate([
-            'name' => 'super_admin',
-            'guard_name' => 'web',
+    {
+        $this->command->info('🚀 Memulai Database Seeder...');
+
+        $this->call([
+            // 1. Roles & Permissions
+            RoleAndPermissionSeeder::class,    // Shield roles and permissions
+
+            // 2. System Configuration
+            LibrarySystemSeeder::class,        // Combined: Users, Roles, UserDetails
+            SettingSeeder::class,              // Library settings
+
+            // 3. Reference Data
+            StatusSeeder::class,               // Transaction statuses
+
+            // 4. Book Data
+            // BookSeeder::class,                 // Books (smart online/offline mode)
+            BookSeeder::class,           // Books (smart online/offline mode)
+
+            // 5. Transaction Data
+            TransactionSeeder::class,          // Sample transactions
         ]);
 
-        // 2. Buat / ambil user admin
-        $user = User::firstOrCreate(
-            ['email' => 'admin@testing.com'],
-            [
-                'name' => 'Super Admin',
-                'password' => Hash::make('password'), // ganti di production
-            ]
-        );
-
-        // 3. Assign role jika belum
-        $permissions = Permission::pluck('name')->toArray();
-        $user->syncPermissions($permissions);
+        $this->command->info('✅ Database Seeder selesai dijalankan!');
     }
 }
