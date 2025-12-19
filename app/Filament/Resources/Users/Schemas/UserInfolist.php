@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
-use App\Models\User;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class UserInfolist
@@ -12,31 +14,124 @@ class UserInfolist
     {
         return $schema
             ->components([
-                TextEntry::make('name'),
-                TextEntry::make('email')
-                    ->label('Email address'),
-                TextEntry::make('email_verified_at')
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make('created_at')
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make('updated_at')
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make('deleted_at')
-                    ->dateTime()
-                    ->visible(fn (User $record): bool => $record->trashed()),
-                TextEntry::make('created_by')
-                    ->numeric()
-                    ->placeholder('-'),
-                TextEntry::make('updated_by')
-                    ->numeric()
-                    ->placeholder('-'),
-                TextEntry::make('deleted_by')
-                    ->numeric()
-                    ->placeholder('-'),
-                TextEntry::make('role'),
+                Section::make('Informasi Pengguna')
+                    ->description('Informasi dasar akun pengguna')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                TextEntry::make('name')
+                                    ->label('Nama Lengkap'),
+
+                                TextEntry::make('email')
+                                    ->label('Alamat Email')
+                                    ->copyable()
+                                    ->icon('heroicon-o-envelope'),
+                            ]),
+                    ])
+                    ->columnSpanFull(),
+
+                Section::make('Peran Pengguna')
+                    ->description('Peran yang ditetapkan pada akun')
+                    ->schema([
+                        TextEntry::make('roles')
+                            ->label('Peran')
+                            ->badge()
+                            ->formatStateUsing(
+                                fn ($state) => collect($state)
+                                    ->pluck('name')
+                                    ->map(fn ($role) => str_replace('_', ' ', ucfirst($role)))
+                                    ->join(', ')
+                            )
+                            ->color('primary'),
+                    ])
+                    ->columnSpanFull(),
+
+                Section::make('Detail Pengguna')
+                    ->description('Informasi detail pengguna')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                TextEntry::make('userDetail.nik')
+                                    ->label('NIK')
+                                    ->default('-'),
+
+                                TextEntry::make('userDetail.nis')
+                                    ->label('NIS')
+                                    ->default('-'),
+
+                                TextEntry::make('userDetail.nisn')
+                                    ->label('NISN')
+                                    ->default('-'),
+
+                                TextEntry::make('userDetail.phone_number')
+                                    ->label('Nomor Telepon')
+                                    ->default('-'),
+
+                                TextEntry::make('userDetail.class')
+                                    ->label('Kelas')
+                                    ->default('-'),
+
+                                TextEntry::make('userDetail.gender')
+                                    ->label('Jenis Kelamin')
+                                    ->formatStateUsing(fn (?string $state) => match ($state) {
+                                        'male' => 'Laki-laki',
+                                        'female' => 'Perempuan',
+                                        default => '-',
+                                    }),
+
+                                TextEntry::make('userDetail.religion')
+                                    ->label('Agama')
+                                    ->formatStateUsing(fn (?string $state) => match ($state) {
+                                        'islam' => 'Islam',
+                                        'christian' => 'Kristen Protestan',
+                                        'catholic' => 'Katolik',
+                                        'hindu' => 'Hindu',
+                                        'buddhist' => 'Buddha',
+                                        'confucian' => 'Konghucu',
+                                        'other' => 'Lainnya',
+                                        default => '-',
+                                    }),
+
+                                TextEntry::make('userDetail.membership_status')
+                                    ->label('Status Keanggotaan')
+                                    ->badge()
+                                    ->color(fn (?string $state) => match ($state) {
+                                        'active' => 'success',
+                                        'suspended' => 'warning',
+                                        'expired' => 'danger',
+                                        default => 'gray',
+                                    }),
+                            ]),
+
+                        Grid::make(2)
+                            ->schema([
+                                TextEntry::make('userDetail.birth_place')
+                                    ->label('Tempat Lahir')
+                                    ->default('-'),
+
+                                TextEntry::make('userDetail.birth_date')
+                                    ->label('Tanggal Lahir')
+                                    ->date('d M Y')
+                                    ->default('-'),
+
+                                TextEntry::make('userDetail.join_date')
+                                    ->label('Tanggal Bergabung')
+                                    ->date('d M Y')
+                                    ->default('-'),
+                            ]),
+
+                        ImageEntry::make('userDetail.profile_photo')
+                            ->label('Foto Profil')
+                            ->circular()
+                            ->defaultImageUrl(url('/placeholder-user.png'))
+                            ->columnSpanFull(),
+
+                        TextEntry::make('userDetail.address')
+                            ->label('Alamat')
+                            ->columnSpanFull()
+                            ->markdown()
+                            ->default('Tidak ada alamat'),
+                    ])->columnSpanFull(),
             ]);
     }
 }

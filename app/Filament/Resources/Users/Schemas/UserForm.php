@@ -35,7 +35,7 @@ class UserForm
                                     ->required()
                                     ->maxLength(255)
                                     ->unique(ignoreRecord: true),
-                            ]),
+                            ])->columnSpanFull(),
 
                         TextInput::make('password')
                             ->label('Kata Sandi')
@@ -44,8 +44,7 @@ class UserForm
                             ->dehydrated(fn (?string $state): bool => filled($state))
                             ->required(fn (string $operation): bool => $operation === 'create')
                             ->helperText(fn (string $context): string => $context === 'edit' ? 'Kosongkan untuk tetap menggunakan kata sandi saat ini' : 'Kata sandi harus minimal 8 karakter'),
-                    ])
-                    ->columnSpanFull(),
+                    ])->columnSpanFull(),
 
                 Section::make('Penugasan Peran')
                     ->description('Tetapkan peran untuk pengguna')
@@ -54,9 +53,15 @@ class UserForm
                             ->label('Peran')
                             ->options(User::getAvailableRoles())
                             ->required()
-                            ->default('siswa')
+                            ->default('siswa') // hanya untuk CREATE
+                            ->afterStateHydrated(function (Select $component, $state, $record) {
+                                if ($record && $record->roles->isNotEmpty()) {
+                                    $component->state($record->roles->first()->name);
+                                }
+                            })
                             ->helperText('Pilih peran untuk pengguna ini'),
-                    ])->columnSpanFull(),
+                    ])
+                    ->columnSpanFull(),
 
                 Section::make('Detail Pengguna')
                     ->description('Informasi detail tentang pengguna')
@@ -112,8 +117,7 @@ class UserForm
                                         'expired' => 'Kadaluarsa',
                                     ])
                                     ->default('active')
-                                    ->required()
-                                    ->columnSpanFull(),
+                                    ->required(),
                             ]),
 
                         Grid::make(2)
@@ -138,7 +142,6 @@ class UserForm
                                     ->image()
                                     ->imageEditor()
                                     ->directory('users')
-                                    ->visibility('public')
                                     ->columnSpanFull(),
                             ]),
 
