@@ -24,7 +24,14 @@ class LibrarySystemSeeder extends Seeder
      */
     public function run(): void
     {
+        // Force refresh permission cache to prevent race conditions
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         $this->command->info('🚀 Memulai Library System Seeder...');
+        $this->command->info('🔄 Permission cache cleared');
+
+        // Verify roles exist before proceeding
+        $this->verifyRolesExist();
 
         // Create users dengan details lengkap
         $this->createUsersWithDetails();
@@ -262,6 +269,16 @@ class LibrarySystemSeeder extends Seeder
      */
     private function createUserWithDetails(array $data): User
     {
+        // Validate role exists before creating user
+        $roleExists = \Spatie\Permission\Models\Role::where('name', $data['role'])
+            ->where('guard_name', 'web')
+            ->exists();
+
+        if (! $roleExists) {
+            $this->command->error("❌ Role '{$data['role']}' tidak ditemukan!");
+            throw new \Exception("Role '{$data['role']}' not found. Pastikan RoleAndPermissionSeeder sudah dijalankan terlebih dahulu.");
+        }
+
         $user = User::firstOrCreate(
             ['email' => $data['email']],
             [
@@ -271,8 +288,18 @@ class LibrarySystemSeeder extends Seeder
             ]
         );
 
-        // Assign role using Spatie Permission
-        $user->assignRole($data['role']);
+        // Assign role using Spatie Permission with error handling
+        try {
+            if (! $user->hasRole($data['role'])) {
+                $user->assignRole($data['role']);
+                $this->command->info("   ✅ Role '{$data['role']}' assigned to {$user->email}");
+            } else {
+                $this->command->info("   ℹ️  User {$user->email} already has role '{$data['role']}'");
+            }
+        } catch (\Exception $e) {
+            $this->command->error("   ❌ Gagal assign role '{$data['role']}' to {$user->email}: {$e->getMessage()}");
+            throw $e;
+        }
 
         if (! $user->userDetail) {
             $userDetail = UserDetail::create(array_merge(['user_id' => $user->id], $data['user_details']));
@@ -403,5 +430,32 @@ class LibrarySystemSeeder extends Seeder
         }
         $this->command->info('');
         $this->command->info('🚀 Sistem siap digunakan!');
+    }
+
+    /**
+     * Verify that all required roles exist before creating users
+     */
+    private function verifyRolesExist(): void
+    {
+        $requiredRoles = ['super_admin', 'ketua_perpustakaan', 'petugas', 'siswa'];
+        $missingRoles = [];
+
+        foreach ($requiredRoles as $roleName) {
+            $exists = \Spatie\Permission\Models\Role::where('name', $roleName)
+                ->where('guard_name', 'web')
+                ->exists();
+
+            if (! $exists) {
+                $missingRoles[] = $roleName;
+            }
+        }
+
+        if (! empty($missingRoles)) {
+            $this->command->error('❌ The following required roles are missing: '.implode(', ', $missingRoles));
+            $this->command->error('⚠️  Please run RoleAndPermissionSeeder first!');
+            throw new \Exception('Required roles not found. Run RoleAndPermissionSeeder before LibrarySystemSeeder.');
+        }
+
+        $this->command->info('✅ All required roles verified');
     }
 }
