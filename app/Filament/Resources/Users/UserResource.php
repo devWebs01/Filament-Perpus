@@ -21,9 +21,9 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Manajemen Perpustakaan';
+    protected static string|\UnitEnum|null $navigationGroup = 'Manajemen Pengguna';
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
     protected static ?string $navigationLabel = 'Pengguna';
 
