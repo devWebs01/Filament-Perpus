@@ -2,6 +2,9 @@
 
 return [
     App\Providers\AppServiceProvider::class,
+    App\Providers\AuthServiceProvider::class,
+    App\Providers\EventServiceProvider::class,
     App\Providers\Filament\AdminPanelProvider::class,
-    App\Providers\Filament\UserPanelProvider::class,
+    App\Providers\FolioServiceProvider::class,
+    App\Providers\VoltServiceProvider::class,
 ];

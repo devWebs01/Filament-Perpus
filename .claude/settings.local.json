@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch:*)",
+      "Bash(mkdir:*)",
+      "Bash(php artisan about:*)",
+      "Bash(php artisan filament:panel:show:*)",
+      "Bash(npm install:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm run build)",
+      "Bash(cat:*)",
+      "Bash(dir node_modulesdaisyui)",
+      "Bash(vendor/bin/pint:*)",
+      "Bash(dir:*)",
+      "Bash(php artisan config:clear:*)",
+      "Bash(php artisan cache:clear:*)",
+      "Bash(php artisan route:clear:*)",
+      "Bash(php artisan view:clear:*)",
+      "Bash(composer dump-autoload:*)",
+      "Bash(php artisan route:list:*)",
+      "Bash(php:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "laravel-boost"
+  ]
+}
