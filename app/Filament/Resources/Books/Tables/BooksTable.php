@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Books\Tables;
 
+use AlperenErsoy\FilamentExport\Actions\FilamentExportBulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -56,6 +57,7 @@ class BooksTable
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
+                    FilamentExportBulkAction::make('Export'),
                 ]),
             ]);
     }

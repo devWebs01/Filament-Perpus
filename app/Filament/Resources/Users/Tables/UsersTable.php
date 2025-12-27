@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use AlperenErsoy\FilamentExport\Actions\FilamentExportBulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -46,6 +47,7 @@ class UsersTable
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
+                    FilamentExportBulkAction::make('Export'),
                 ]),
             ]);
     }
