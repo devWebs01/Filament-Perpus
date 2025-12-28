@@ -8,21 +8,21 @@ name('my-bookmarks');
 
 state(['search' => '']);
 
+// Validate search input to prevent abuse
+$updatedSearch = function ($value) {
+    $maxLength = config('app.library.max_search_length', 100);
+    if (strlen($value) > $maxLength) {
+        $this->search = substr($value, 0, $maxLength);
+    }
+};
+
 $bookmarks = computed(function () {
     if (!auth()->check()) {
         return collect();
     }
 
     $bookmarkService = app(BookmarkService::class);
-    $bookmarks = $bookmarkService->getUserBookmarks(auth()->user());
-
-    if ($this->search) {
-        return $bookmarks->filter(function ($bookmark) {
-            return stripos($bookmark->book->title, $this->search) !== false || stripos($bookmark->book->author, $this->search) !== false;
-        });
-    }
-
-    return $bookmarks;
+    return $bookmarkService->getUserBookmarksSearch(auth()->user(), $this->search);
 });
 
 
@@ -46,7 +46,7 @@ $bookmarks = computed(function () {
                     class="w-full bg-white dark:bg-gray-900 shadow-md p-6 mb-8 rounded-xl border border-gray-200 dark:border-gray-700">
                     <div class="w-full">
                         <x-input name="search" wire:model.live="search" placeholder="Cari judul atau penulis..."
-                            label="Pencarian" icon="o-magnifying-glass" class="w-full" size="medium" />
+                            label="Pencarian" icon="o-magnifying-glass" class="w-full" size="medium" maxlength="100" />
                     </div>
                 </div>
 
@@ -75,7 +75,7 @@ $bookmarks = computed(function () {
                                     <!-- Tombol Bookmark & Detail -->
                                     <div class="mt-6 flex gap-2">
                                         <div class="flex-shrink-0">
-                                            @livewire('bookmark-button', ['bookId' => $bookmark->book->id, 'compact' => true], key('book-rec-' . $bookmark->book->id))
+                                            @livewire('bookmark-button', ['bookId' => $bookmark->book->id, 'compact' => true], key: 'bookmark-' . $bookmark->book->id)
                                         </div>
                                         <a href="{{ route('book-detail', ['book' => $bookmark->book->id]) }}" type="button"
                                             class="btn flex-1 justify-between bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white">

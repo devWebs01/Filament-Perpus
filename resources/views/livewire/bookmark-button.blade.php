@@ -17,6 +17,8 @@ $isBookmarked = computed(function () {
 });
 
 $toggleBookmark = function () {
+    $alertDuration = config('app.library.alert_duration', 3000);
+
     if (!auth()->check()) {
         return redirect()->route('login');
     }
@@ -26,10 +28,10 @@ $toggleBookmark = function () {
 
     if ($isBookmarked) {
         $this->dispatch('bookmark-added');
-        LivewireAlert::title('Berhasil')->position('center')->timer(3000)->text('Buku berhasil disimpan ke daftar tersimpan')->success()->show();
+        LivewireAlert::title('Berhasil')->position('center')->timer($alertDuration)->text('Buku berhasil disimpan ke daftar tersimpan')->success()->show();
     } else {
         $this->dispatch('bookmark-removed');
-        LivewireAlert::title('Berhasil')->position('center')->timer(3000)->text('Buku berhasil dihapus dari daftar tersimpan')->info()->show();
+        LivewireAlert::title('Berhasil')->position('center')->timer($alertDuration)->text('Buku berhasil dihapus dari daftar tersimpan')->info()->show();
     }
 };
 
@@ -38,37 +40,26 @@ $toggleBookmark = function () {
 <div>
     @if ($compact)
         {{-- Compact mode - Icon only --}}
-        <button wire:click="toggleBookmark" title="{{ $this->isBookmarked ? 'Hapus dari tersimpan' : 'Simpan buku' }}"
-            class="btn px-5 btn-square border transition-colors
-                        {{ $this->isBookmarked
-            ? 'bg-red-100 border-red-300 hover:bg-red-200
-                                                               dark:bg-red-900/30 dark:border-red-800 dark:hover:bg-red-900/50'
-            : 'bg-gray-100 border-gray-300 hover:bg-gray-200
-                                                               dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600' }}">
-
-            @if ($this->isBookmarked)
-                <i class="iconoir-trash text-xl text-red-600 dark:text-red-400"></i>
-            @else
-                <i class="iconoir-bookmark-book text-xl text-gray-700 dark:text-gray-300"></i>
-            @endif
-        </button>
+        <x-button
+            wire:click="toggleBookmark"
+            :icon="$this->isBookmarked ? 'o-trash' : 'o-bookmark'"
+            icon-only
+            squared
+            :tooltip="$this->isBookmarked ? 'Hapus dari tersimpan' : 'Simpan buku'"
+            :class="$this->isBookmarked
+                ? 'bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 border-red-300 dark:border-red-800'
+                : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 border-gray-300 dark:border-gray-600'"
+            :icon-color="$this->isBookmarked ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'"
+        />
     @else
         {{-- Full mode - Icon + Text --}}
-        <button wire:click="toggleBookmark"
-            class="btn px-5 border flex-1 transition-colors
-                        {{ $this->isBookmarked
-            ? 'bg-red-100 border-red-300 hover:bg-red-200
-                                                               dark:bg-red-900/30 dark:border-red-800 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300'
-            : 'bg-gray-100 border-gray-300 hover:bg-gray-200
-                                                               dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 text-black dark:text-white' }}">
-
-            @if ($this->isBookmarked)
-                <i class="iconoir-trash text-xl text-red-600 dark:text-red-400"></i>
-            @else
-                <i class="iconoir-bookmark-book text-xl"></i>
-            @endif
-
-            <span>{{ $this->isBookmarked ? 'Tersimpan' : 'Simpan Buku' }}</span>
-        </button>
+        <x-button
+            wire:click="toggleBookmark"
+            :icon="$this->isBookmarked ? 'o-trash' : 'o-bookmark'"
+            :label="$this->isBookmarked ? 'Tersimpan' : 'Simpan Buku'"
+            :class="$this->isBookmarked
+                ? 'bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 border-red-300 dark:border-red-800 text-red-700 dark:text-red-300'
+                : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 border-gray-300 dark:border-gray-600 text-black dark:text-white'"
+        />
     @endif
 </div>

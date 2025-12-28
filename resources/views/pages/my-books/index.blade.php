@@ -2,16 +2,24 @@
 
 use function Laravel\Folio\name;
 use function Livewire\Volt\{state, with};
-use App\Models\{Transaction, Book, Setting};
+use App\Models\{Transaction, Book, Setting, Status};
 
 name('my-books');
 
 state([
     'user' => auth()->user(),
-    'setting' => Setting::first(),
+    'setting' => fn() => Setting::first() ?? new Setting(['limit_day' => config('app.library.default_loan_days', 7)]),
     'search' => '',
     'filter' => 'all',
 ]);
+
+// Validate search input to prevent abuse
+$updatedSearch = function ($value) {
+    $maxLength = config('app.library.max_search_length', 100);
+    if (strlen($value) > $maxLength) {
+        $this->search = substr($value, 0, $maxLength);
+    }
+};
 
 with([
     'transactions' => function () {
@@ -37,39 +45,53 @@ with([
 
         return $query->paginate(10);
     },
-    'stats' => [
-        'active' => Transaction::where('user_id', auth()->id())
-            ->whereHas('status', function ($query) {
-                $query->where('name', 'Dipinjam');
-            })
-            ->count(),
-        'returned' => Transaction::where('user_id', auth()->id())
-            ->whereHas('status', function ($query) {
-                $query->where('name', 'Dikembalikan');
-            })
-            ->count(),
-        'overdue' => Transaction::where('user_id', auth()->id())
-            ->whereHas('status', function ($query) {
-                $query->where('name', 'Dipinjam');
-            })
-            ->where('due_date', '<', now())
-            ->count(),
-    ],
+    'stats' => function () {
+        // Optimized: Database-level aggregation with caching
+        $cacheKey = 'user_stats_' . auth()->id();
+
+        return cache()->remember($cacheKey, now()->addMinutes(5), function () {
+            // Get status IDs once to avoid multiple queries
+            $dipinjamStatusId = Status::where('name', 'Dipinjam')->value('id');
+            $dikembalikanStatusId = Status::where('name', 'Dikembalikan')->value('id');
+
+            // Single database query with aggregation
+            $result = Transaction::where('user_id', auth()->id())
+                ->leftJoin('statuses', 'transactions.status_id', '=', 'statuses.id')
+                ->selectRaw('
+                    COUNT(CASE WHEN transactions.status_id = ? AND transactions.due_date >= CURDATE() THEN 1 END) as active,
+                    COUNT(CASE WHEN transactions.status_id = ? THEN 1 END) as returned,
+                    COUNT(CASE WHEN transactions.status_id = ? AND transactions.due_date < CURDATE() THEN 1 END) as overdue
+                ', [$dipinjamStatusId, $dikembalikanStatusId, $dipinjamStatusId])
+                ->first();
+
+            return [
+                'active' => (int) $result->active,
+                'returned' => (int) $result->returned,
+                'overdue' => (int) $result->overdue,
+            ];
+        });
+    },
 ]);
 
 $refreshData = function () {
     $this->resetPage();
+    // Clear stats cache when data is refreshed
+    cache()->forget('user_stats_' . auth()->id());
 };
 
 $extendLoan = function ($transactionId) {
     $transaction = Transaction::find($transactionId);
 
     if ($transaction && $transaction->user_id === auth()->id() && $transaction->isBorrowed()) {
-        // Add 7 days to due date
-        $transaction->due_date = $transaction->due_date->addDays(7);
+        // Add configured days to due date
+        $extensionDays = config('app.library.loan_extension_days', 7);
+        $transaction->due_date = $transaction->due_date->addDays($extensionDays);
         $transaction->save();
 
-        session()->flash('message', 'Masa peminjaman berhasil diperpanjang 7 hari!');
+        // Clear stats cache after extending loan
+        cache()->forget('user_stats_' . auth()->id());
+
+        session()->flash('message', "Masa peminjaman berhasil diperpanjang {$extensionDays} hari!");
     }
 };
 
@@ -96,7 +118,7 @@ $extendLoan = function ($transactionId) {
                     <!-- Search Input -->
                     <div class="flex-1">
                         <x-input wire:model.live="search" placeholder="Cari judul atau penulis buku..."
-                            icon="o-magnifying-glass" class="w-full" />
+                            icon="o-magnifying-glass" class="w-full" maxlength="100" />
                     </div>
 
                     <!-- Status Filter -->

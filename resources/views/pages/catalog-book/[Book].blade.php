@@ -8,7 +8,7 @@ name('book-detail');
 
 state([
     'book' => fn($book) => $book,
-    'setting' => fn() => Setting::select('limit_day')->first(),
+    'setting' => fn() => Setting::select('limit_day')->first() ?? (new Setting(['limit_day' => config('app.library.default_loan_days', 7)])),
     'rules' => fn() => Status::where('amount', '>', 0)->get(),
 ]);
 

@@ -2,13 +2,21 @@
 
 use function Laravel\Folio\name;
 use function Livewire\Volt\{state, computed};
-use App\Models\{Book, Category, Setting};
+use App\Models\{Book, Category};
 
 name('catalog');
 
-state(['search'])->url();
+state(['search' => ''])->url();
 state(['categories' => fn() => Category::get()]);
 state(['category_id' => '']);
+
+// Validate search input to prevent abuse
+$updatedSearch = function ($value) {
+    $maxLength = config('app.library.max_search_length', 100);
+    if (strlen($value) > $maxLength) {
+        $this->search = substr($value, 0, $maxLength);
+    }
+};
 
 $books_catalog = computed(function () {
     // Dapatkan semua buku jika tidak ada search dan category
@@ -69,7 +77,7 @@ $books_catalog = computed(function () {
                                                group-focus-within:text-primary-500
                                                transition-colors duration-200"></i>
 
-                            <input type="text" wire:model.live="search" placeholder="Cari judul buku..." class="w-full pl-12 pr-4 py-3 rounded-xl
+                            <input type="text" wire:model.live="search" placeholder="Cari judul buku..." maxlength="100" class="w-full pl-12 pr-4 py-3 rounded-xl
                                            border border-neutral-300
                                            bg-white text-neutral-700
                                            placeholder-neutral-400

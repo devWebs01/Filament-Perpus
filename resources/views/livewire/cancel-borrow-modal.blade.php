@@ -8,12 +8,14 @@ use function Livewire\Volt\state;
 state(['transactionId']);
 
 $cancel_borrow = function () {
+    $alertDuration = config('app.library.alert_duration', 3000);
+
     try {
         // Ambil transaksi
         $transaction = Transaction::find($this->transactionId);
 
         if (!$transaction) {
-            LivewireAlert::title('Gagal')->position('center')->timer(3000)->text('Transaksi tidak ditemukan')->error()->show();
+            LivewireAlert::title('Gagal')->position('center')->timer($alertDuration)->text('Transaksi tidak ditemukan')->error()->show();
             $this->dispatch('close-cancel-modal');
             return;
         }
@@ -25,13 +27,13 @@ $cancel_borrow = function () {
         $result = $borrowBookService->cancelBorrow($transaction);
 
         if ($result['success']) {
-            LivewireAlert::title('Berhasil')->position('center')->timer(3000)->text($result['message'])->success()->show();
+            LivewireAlert::title('Berhasil')->position('center')->timer($alertDuration)->text($result['message'])->success()->show();
 
             // Tutup modal otomatis
             $this->dispatch('close-cancel-modal');
             $this->dispatch('refresh-transactions'); // Untuk refresh daftar transaksi
         } else {
-            LivewireAlert::title('Gagal')->position('center')->timer(3000)->text($result['message'])->error()->show();
+            LivewireAlert::title('Gagal')->position('center')->timer($alertDuration)->text($result['message'])->error()->show();
             $this->dispatch('close-cancel-modal');
         }
     } catch (\Throwable $th) {
@@ -39,35 +41,30 @@ $cancel_borrow = function () {
 
         // Tutup modal otomatis
         $this->dispatch('close-cancel-modal');
-        LivewireAlert::title('Gagal')->position('center')->timer(3000)->text('Terjadi kesalahan sistem. Silakan coba lagi nanti')->error()->show();
+        LivewireAlert::title('Gagal')->position('center')->timer($alertDuration)->text('Terjadi kesalahan sistem. Silakan coba lagi nanti')->error()->show();
     }
 };
 ?>
 
 <div>
-    <dialog id="cancel_borrow" class="modal modal-bottom sm:modal-middle">
-        <div class="modal-box text-gray-70 dark:text-gray-100 text-center">
+    <x-modal id="cancel_borrow" title="Konfirmasi Pembatalan">
+        <div class="text-center">
             <img src="{{ asset('images/thinking_illustration.png') }}" class="w-44 mx-auto mb-4"
                 alt="thinking illustration">
 
-            <p class="py-4">
+            <p class="py-4 text-gray-700 dark:text-gray-100">
                 Yakin kamu ingin membatalkan permintaan peminjaman buku ini?
             </p>
 
-            <div class="modal-action flex gap-4 w-full">
-                <form method="dialog" class="flex w-full gap-4">
-                    <button
-                        class="btn px-4 border hover:bg-gray-100 dark:bg-gray-500 dark:hover:bg-gray-600 text-black dark:text-white flex-1">Kembali</button>
-                    <button type="button" wire:click="cancel_borrow"
-                        class="btn bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white flex-1">
-                        <span wire:loading class="loading loading-spinner loading-md"></span>
+            <x-slot:actions>
+                <x-button label="Kembali" type="button" onclick="cancel_borrow.close()"
+                    class="flex-1 border hover:bg-gray-100 dark:bg-gray-500 dark:hover:bg-gray-600 text-black dark:text-white" />
 
-                        Ya, Batalkan
-                    </button>
-                </form>
-            </div>
+                <x-button label="Ya, Batalkan" wire:click="cancel_borrow" spinner
+                    class="flex-1 bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white" />
+            </x-slot:actions>
         </div>
-    </dialog>
+    </x-modal>
 
     {{-- Tutup modal otomatis setelah berhasil --}}
     <script>

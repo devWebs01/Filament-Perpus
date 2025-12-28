@@ -123,4 +123,27 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Library Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Library-specific settings for borrowing, search, and UI behavior.
+    |
+    */
+
+    'library' => [
+        // Loan extension days when user extends their borrow period
+        'loan_extension_days' => env('LIBRARY_LOAN_EXTENSION_DAYS', 7),
+
+        // Maximum search input length to prevent abuse
+        'max_search_length' => env('LIBRARY_MAX_SEARCH_LENGTH', 100),
+
+        // Default alert display duration in milliseconds
+        'alert_duration' => env('LIBRARY_ALERT_DURATION', 3000),
+
+        // Default loan period days (fallback if not set in database)
+        'default_loan_days' => env('LIBRARY_DEFAULT_LOAN_DAYS', 7),
+    ],
+
 ];

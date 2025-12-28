@@ -24,9 +24,7 @@
       "Bash(git reset:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(grep:*)",
-      "Bash(find:*)"
+      "Bash(git push:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

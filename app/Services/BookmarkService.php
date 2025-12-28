@@ -20,6 +20,24 @@ class BookmarkService
     }
 
     /**
+     * Get all bookmarks for a user with book relationship loaded and search filter
+     */
+    public function getUserBookmarksSearch(User $user, ?string $search = null): Collection
+    {
+        $query = Bookmark::where('user_id', $user->id)
+            ->with('book');
+
+        if ($search) {
+            $query->whereHas('book', function ($q) use ($search) {
+                $q->where('title', 'like', '%'.$search.'%')
+                    ->orWhere('author', 'like', '%'.$search.'%');
+            });
+        }
+
+        return $query->latest()->get();
+    }
+
+    /**
      * Add a bookmark for a user
      */
     public function addBookmark(User $user, int $bookId): Bookmark
