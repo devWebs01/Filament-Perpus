@@ -29,7 +29,6 @@ return RectorConfig::configure()
         ReadOnlyPropertyRector::class,
         EncapsedStringsToSprintfRector::class,
         DisallowedEmptyRuleFixerRector::class,
-        FunctionLikeToFirstClassCallableRector::class,
     ])
     ->withPhpSets(php83: true)
     ->withPreparedSets(
