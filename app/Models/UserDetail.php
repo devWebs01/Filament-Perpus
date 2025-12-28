@@ -57,10 +57,15 @@ class UserDetail extends Model
         ];
     }
 
+    /**
+     * Boot method untuk menangani event model.
+     * QR code generation sekarang ditangani oleh UserDetailObserver.
+     */
     protected static function boot()
     {
         parent::boot();
 
+        // Set join_date secara otomatis saat creating
         static::creating(function ($userDetail) {
             if (empty($userDetail->join_date)) {
                 $userDetail->join_date = Carbon::now();
@@ -209,21 +214,5 @@ class UserDetail extends Model
     public function scopeActiveMembers($query)
     {
         return $query->where('membership_status', 'active');
-    }
-
-    /**
-     * Generate unique QR code for user detail
-     */
-    public function generateQrCode(): string
-    {
-        // Generate unique QR code if not exists
-        $qrCode = 'LIB_'.strtoupper(substr(md5($this->user_id.$this->id.now()->timestamp), 0, 10));
-
-        // Check if QR code already exists
-        while (self::where('qr_code', $qrCode)->exists()) {
-            $qrCode = 'LIB_'.strtoupper(substr(md5($this->user_id.$this->id.now()->timestamp.rand(1, 999)), 0, 10));
-        }
-
-        return $qrCode;
     }
 }

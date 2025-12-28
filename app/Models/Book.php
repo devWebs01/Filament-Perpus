@@ -79,17 +79,6 @@ class Book extends Model
     }
 
     /**
-     * Generate unique barcode for book
-     */
-    public static function generateBarcode(): string
-    {
-        $prefix = 'LIB';
-        $random = strtoupper(substr(md5(uniqid()), 0, 8));
-
-        return $prefix.$random;
-    }
-
-    /**
      * Find book by barcode or ISBN
      */
     public static function findByBarcode(string $barcode): ?self
@@ -100,16 +89,11 @@ class Book extends Model
     }
 
     /**
-     * Boot method to generate barcode on creation if not provided
+     * Boot method untuk menangani event model.
+     * Barcode generation sekarang ditangani oleh BookObserver.
      */
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
-
-        static::creating(function ($book) {
-            if (empty($book->barcode)) {
-                $book->barcode = static::generateBarcode();
-            }
-        });
     }
 }
