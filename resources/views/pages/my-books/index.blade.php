@@ -90,28 +90,27 @@ $extendLoan = function ($transactionId) {
             {{-- Statistics Cards with Bladewind --}}
             @include('pages.my-books.statistics_cards')
 
-            <!-- Search and Filter (Pure Tailwind Version) -->
-            <!-- Full Width Search + Filter -->
-            <div data-aos="fade-up"
-                class="w-full bg-white dark:bg-gray-900 shadow-md p-6 mb-8 rounded-xl border border-gray-200 dark:border-gray-700">
+            <!-- Search and Filter -->
+            <div data-aos="fade-up" class="mb-8">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <!-- Search Input -->
+                    <div class="flex-1">
+                        <x-input wire:model.live="search" placeholder="Cari judul atau penulis buku..."
+                            icon="o-magnifying-glass" class="w-full" />
+                    </div>
 
-                <!-- SEARCH (Full width on small, 2 cols on large) -->
-                <div class="w-full">
-                    <x-input name="search" wire:model.live="search" placeholder="Cari berdasarkan judul atau penulis..."
-                        label="Pencarian" class="w-full" size="medium" />
+                    <!-- Status Filter -->
+                    <div class="w-full md:w-64">
+                        <select
+                            wire:model.live="filter"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
+                        >
+                            <option value="all">Semua Status</option>
+                            <option value="borrowed">Dipinjam</option>
+                            <option value="returned">Dikembalikan</option>
+                        </select>
+                    </div>
                 </div>
-
-                <!-- Status Filter -->
-                <div class="w-full text-gray-700 dark:text-gray-100">
-                    <select wire:model.live="filter" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg
-                           px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-100
-                           focus:ring-2 focus:ring-primary-500 focus:outline-none transition">
-                        <option value="all">Semua Status</option>
-                        <option value="borrowed">Dipinjam</option>
-                        <option value="returned">Dikembalikan</option>
-                    </select>
-                </div>
-
             </div>
 
             <!-- Books List -->
@@ -175,7 +174,7 @@ $extendLoan = function ($transactionId) {
                                                 </div>
                                                 <p
                                                     class="text-base font-semibold
-                                                                                {{ $transaction->due_date < now() ? 'text-red-600' : 'text-gray-900 dark:text-gray-100' }}">
+                                                                                                        {{ $transaction->due_date < now() ? 'text-red-600' : 'text-gray-900 dark:text-gray-100' }}">
                                                     {{ $transaction->due_date->format('d M Y') }}
                                                 </p>
                                             </x-card>

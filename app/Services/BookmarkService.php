@@ -59,4 +59,27 @@ class BookmarkService
     {
         return Bookmark::where('user_id', $user->id)->count();
     }
+
+    /**
+     * Toggle bookmark for a user (add if not exists, remove if exists)
+     */
+    public function toggle(User $user, int $bookId): bool
+    {
+        $existing = Bookmark::where('user_id', $user->id)
+            ->where('book_id', $bookId)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+
+            return false;
+        }
+
+        Bookmark::create([
+            'user_id' => $user->id,
+            'book_id' => $bookId,
+        ]);
+
+        return true;
+    }
 }
