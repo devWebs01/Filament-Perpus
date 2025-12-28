@@ -67,7 +67,7 @@ class User extends Authenticatable
     /**
      * Get the user details associated with the user.
      *
-     * @return HasOne<UserDetail>
+     * @return HasOne<UserDetail, $this>
      */
     public function userDetail(): HasOne
     {

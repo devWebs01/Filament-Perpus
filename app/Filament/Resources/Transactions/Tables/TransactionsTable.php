@@ -29,7 +29,7 @@ class TransactionsTable
                     ->label('Anggota')
                     ->searchable()
                     ->sortable()
-                    ->description(fn ($record): string => $record->user->userDetail?->nis ?? $record->user->userDetail?->nisn ?? '-'),
+                    ->description(fn ($record): string => $record->user->userDetail->nis ?? $record->user->userDetail->nisn ?? '-'),
 
                 TextColumn::make('book.title')
                     ->label('Buku')

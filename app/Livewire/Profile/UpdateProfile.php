@@ -47,16 +47,16 @@ class UpdateProfile extends Component
 
         $this->name = $user->name ?? '';
         $this->email = $user->email ?? '';
-        $this->nik = $userDetail?->nik ?? '';
-        $this->nis = $userDetail?->nis ?? '';
-        $this->nisn = $userDetail?->nisn ?? '';
-        $this->class = $userDetail?->class ?? '';
-        $this->address = $userDetail?->address ?? '';
-        $this->phone_number = $userDetail?->phone_number ?? '';
+        $this->nik = $userDetail->nik ?? '';
+        $this->nis = $userDetail->nis ?? '';
+        $this->nisn = $userDetail->nisn ?? '';
+        $this->class = $userDetail->class ?? '';
+        $this->address = $userDetail->address ?? '';
+        $this->phone_number = $userDetail->phone_number ?? '';
         $this->birth_date = $userDetail?->birth_date?->format('Y-m-d') ?? '';
-        $this->birth_place = $userDetail?->birth_place ?? '';
-        $this->gender = $userDetail?->gender ?? '';
-        $this->religion = $userDetail?->religion ?? '';
+        $this->birth_place = $userDetail->birth_place ?? '';
+        $this->gender = $userDetail->gender ?? '';
+        $this->religion = $userDetail->religion ?? '';
     }
 
     public function updateProfile(): void
@@ -103,7 +103,7 @@ class UpdateProfile extends Component
             'birth_place' => $this->birth_place ?: null,
             'gender' => $this->gender ?: null,
             'religion' => $this->religion ?: null,
-            'profile_photo' => $profilePhotoPath ?? ($this->userDetail?->profile_photo ?? null),
+            'profile_photo' => $profilePhotoPath ?? ($this->userDetail->profile_photo ?? null),
         ];
 
         if ($this->userDetail) {

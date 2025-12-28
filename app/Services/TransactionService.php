@@ -24,8 +24,9 @@ class TransactionService
 
     public function __construct(protected BarcodeScannerService $barcodeScanner)
     {
-        $this->defaultBorrowDays = (int) (Setting::first()?->borrow_days ?? 7);
-        $this->penaltyPerDay = (int) (Setting::first()?->penalty_per_day ?? 1000);
+        $setting = Setting::first();
+        $this->defaultBorrowDays = (int) ($setting->borrow_days ?? 7);
+        $this->penaltyPerDay = (int) ($setting->penalty_per_day ?? 1000);
     }
 
     /**
@@ -152,6 +153,7 @@ class TransactionService
             }
 
             // Cek lagi eligibility dan availability saat konfirmasi
+            /** @var UserDetail|null $user */
             $user = $transaction->user->userDetail;
             $eligibility = $this->barcodeScanner->checkUserBorrowEligibility($user);
 
@@ -162,7 +164,9 @@ class TransactionService
                 ];
             }
 
-            $availability = $this->barcodeScanner->checkBookAvailability($transaction->book);
+            /** @var Book $book */
+            $book = $transaction->book;
+            $availability = $this->barcodeScanner->checkBookAvailability($book);
             if (! $availability['available']) {
                 return [
                     'success' => false,
@@ -235,7 +239,7 @@ class TransactionService
             $returnedStatus = Status::where('name', 'Dikembalikan')->first();
             $transaction->return_date = now();
             $transaction->status_id = $returnedStatus?->id;
-            $transaction->penalty_total = $penalty;
+            $transaction->penalty_total = (string) $penalty;
             $transaction->save();
 
             Log::info('Book returned', [

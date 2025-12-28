@@ -17,9 +17,12 @@ use Illuminate\Support\Str;
 
 class ManageSetting extends Page
 {
+    use InteractsWithForms;
+
     protected string $view = 'filament.pages.manage-setting';
 
-    use InteractsWithForms;
+    /** @var mixed */
+    public $form;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Manajemen Perpustakaan';
 

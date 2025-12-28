@@ -132,8 +132,7 @@ class TransactionForm
                 Select::make('user_id')
                     ->label('Anggota')
                     ->options(function () {
-                        return \App\Models\User::with('userDetail')
-                            ->get()
+                        return \App\Models\User::query()
                             ->pluck('name', 'id')
                             ->toArray();
                     })
@@ -144,8 +143,8 @@ class TransactionForm
                         if ($state) {
                             $user = \App\Models\User::find($state);
                             $userDetail = $user?->userDetail;
-                            $set('user_nis', $userDetail?->nis ?? '-');
-                            $set('user_class', $userDetail?->class ?? '-');
+                            $set('user_nis', $userDetail->nis ?? '-');
+                            $set('user_class', $userDetail->class ?? '-');
                         }
                     }),
 
@@ -172,7 +171,7 @@ class TransactionForm
                     ->afterStateUpdated(function ($state, callable $set) {
                         if ($state) {
                             $book = \App\Models\Book::find($state);
-                            $set('book_author', $book?->author ?? '-');
+                            $set('book_author', $book->author ?? '-');
                             $set('book_available_count', $book?->getAvailableCount() ?? 0);
                         }
                     }),

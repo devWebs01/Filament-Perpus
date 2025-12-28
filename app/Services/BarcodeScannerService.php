@@ -255,7 +255,8 @@ class BarcodeScannerService
             ->where('status_id', $pendingStatus)
             ->count();
 
-        $maxBorrow = (int) (\App\Models\Setting::first()?->max_borrow ?? 3);
+        $setting = \App\Models\Setting::first();
+        $maxBorrow = (int) ($setting->max_borrow ?? 3);
 
         if ($activeBorrows >= $maxBorrow) {
             return [

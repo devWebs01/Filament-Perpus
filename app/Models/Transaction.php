@@ -52,9 +52,9 @@ class Transaction extends Model
             // Auto-generate kode transaksi unik
             $transaction->code = static::generateUniqueCode();
 
-            // Check max borrow limit for students
             if ($transaction->user_id && $transaction->user->isStudent()) {
-                $maxBorrow = (int) (\App\Models\Setting::first()?->max_borrow ?? 3);
+                $setting = \App\Models\Setting::first();
+                $maxBorrow = (int) ($setting->max_borrow ?? 3);
 
                 $currentBorrows = static::where('user_id', $transaction->user_id)
                     ->whereHas('status', function ($query): void {
@@ -105,34 +105,36 @@ class Transaction extends Model
     public static function generateUniqueCode(): string
     {
         do {
-            $code = 'TRX-'.date('Ymd').'-'.str_pad(random_int(1, 9999), 4, '0', STR_PAD_LEFT);
+            $code = 'TRX-'.date('Ymd').'-'.str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
         } while (static::where('code', $code)->exists());
 
         return $code;
     }
 
     /**
-     * Get the user that owns the Transaction
+     * Get the user that owns the Transaction.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo<User, $this>
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
     /**
-     * Get the book that owns the Transaction
+     * Get the book that owns the Transaction.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo<Book, $this>
      */
-    public function book()
+    public function book(): BelongsTo
     {
         return $this->belongsTo(Book::class);
     }
 
     /**
-     * Get the status that owns the Transaction
+     * Get the status that owns the Transaction.
+     *
+     * @return BelongsTo<Status, $this>
      */
     public function status(): BelongsTo
     {
@@ -164,7 +166,7 @@ class Transaction extends Model
     }
 
     /**
-     * Get days overdue (integer)
+     * Get days overdue (integer).
      */
     public function getDaysOverdue(): int
     {
@@ -172,7 +174,7 @@ class Transaction extends Model
             return 0;
         }
 
-        return now()->diffInDays($this->due_date);
+        return (int) now()->diffInDays($this->due_date);
     }
 
     /**
