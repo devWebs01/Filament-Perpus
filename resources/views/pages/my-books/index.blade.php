@@ -1,0 +1,275 @@
+<?php
+
+use function Laravel\Folio\name;
+use function Livewire\Volt\{state, with};
+use App\Models\{Transaction, Book, Setting};
+
+name('my-bookmarks');
+
+state([
+    'user' => auth()->user(),
+    'setting' => Setting::first(),
+    'search' => '',
+    'filter' => 'all',
+]);
+
+with([
+    'transactions' => function () {
+        $query = Transaction::where('user_id', auth()->id())->with(['book', 'status']);
+
+        if ($this->filter !== 'all') {
+            if ($this->filter === 'borrowed') {
+                $query->whereHas('status', function ($q) {
+                    $q->where('name', 'Dipinjam');
+                });
+            } elseif ($this->filter === 'returned') {
+                $query->whereHas('status', function ($q) {
+                    $q->where('name', 'Dikembalikan');
+                });
+            }
+        }
+
+        if ($this->search) {
+            $query->whereHas('book', function ($q) {
+                $q->where('title', 'like', '%' . $this->search . '%')->orWhere('author', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        return $query->paginate(10);
+    },
+    'stats' => [
+        'active' => Transaction::where('user_id', auth()->id())
+            ->whereHas('status', function ($query) {
+                $query->where('name', 'Dipinjam');
+            })
+            ->count(),
+        'returned' => Transaction::where('user_id', auth()->id())
+            ->whereHas('status', function ($query) {
+                $query->where('name', 'Dikembalikan');
+            })
+            ->count(),
+        'overdue' => Transaction::where('user_id', auth()->id())
+            ->whereHas('status', function ($query) {
+                $query->where('name', 'Dipinjam');
+            })
+            ->where('due_date', '<', now())
+            ->count(),
+    ],
+]);
+
+$refreshData = function () {
+    $this->resetPage();
+};
+
+$extendLoan = function ($transactionId) {
+    $transaction = Transaction::find($transactionId);
+
+    if ($transaction && $transaction->user_id === auth()->id() && $transaction->isBorrowed()) {
+        // Add 7 days to due date
+        $transaction->due_date = $transaction->due_date->addDays(7);
+        $transaction->save();
+
+        session()->flash('message', 'Masa peminjaman berhasil diperpanjang 7 hari!');
+    }
+};
+
+?>
+
+<x-guest-layout>
+    <x-slot name="title">Buku Saya</x-slot>
+
+    @volt
+    <div>
+        <section class="max-w-7xl mx-auto px-4 py-8">
+            <!-- Header -->
+            <div data-aos="fade-up" class="mb-12">
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-3">Buku Saya</h1>
+                <p class="text-lg text-gray-600 dark:text-gray-400">Kelola dan pantau buku-buku yang Anda pinjam</p>
+            </div>
+
+            {{-- Statistics Cards with Bladewind --}}
+            @include('pages.my-books.statistics_cards')
+
+            <!-- Search and Filter (Pure Tailwind Version) -->
+            <!-- Full Width Search + Filter -->
+            <div data-aos="fade-up"
+                class="w-full bg-white dark:bg-gray-900 shadow-md p-6 mb-8 rounded-xl border border-gray-200 dark:border-gray-700">
+
+                <!-- SEARCH (Full width on small, 2 cols on large) -->
+                <div class="w-full">
+                    <x-input name="search" wire:model.live="search" placeholder="Cari berdasarkan judul atau penulis..."
+                        label="Pencarian" class="w-full" size="medium" />
+                </div>
+
+                <!-- Status Filter -->
+                <div class="w-full text-gray-700 dark:text-gray-100">
+                    <select wire:model.live="filter" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg
+                           px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-100
+                           focus:ring-2 focus:ring-primary-500 focus:outline-none transition">
+                        <option value="all">Semua Status</option>
+                        <option value="borrowed">Dipinjam</option>
+                        <option value="returned">Dikembalikan</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Books List -->
+            <div data-aos="fade-up">
+
+                @if ($transactions->count() > 0)
+                    <div class="space-y-6">
+
+                        @foreach ($transactions as $transaction)
+                            {{-- MAIN CARD --}}
+                            <x-card
+                                class="rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition duration-300">
+
+                                <div class="flex flex-col md:flex-row gap-6">
+
+                                    {{-- Book Cover --}}
+                                    <div class="flex-shrink-0">
+                                        <img src="{{ Storage::url($transaction->book->image) }}"
+                                            alt="{{ $transaction->book->title }}"
+                                            class="w-36 h-48 object-cover rounded-md shadow-md">
+                                    </div>
+
+                                    {{-- Book Info --}}
+                                    <div class="flex-1 flex flex-col gap-6">
+
+                                        {{-- Title & Author --}}
+                                        <div>
+                                            <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
+                                                {{ Str::limit($transaction->book->title, 60) }}
+                                            </h3>
+                                            <p class="text-base text-gray-600 dark:text-gray-400 font-medium">
+                                                {{ Str::limit($transaction->book->author, 60, '...') }}
+                                            </p>
+                                        </div>
+
+                                        {{-- DETAIL GRID --}}
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                                            {{-- Tanggal Pinjam --}}
+                                            <x-card compact="true"
+                                                class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                                                <div class="flex items-center mb-2">
+                                                    <i class="iconoir-calendar text-gray-500 mr-2"></i>
+                                                    <span class="text-xs uppercase text-gray-500 dark:text-gray-400">
+                                                        Tanggal Pinjam
+                                                    </span>
+                                                </div>
+                                                <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
+                                                    {{ $transaction->created_at->format('d M Y') }}
+                                                </p>
+                                            </x-card>
+
+                                            {{-- Batas Kembali --}}
+                                            <x-card compact="true"
+                                                class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                                                <div class="flex items-center mb-2">
+                                                    <i class="iconoir-clock text-gray-500 mr-2"></i>
+                                                    <span class="text-xs uppercase text-gray-500 dark:text-gray-400">
+                                                        Batas Kembali
+                                                    </span>
+                                                </div>
+                                                <p
+                                                    class="text-base font-semibold
+                                                                                {{ $transaction->due_date < now() ? 'text-red-600' : 'text-gray-900 dark:text-gray-100' }}">
+                                                    {{ $transaction->due_date->format('d M Y') }}
+                                                </p>
+                                            </x-card>
+
+                                            {{-- Status --}}
+                                            <x-card compact="true"
+                                                class="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                                                <div class="flex items-center mb-2">
+                                                    <i class="iconoir-info-circle text-gray-500 mr-2"></i>
+                                                    <span class="text-xs uppercase text-gray-500 dark:text-gray-400">
+                                                        Status
+                                                    </span>
+                                                </div>
+
+                                                <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
+                                                    @if ($transaction->isOverdue())
+                                                        <span class="text-red-500">Terlambat</span>
+                                                    @elseif($transaction->isBorrowed())
+                                                        <span class="text-gray-900 dark:text-gray-100">Dipinjam</span>
+                                                    @elseif($transaction->isReturned())
+                                                        <span class="text-green-600 dark:text-green-300">Dikembalikan</span>
+                                                    @else
+                                                        {{ $transaction->status?->name ?? 'Unknown' }}
+                                                    @endif
+                                                </p>
+                                            </x-card>
+
+                                        </div>
+
+                                        {{-- ACTION BUTTONS - NOW BELOW --}}
+                                        <div class="flex flex-col gap-3 mt-2">
+                                            @if ($transaction->isBorrowed())
+                                                @if ($transaction->due_date > now())
+                                                    <x-button icon="clock" class="w-full"
+                                                        onclick="Livewire.dispatch('extendLoan', { id: {{ $transaction->id }} })">
+                                                        Perpanjang 7 Hari
+                                                    </x-button>
+                                                @endif
+                                            @elseif ($transaction->status->id === 1)
+                                                @livewire('cancel-borrow-modal', ['transactionId' => $transaction->id])
+
+                                                <x-button icon="book" class="w-full" onclick="cancel_borrow.showModal()">
+                                                    Batalkan Peminjaman Buku
+                                                </x-button>
+
+                                            @endif
+
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </x-card>
+                        @endforeach
+                    </div>
+
+                    {{-- Pagination --}}
+                    <div class="mt-12 flex justify-center">
+                        {{ $transactions->links() }}
+                    </div>
+                @else
+                    {{-- EMPTY STATE --}}
+                    <x-card class="p-16 text-center">
+
+                        <div class="flex justify-center mb-6">
+                            <div class="relative">
+                                <div
+                                    class="w-32 h-32 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                                    <i class="iconoir-open-book text-gray-400 dark:text-gray-500 text-5xl"></i>
+                                </div>
+                                <div
+                                    class="absolute -bottom-2 -right-2 w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                                    <i class="iconoir-search text-gray-500 dark:text-gray-400 text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Belum ada buku yang
+                            dipinjam</h3>
+
+                        <p class="text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto leading-relaxed">
+                            Mulai eksplorasi katalog kami dan temukan buku-buku menarik untuk dipinjam
+                        </p>
+
+                        <x-button icon="book" href="{{ route('catalog') }}">
+                            Jelajahi Katalog
+                        </x-button>
+
+                    </x-card>
+                @endif
+
+            </div>
+
+        </section>
+    </div>
+    @endvolt
+</x-guest-layout>

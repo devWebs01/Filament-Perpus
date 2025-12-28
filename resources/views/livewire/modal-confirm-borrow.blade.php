@@ -49,7 +49,7 @@ $borrow_transaction = function () {
             $this->dispatch('close-borrow-modal');
         }
 
-        $this->dispatch('redirect-after-alert', route('my-books'));
+        $this->dispatch('redirect-after-alert', route('my-bookmarks'));
     } catch (\Throwable $th) {
         report($th);
 

@@ -12,16 +12,6 @@
     <!-- Include SEO partial -->
     {{-- <x-partials.seo :setting="$setting" :title="$title ?? null" /> --}}
 
-    <!-----------------------------------------------------------
-        -- animate.min.css by Daniel Eden (https://animate.style)
-        -- is required for the animation of notifications and slide out panels
-        -- you can ignore this step if you already have this file in your project
-        --------------------------------------------------------------------------->
-
-    <link href="{{ asset('vendor/bladewind/css/animate.min.css') }}" rel="stylesheet" />
-    <link href="{{ asset('vendor/bladewind/css/bladewind-ui.min.css') }}" rel="stylesheet" />
-    <script src="{{ asset('vendor/bladewind/js/helpers.js') }}"></script>
-
     @if (file_exists(public_path('hot')))
         {{-- Mode HMR (npm run dev) --}}
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -88,7 +78,8 @@
 
             <aside>
                 <p class="text-neutral-800 font-medium">Copyright © {{ date('Y') }} -
-                    {{ $setting->name ?? 'Sistem Informasi Perpustakaan' }}</p>
+                    {{ $setting->name ?? 'Sistem Informasi Perpustakaan' }}
+                </p>
                 @if ($setting->address)
                     <p class="text-sm mt-1 text-neutral-600">{{ $setting->address }}</p>
                 @endif

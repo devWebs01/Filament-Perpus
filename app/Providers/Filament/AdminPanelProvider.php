@@ -60,8 +60,8 @@ class AdminPanelProvider extends PanelProvider
             ->plugins([
                 FilamentShieldPlugin::make(),
                 FilamentEditProfilePlugin::make()
-                    ->setTitle('Profile Akun')
-                    ->setNavigationLabel('Profile Akun')
+                    ->setTitle('Profil Akun')
+                    ->setNavigationLabel('Profil Akun')
                     ->setNavigationGroup('Manajemen Pengguna')
                     ->setIcon('heroicon-o-user'),
 
