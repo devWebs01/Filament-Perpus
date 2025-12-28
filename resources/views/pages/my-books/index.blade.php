@@ -4,7 +4,7 @@ use function Laravel\Folio\name;
 use function Livewire\Volt\{state, with};
 use App\Models\{Transaction, Book, Setting};
 
-name('my-bookmarks');
+name('my-books');
 
 state([
     'user' => auth()->user(),

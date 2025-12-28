@@ -87,7 +87,7 @@ $bookmarkCount = computed(function () {
                             </span>
                         @endif
                     </a>
-                    <a href="{{ route('my-bookmarks') }}"
+                    <a href="{{ route('my-books') }}"
                         class="flex items-center justify-center gap-2 text-gray-700 hover:text-warning-600 py-2 relative">
                         <i class="iconoir-book"></i>
                         Buku Saya
@@ -171,7 +171,7 @@ $bookmarkCount = computed(function () {
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('my-bookmarks') }}" class="flex items-center text-black gap-2 justify-between">
+                        <a href="{{ route('my-books') }}" class="flex items-center text-black gap-2 justify-between">
                             <span class="flex items-center gap-2">
                                 <i class="iconoir-book"></i>
                                 Buku Saya

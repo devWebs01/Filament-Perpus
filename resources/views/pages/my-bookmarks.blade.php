@@ -46,7 +46,7 @@ $bookmarks = computed(function () {
                     class="w-full bg-white dark:bg-gray-900 shadow-md p-6 mb-8 rounded-xl border border-gray-200 dark:border-gray-700">
                     <div class="w-full">
                         <x-input name="search" wire:model.live="search" placeholder="Cari judul atau penulis..."
-                            label="Pencarian" icon="search" class="w-full" size="medium" />
+                            label="Pencarian" icon="o-magnifying-glass" class="w-full" size="medium" />
                     </div>
                 </div>
 
@@ -111,7 +111,7 @@ $bookmarks = computed(function () {
 
                             <a>
 
-                                <x-button icon="book" >
+                                <x-button icon="o-book-open" link="{{ route('catalog') }}">
                                     Jelajahi Katalog
                                 </x-button>
                             </a>
