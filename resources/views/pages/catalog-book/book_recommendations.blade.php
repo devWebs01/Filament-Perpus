@@ -15,12 +15,7 @@ state([
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 max-xl:gap-4 gap-6">
             @foreach ($books_populer as $book)
-                <div class="group bg-white rounded-xl
-                            border border-neutral-200
-                            shadow-sm hover:shadow-lg
-                            p-3 flex flex-col h-full
-                            transition-all duration-300
-                            hover:-translate-y-1">
+                <x-card class="group flex flex-col h-full hover:-translate-y-1 transition-all duration-300 p-3 shadow-sm hover:shadow-lg">
                     <!-- Bagian isi -->
                     <a href="{{ route('book-detail', ['book' => $book->id]) }}" class="block flex-1">
                         <div class="aspect-[12/11] bg-neutral-100 rounded-xl p-4
@@ -43,27 +38,17 @@ state([
                     <!-- Spacer otomatis dorong tombol ke bawah -->
                     <div class="flex-1"></div>
 
-                    <!-- Tombol Bookmark & Detail -->
+                    <!-- Tombol Detail -->
                     <div class="mt-6">
-
-                        <a href="{{ route('book-detail', ['book' => $book->id]) }}"
-                           class="btn flex items-center justify-between gap-2
-                                  w-full bg-primary-600
-                                  hover:bg-primary-700
-                                  text-white
-                                  rounded-xl
-                                  px-4 py-2.5
-                                  font-medium text-sm
-                                  shadow-sm hover:shadow-primary-md
-                                  transition-all duration-300
-                                  group-hover:shadow-primary-md">
-                            <strong>Detail</strong>
-                            <i class="iconoir-arrow-right text-lg
-                                         group-hover:translate-x-1
-                                         transition-transform duration-200"></i>
-                        </a>
+                        <x-button
+                            icon="o-arrow-right"
+                            label="Detail"
+                            link="{{ route('book-detail', ['book' => $book->id]) }}"
+                            class="w-full"
+                            spinner
+                        />
                     </div>
-                </div>
+                </x-card>
             @endforeach
         </div>
     </div>

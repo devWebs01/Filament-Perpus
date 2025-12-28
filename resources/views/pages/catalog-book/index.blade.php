@@ -61,61 +61,24 @@ $books_catalog = computed(function () {
 
                     <!-- Search and Filter Bar -->
                     <div class="flex flex-col md:flex-row items-center gap-4 mb-8">
-                        {{-- Search Input with Modern Styling --}}
+                        {{-- Search Input with MaryUI --}}
                         <div class="w-full md:w-1/2">
-                            <div class="relative group">
-                                <i class="iconoir-search absolute left-4 top-1/2 -translate-y-1/2
-                                               text-neutral-400 text-xl
-                                               group-focus-within:text-primary-500
-                                               transition-colors duration-200"></i>
-
-                                <input
-                                    type="text"
-                                    wire:model.live="search"
-                                    placeholder="Cari judul buku..."
-                                    class="w-full pl-12 pr-4 py-3 rounded-xl
-                                           border border-neutral-300
-                                           bg-white text-neutral-700
-                                           placeholder-neutral-400
-                                           focus:border-primary-500
-                                           focus:ring-2 focus:ring-primary-500/20
-                                           focus:outline-none
-                                           hover:border-neutral-400
-                                           transition-all duration-200
-                                           shadow-sm hover:shadow-md"
-                                />
-                            </div>
+                            <x-input
+                                wire:model.live="search"
+                                placeholder="Cari judul buku..."
+                                icon="o-magnifying-glass"
+                                class="w-full"
+                            />
                         </div>
 
-                        {{-- Category Dropdown with Modern Styling --}}
+                        {{-- Category Dropdown with MaryUI --}}
                         <div class="w-full md:w-1/3">
-                            <div class="relative">
-                                <select
-                                    wire:model.live="category_id"
-                                    class="w-full appearance-none rounded-xl
-                                           border border-neutral-300
-                                           bg-white text-neutral-700
-                                           px-4 py-3 pr-10
-                                           focus:border-primary-500
-                                           focus:ring-2 focus:ring-primary-500/20
-                                           focus:outline-none
-                                           hover:border-neutral-400
-                                           transition-all duration-200
-                                           shadow-sm hover:shadow-md
-                                           cursor-pointer">
-                                    <option value="">Semua Kategori</option>
-                                    @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}">
-                                            {{ $category->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-
-                                <!-- Custom Dropdown Icon -->
-                                <i class="iconoir-nav-arrow-down absolute right-4 top-1/2
-                                               -translate-y-1/2 text-neutral-400
-                                               pointer-events-none"></i>
-                            </div>
+                            <x-select
+                                wire:model.live="category_id"
+                                :options="collect([['value' => '', 'label' => 'Semua Kategori']])->merge($categories->map(fn($c) => ['value' => $c->id, 'label' => $c->name]))"
+                                placeholder="Semua Kategori"
+                                class="w-full"
+                            />
                         </div>
                     </div>
                 </div>

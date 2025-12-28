@@ -64,13 +64,12 @@ state([
 
                                 <div class="mt-6 flex flex-row gap-4 w-full">
 
-                                    <button onclick="borrow_book.showModal()"
-                                        class="btn bg-primary-600 hover:bg-primary-700 text-white flex-1
-                                               rounded-xl px-6 py-3 shadow-sm hover:shadow-primary-md
-                                               transition-all duration-300">
-                                        <i class="iconoir-open-book text-xl"></i>
-                                        <span class="ml-2">Pinjam Buku</span>
-                                    </button>
+                                    <x-button
+                                        icon="o-book-open"
+                                        label="Pinjam Buku"
+                                        onclick="borrow_book.showModal()"
+                                        class="flex-1"
+                                    />
                                 </div>
 
                             </div>
