@@ -142,6 +142,7 @@ class UserForm
                                     ->image()
                                     ->imageEditor()
                                     ->directory('users')
+                                    ->disk('public')
                                     ->columnSpanFull(),
                             ]),
 

@@ -29,6 +29,7 @@ class BooksTable
 
                 ImageColumn::make('image')
                     ->label('Sampul Buku')
+                    ->disk('public')
                     ->circular()
                     ->defaultImageUrl(url('/images/no-cover.png')),
 

@@ -18,4 +18,4 @@ Route::middleware(['auth'])->group(function () {
     })->name('logout');
 });
 
-Volt::route('/', 'users.index');
+// Volt::route('/', 'users.index'); // CONFLICT dengan route welcome di atas

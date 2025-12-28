@@ -72,6 +72,7 @@ class ManageSetting extends Page
                         ->imageEditor()
                         ->label('Logo Aplikasi')
                         ->directory('settings')
+                        ->disk('public')
                         ->required(),
 
                     Textarea::make('data.address')

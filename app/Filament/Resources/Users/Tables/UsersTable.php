@@ -23,6 +23,7 @@ class UsersTable
             ->columns([
                 ImageColumn::make('userDetail.profile_photo')
                     ->label('Foto')
+                    ->disk('public')
                     ->circular()
                     ->defaultImageUrl(url('https://avatar.iran.liara.run/public')),
 

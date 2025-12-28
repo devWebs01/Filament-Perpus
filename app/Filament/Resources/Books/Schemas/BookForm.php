@@ -79,6 +79,7 @@ class BookForm
                             ->image()
                             ->imageEditor()
                             ->directory('books')
+                            ->disk('public')
                             ->columnSpanFull(),
 
                         RichEditor::make('synopsis')
