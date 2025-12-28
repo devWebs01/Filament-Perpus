@@ -1,34 +1,3 @@
-<?php
-
-use function Livewire\Volt\{state};
-use Illuminate\Support\Facades\Hash;
-use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
-
-state(['user', 'userDetail', 'password', 'current_password', 'password_confirmation']);
-
-$updatePassword = function () {
-    $this->validate([
-        'current_password' => 'required|string',
-        'password' => 'required|string|min:8|confirmed',
-    ]);
-
-    if (!Hash::check($this->current_password, $this->user->password)) {
-        $this->addError('current_password', 'Password saat ini tidak sesuai.');
-        return;
-    }
-
-    $this->user->update([
-        'password' => Hash::make($this->password),
-    ]);
-
-    LivewireAlert::title('Berhasil')->text('Update password pengguna berhasil!')->success()->show();
-
-    $this->reset('password', 'current_password', 'password_confirmation');
-};
-
-?>
-
-@volt
 <div class="px-6 py-12">
 
     <x-form wire:submit="updatePassword">
@@ -52,4 +21,3 @@ $updatePassword = function () {
     </x-form>
 
 </div>
-@endvolt
