@@ -8,7 +8,8 @@ use Mattiverse\Userstamps\Traits\Userstamps;
 
 class Setting extends Model
 {
-    use SoftDeletes, Userstamps;
+    use SoftDeletes;
+    use Userstamps;
 
     protected $fillable = [
         'name',

@@ -4,14 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Mattiverse\Userstamps\Traits\Userstamps;
 
 class Book extends Model
 {
-    /** @use HasFactory<\Database\Factories\BookFactory> */
-    use HasFactory, SoftDeletes, Userstamps;
+    use HasFactory;
+    use SoftDeletes;
+    use Userstamps;
 
     protected $fillable = [
         'title',
@@ -30,7 +32,10 @@ class Book extends Model
         'type',
     ];
 
-    public function category()
+    /**
+     * Get the category that owns the Book
+     */
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
@@ -49,7 +54,7 @@ class Book extends Model
     public function activeTransactions(): HasMany
     {
         return $this->hasMany(Transaction::class)
-            ->whereHas('status', function ($query) {
+            ->whereHas('status', function ($query): void {
                 $query->where('name', 'Dipinjam');
             });
     }
@@ -76,24 +81,5 @@ class Book extends Model
     public function bookmarks(): HasMany
     {
         return $this->hasMany(Bookmark::class);
-    }
-
-    /**
-     * Find book by barcode or ISBN
-     */
-    public static function findByBarcode(string $barcode): ?self
-    {
-        return static::where('barcode', $barcode)
-            ->orWhere('isbn', $barcode)
-            ->first();
-    }
-
-    /**
-     * Boot method untuk menangani event model.
-     * Barcode generation sekarang ditangani oleh BookObserver.
-     */
-    protected static function boot(): void
-    {
-        parent::boot();
     }
 }

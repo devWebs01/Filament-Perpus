@@ -10,7 +10,9 @@ use Mattiverse\Userstamps\Traits\Userstamps;
 
 class Transaction extends Model
 {
-    use HasFactory, SoftDeletes, Userstamps;
+    use HasFactory;
+    use SoftDeletes;
+    use Userstamps;
 
     protected $with = [
         'book',
@@ -46,7 +48,7 @@ class Transaction extends Model
     {
         parent::boot();
 
-        static::creating(function ($transaction) {
+        static::creating(function ($transaction): void {
             // Auto-generate kode transaksi unik
             $transaction->code = static::generateUniqueCode();
 
@@ -55,7 +57,7 @@ class Transaction extends Model
                 $maxBorrow = (int) (\App\Models\Setting::first()?->max_borrow ?? 3);
 
                 $currentBorrows = static::where('user_id', $transaction->user_id)
-                    ->whereHas('status', function ($query) {
+                    ->whereHas('status', function ($query): void {
                         $query->where('name', 'Dipinjam');
                     })
                     ->count();
@@ -70,7 +72,7 @@ class Transaction extends Model
         });
 
         // When a transaction is deleted, update book stock accordingly
-        static::deleted(function ($transaction) {
+        static::deleted(function ($transaction): void {
             if ($transaction->book) {
                 // If the transaction was for a borrowed book (not yet returned),
                 // we need to increase the stock since the book is no longer "held"
@@ -85,7 +87,7 @@ class Transaction extends Model
         });
 
         // When a transaction is restored, adjust book stock based on status
-        static::restored(function ($transaction) {
+        static::restored(function ($transaction): void {
             if ($transaction->book) {
                 // If the restored transaction was for a borrowed book (not yet returned),
                 // we need to decrease the stock again
@@ -100,10 +102,10 @@ class Transaction extends Model
         });
     }
 
-    public static function generateUniqueCode()
+    public static function generateUniqueCode(): string
     {
         do {
-            $code = 'TRX-'.date('Ymd').'-'.str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+            $code = 'TRX-'.date('Ymd').'-'.str_pad(random_int(1, 9999), 4, '0', STR_PAD_LEFT);
         } while (static::where('code', $code)->exists());
 
         return $code;
@@ -162,26 +164,6 @@ class Transaction extends Model
     }
 
     /**
-     * Check if transaction is overdue for more than 24 hours
-     */
-    public function isOverdueMoreThan24Hours(): bool
-    {
-        return $this->isBorrowed() && $this->due_date->diffInHours(now()) > 24;
-    }
-
-    /**
-     * Get the number of hours overdue
-     */
-    public function getHoursOverdue(): int
-    {
-        if (! $this->isBorrowed() || ! $this->isOverdue()) {
-            return 0;
-        }
-
-        return $this->due_date->diffInHours(now());
-    }
-
-    /**
      * Get days overdue (integer)
      */
     public function getDaysOverdue(): int
@@ -198,34 +180,9 @@ class Transaction extends Model
      */
     public function getPenalty(): float
     {
-        $daysOverdue = $this->getDaysOverdue();
-        $penaltyPerDay = 1000; // Rp 1000 per hari
+        // Rp 1000 per hari
 
-        return $daysOverdue * $penaltyPerDay;
-    }
-
-    /**
-     * Get formatted penalty amount
-     */
-    public function getFormattedPenalty(): string
-    {
-        return 'Rp '.number_format($this->getPenalty(), 0, ',', '.');
-    }
-
-    /**
-     * Get formatted due date
-     */
-    public function getFormattedDueDate(): string
-    {
-        return $this->due_date->format('d M Y');
-    }
-
-    /**
-     * Get formatted borrow date
-     */
-    public function getFormattedBorrowDate(): string
-    {
-        return $this->borrow_date->format('d M Y');
+        return $this->getDaysOverdue() * 1000;
     }
 
     /**
@@ -235,39 +192,18 @@ class Transaction extends Model
     {
         if ($this->isOverdue()) {
             $daysOverdue = $this->getDaysOverdue();
-
-            if ($daysOverDue <= 3) {
+            if ($daysOverdue <= 3) {
                 return 'warning';
-            } elseif ($daysOverDue <= 7) {
-                return 'danger';
-            } else {
-                return 'danger';
             }
+
+            return 'danger';
         }
 
-        switch ($this->status?->name) {
-            case 'Dipinjam':
-                return 'success';
-            case 'Dikembalikan':
-                return 'info';
-            case 'Terlambat':
-                return 'danger';
-            default:
-                return 'secondary';
-        }
-    }
-
-    /**
-     * Get status badge class
-     */
-    public function getStatusBadgeClass(): string
-    {
-        return match ($this->getStatusColor()) {
-            'success' => 'bg-green-100 text-green-800',
-            'warning' => 'bg-yellow-100 text-yellow-800',
-            'danger' => 'bg-red-100 text-red-800',
-            'info' => 'bg-blue-100 text-blue-800',
-            'secondary' => 'bg-gray-100 text-gray-800',
+        return match ($this->status?->name) {
+            'Dipinjam' => 'success',
+            'Dikembalikan' => 'info',
+            'Terlambat' => 'danger',
+            default => 'secondary',
         };
     }
 }

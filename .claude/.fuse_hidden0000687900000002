@@ -26,8 +26,7 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(grep:*)",
-      "Bash(find:*)",
-      "Bash(vendor/bin/rector process:*)"
+      "Bash(find:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

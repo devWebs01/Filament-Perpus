@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,7 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class UserDetail extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -66,9 +66,9 @@ class UserDetail extends Model
         parent::boot();
 
         // Set join_date secara otomatis saat creating
-        static::creating(function ($userDetail) {
+        static::creating(function ($userDetail): void {
             if (empty($userDetail->join_date)) {
-                $userDetail->join_date = Carbon::now();
+                $userDetail->join_date = \Illuminate\Support\Facades\Date::now();
             }
         });
     }
@@ -117,102 +117,5 @@ class UserDetail extends Model
     public function isMembershipActive(): bool
     {
         return $this->membership_status === 'active';
-    }
-
-    /**
-     * Check if membership is pending
-     */
-    public function isMembershipPending(): bool
-    {
-        return $this->membership_status === 'pending';
-    }
-
-    /**
-     * Get user type display name
-     */
-    public function getUserTypeDisplayNameAttribute(): string
-    {
-        if ($this->isLibraryHead()) {
-            return 'Library Head';
-        } elseif ($this->isStudent()) {
-            return 'Student';
-        } elseif ($this->isStaff()) {
-            return 'Library Staff';
-        }
-
-        return 'Unknown';
-    }
-
-    /**
-     * Get membership status display name
-     */
-    public function getMembershipStatusDisplayNameAttribute(): string
-    {
-        return match ($this->membership_status) {
-            'active' => 'Active',
-            'suspended' => 'Suspended',
-            'expired' => 'Expired',
-            'pending' => 'Pending',
-            default => 'Unknown',
-        };
-    }
-
-    /**
-     * Scope to get only students
-     * Students have NIS or NISN numbers
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function scopeStudents($query)
-    {
-        return $query->where(function ($q) {
-            $q->whereNotNull('nis')
-                ->orWhereNotNull('nisn');
-        });
-    }
-
-    /**
-     * Scope to get only library heads
-     * Based on admin email or other criteria
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function scopeLibraryHeads($query)
-    {
-        return $query->whereHas('user', function ($q) {
-            $q->where('email', 'admin@testing.com');
-        });
-    }
-
-    /**
-     * Scope to get only staff
-     * Staff are non-students with join dates
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function scopeStaff($query)
-    {
-        return $query->where(function ($q) {
-            $q->whereNull('nis')
-                ->whereNull('nisn');
-        })
-            ->whereNotNull('join_date')
-            ->whereHas('user', function ($q) {
-                $q->where('email', '!=', 'admin@testing.com');
-            });
-    }
-
-    /**
-     * Scope to get only active memberships
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function scopeActiveMembers($query)
-    {
-        return $query->where('membership_status', 'active');
     }
 }

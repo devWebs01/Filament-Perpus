@@ -10,8 +10,9 @@ use Mattiverse\Userstamps\Traits\Userstamps;
 
 class Category extends Model
 {
-    /** @use HasFactory<\Database\Factories\CategoryFactory> */
-    use HasFactory, SoftDeletes, Userstamps;
+    use HasFactory;
+    use SoftDeletes;
+    use Userstamps;
 
     protected $fillable = [
         'name',

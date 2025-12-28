@@ -28,7 +28,7 @@ class BookmarkService
             ->with('book');
 
         if ($search) {
-            $query->whereHas('book', function ($q) use ($search) {
+            $query->whereHas('book', function ($q) use ($search): void {
                 $q->where('title', 'like', '%'.$search.'%')
                     ->orWhere('author', 'like', '%'.$search.'%');
             });

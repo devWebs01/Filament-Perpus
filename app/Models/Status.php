@@ -10,7 +10,9 @@ use Mattiverse\Userstamps\Traits\Userstamps;
 
 class Status extends Model
 {
-    use HasFactory, SoftDeletes, Userstamps;
+    use HasFactory;
+    use SoftDeletes;
+    use Userstamps;
 
     protected $fillable = [
         'name',

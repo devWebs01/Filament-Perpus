@@ -16,17 +16,14 @@ use Illuminate\Support\Facades\Log;
 class BookObserver
 {
     /**
-     * Instance BarcodeService
-     */
-    protected BarcodeService $barcodeService;
-
-    /**
      * Constructor: inject BarcodeService
      */
-    public function __construct(BarcodeService $barcodeService)
-    {
-        $this->barcodeService = $barcodeService;
-    }
+    public function __construct(
+        /**
+         * Instance BarcodeService
+         */
+        protected BarcodeService $barcodeService
+    ) {}
 
     /**
      * Handle the Book "creating" event.
