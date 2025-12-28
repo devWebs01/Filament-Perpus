@@ -13,4 +13,161 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* ============================================================
+     * FILAMENT V4 COLOR PALETTE - Amber (Color::Amber)
+     * Matching Filament Admin Panel Colors for Guest Pages
+     * Based on Tailwind CSS v4 OKLCH values
+     * ============================================================ */
+
+    /* PRIMARY COLOR - Amber (Matching Filament's Color::Amber) */
+    --color-primary-50: oklch(0.983 0.012 73.038);   /* #fffbeb */
+    --color-primary-100: oklch(0.962 0.032 72.536);  /* #fef3c7 */
+    --color-primary-200: oklch(0.932 0.054 71.535);  /* #fde68a */
+    --color-primary-300: oklch(0.889 0.086 70.969);  /* #fcd34d */
+    --color-primary-400: oklch(0.832 0.114 69.234);  /* #fbbf24 */
+    --color-primary-500: oklch(0.769 0.145 68.293);  /* #f59e0b */
+    --color-primary-600: oklch(0.644 0.159 61.857);  /* #d97706 */
+    --color-primary-700: oklch(0.542 0.154 56.148);  /* #b45309 */
+    --color-primary-800: oklch(0.453 0.138 53.168);  /* #92400e */
+    --color-primary-900: oklch(0.379 0.117 52.859);  /* #78350f */
+    --color-primary-950: oklch(0.279 0.077 45.635);  /* #451a03 */
+
+    /* ACCENT/SECONDARY - Blue for complementary actions */
+    --color-accent-50: oklch(0.97 0.014 252.5);
+    --color-accent-100: oklch(0.93 0.032 252.5);
+    --color-accent-200: oklch(0.88 0.06 252.5);
+    --color-accent-300: oklch(0.80 0.10 252.5);
+    --color-accent-400: oklch(0.70 0.14 252.5);
+    --color-accent-500: oklch(0.60 0.165 252.5);
+    --color-accent-600: oklch(0.53 0.185 252.5);
+    --color-accent-700: oklch(0.45 0.18 252.5);
+    --color-accent-800: oklch(0.38 0.16 252.5);
+    --color-accent-900: oklch(0.32 0.14 252.5);
+
+    /* NEUTRAL PALETTE - Gray (Tailwind v4 defaults) */
+    --color-neutral-50: oklch(0.985 0.002 264.354);
+    --color-neutral-100: oklch(0.971 0.004 264.354);
+    --color-neutral-200: oklch(0.922 0.006 264.354);
+    --color-neutral-300: oklch(0.867 0.008 264.354);
+    --color-neutral-400: oklch(0.704 0.012 264.354);
+    --color-neutral-500: oklch(0.575 0.016 264.354);
+    --color-neutral-600: oklch(0.474 0.018 264.354);
+    --color-neutral-700: oklch(0.396 0.019 264.354);
+    --color-neutral-800: oklch(0.333 0.019 264.354);
+    --color-neutral-900: oklch(0.279 0.019 264.354);
+    --color-neutral-950: oklch(0.198 0.013 264.354);
+
+    /* SUCCESS STATE - Green */
+    --color-success-50: oklch(0.968 0.013 142.495);
+    --color-success-100: oklch(0.931 0.031 142.495);
+    --color-success-200: oklch(0.873 0.061 142.495);
+    --color-success-500: oklch(0.645 0.153 142.495);
+    --color-success-600: oklch(0.546 0.17 142.495);
+    --color-success-700: oklch(0.453 0.167 142.495);
+    --color-success-800: oklch(0.377 0.149 142.495);
+
+    /* ERROR STATE - Red */
+    --color-error-50: oklch(0.971 0.021 27.326);
+    --color-error-100: oklch(0.938 0.046 27.326);
+    --color-error-200: oklch(0.891 0.089 27.326);
+    --color-error-500: oklch(0.637 0.237 27.326);
+    --color-error-600: oklch(0.548 0.243 27.326);
+    --color-error-700: oklch(0.468 0.222 27.326);
+    --color-error-800: oklch(0.398 0.196 27.326);
+
+    /* WARNING STATE - Orange */
+    --color-warning-50: oklch(0.974 0.023 62.997);
+    --color-warning-100: oklch(0.942 0.051 62.997);
+    --color-warning-200: oklch(0.896 0.096 62.997);
+    --color-warning-500: oklch(0.655 0.206 62.997);
+    --color-warning-600: oklch(0.563 0.213 62.997);
+    --color-warning-700: oklch(0.479 0.197 62.997);
+    --color-warning-800: oklch(0.407 0.175 62.997);
+
+    /* BACKGROUND GRADIENT - Warm Amber Theme */
+    --gradient-hero-from: oklch(0.983 0.012 73.038);
+    --gradient-hero-via: oklch(0.985 0.002 264.354);
+    --gradient-hero-to: oklch(0.971 0.004 264.354);
+
+    /* SHADOW SYSTEM - Colored Amber Shadows */
+    --shadow-xs: 0 1px 2px 0 oklch(0.279 0.019 264.354 / 0.05);
+    --shadow-sm: 0 1px 3px 0 oklch(0.279 0.019 264.354 / 0.08),
+                 0 1px 2px -1px oklch(0.279 0.019 264.354 / 0.08);
+    --shadow-md: 0 4px 6px -1px oklch(0.279 0.019 264.354 / 0.10),
+                 0 2px 4px -2px oklch(0.279 0.019 264.354 / 0.10);
+    --shadow-lg: 0 10px 15px -3px oklch(0.279 0.019 264.354 / 0.12),
+                 0 4px 6px -4px oklch(0.279 0.019 264.354 / 0.12);
+    --shadow-xl: 0 20px 25px -5px oklch(0.279 0.019 264.354 / 0.15),
+                 0 8px 10px -6px oklch(0.279 0.019 264.354 / 0.15);
+    --shadow-2xl: 0 25px 50px -12px oklch(0.279 0.019 264.354 / 0.20);
+
+    /* Amber colored shadows for primary actions */
+    --shadow-primary-sm: 0 2px 8px -2px oklch(0.644 0.159 61.857 / 0.20);
+    --shadow-primary-md: 0 4px 12px -2px oklch(0.644 0.159 61.857 / 0.25);
+    --shadow-primary-lg: 0 10px 20px -4px oklch(0.644 0.159 61.857 / 0.30);
+}
+
+/* ============================================================
+ * DAISUI THEME CONFIGURATION - Amber Primary
+ * ============================================================ */
+
+:root {
+    /* Primary colors - Amber from Filament */
+    --p: oklch(0.644 0.159 61.857);
+    --pf: oklch(0.542 0.154 56.148);
+
+    /* Secondary colors */
+    --s: oklch(0.53 0.185 252.5);
+    --sf: oklch(0.45 0.18 252.5);
+
+    /* Accent colors */
+    --a: oklch(0.53 0.185 252.5);
+    --af: oklch(0.45 0.18 252.5);
+
+    /* Neutral colors */
+    --n: oklch(0.396 0.019 264.354);
+    --nf: oklch(0.333 0.019 264.354);
+
+    /* Base colors */
+    --b1: oklch(0.985 0.002 264.354);
+    --b2: oklch(0.971 0.004 264.354);
+    --b3: oklch(0.922 0.006 264.354);
+
+    /* Text colors */
+    --bc: oklch(0.396 0.019 264.354);
+    --bc-2: oklch(0.474 0.018 264.354);
+
+    /* Semantic colors */
+    --er: oklch(0.548 0.243 27.326);
+    --su: oklch(0.546 0.17 142.495);
+    --wa: oklch(0.563 0.213 62.997);
+
+    /* Border radius */
+    --rounded-box: 0.5rem;
+    --rounded-btn: 9999px;
+    --rounded-badge: 9999px;
+
+    /* Shadow */
+    --shadow-btn: 0 2px 8px -2px oklch(0.644 0.159 61.857 / 0.20);
+}
+
+/* ============================================================
+ * ACCESSIBILITY ENHANCEMENTS
+ * ============================================================ */
+
+*:focus-visible {
+    outline: none;
+    ring: 2px solid oklch(0.769 0.145 68.293);
+    ring-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }

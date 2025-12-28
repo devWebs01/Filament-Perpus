@@ -160,6 +160,7 @@ $books_catalog = computed(function () {
                                     <div class="group bg-white rounded-xl
                                                 border border-neutral-200
                                                 shadow-sm hover:shadow-lg
+                                                hover:shadow-primary-sm/20
                                                 p-4 flex flex-col h-full
                                                 transition-all duration-300
                                                 hover:-translate-y-1">

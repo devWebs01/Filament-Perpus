@@ -15,16 +15,27 @@ state([
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 max-xl:gap-4 gap-6">
             @foreach ($books_populer as $book)
-                <div
-                    class="bg-white shadow-sm border border-gray-200 rounded-lg p-3 flex flex-col h-full transition-colors duration-300">
+                <div class="group bg-white rounded-xl
+                            border border-neutral-200
+                            shadow-sm hover:shadow-lg
+                            p-3 flex flex-col h-full
+                            transition-all duration-300
+                            hover:-translate-y-1">
                     <!-- Bagian isi -->
-                    <a href="javascript:void(0)" class="block flex-1">
-                        <div class="aspect-[12/11] bg-gray-100 rounded-lg p-4">
+                    <a href="{{ route('book-detail', ['book' => $book->id]) }}" class="block flex-1">
+                        <div class="aspect-[12/11] bg-neutral-100 rounded-xl p-4
+                                      overflow-hidden group-hover:bg-neutral-50
+                                      transition-colors duration-300">
                             <img src="{{ Storage::url($book->image) }}" alt="{{ $book->title }}"
-                                class="w-full h-full object-contain" />
+                                class="w-full h-full object-contain
+                                       group-hover:scale-105
+                                       transition-transform duration-300" />
                         </div>
 
-                        <h5 class="text-base font-semibold text-slate-900 mt-3">
+                        <h5 class="text-base font-semibold text-neutral-900 mt-3
+                                    group-hover:text-primary-600
+                                    transition-colors duration-200
+                                    line-clamp-2">
                             {{ Str::limit($book->title, 25, '...') }}
                         </h5>
                     </a>
@@ -33,12 +44,23 @@ state([
                     <div class="flex-1"></div>
 
                     <!-- Tombol Bookmark & Detail -->
-                    <div class="mt-6 flex gap-2">
+                    <div class="mt-6">
 
-                        <a href="{{ route('book-detail', ['book' => $book->id]) }}" type="button"
-                            class="btn flex-1 justify-between bg-primary-600 hover:bg-primary-700 text-white">
+                        <a href="{{ route('book-detail', ['book' => $book->id]) }}"
+                           class="btn flex items-center justify-between gap-2
+                                  w-full bg-primary-600
+                                  hover:bg-primary-700
+                                  text-white
+                                  rounded-xl
+                                  px-4 py-2.5
+                                  font-medium text-sm
+                                  shadow-sm hover:shadow-primary-md
+                                  transition-all duration-300
+                                  group-hover:shadow-primary-md">
                             <strong>Detail</strong>
-                            <i class="iconoir-arrow-right text-white text-xl"></i>
+                            <i class="iconoir-arrow-right text-lg
+                                         group-hover:translate-x-1
+                                         transition-transform duration-200"></i>
                         </a>
                     </div>
                 </div>
