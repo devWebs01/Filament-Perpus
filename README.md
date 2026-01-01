@@ -357,172 +357,170 @@ MAIL_FROM_NAME="${APP_NAME}"
 
 ```mermaid
 erDiagram
-    users ||--o{ user_details : "has"
-    users ||--o{ transactions : "makes"
-    users ||--o{ bookmarks : "creates"
-    users ||--o{ model_has_roles : "has"
-    users ||--o{ model_has_permissions : "has"
+    users ||--o{ user_details : has
+    users ||--o{ transactions : makes
+    users ||--o{ bookmarks : creates
+    users ||--o{ model_has_roles : has
+    users ||--o{ model_has_permissions : has
 
-    roles ||--o{ model_has_roles : "assigned to"
-    permissions ||--o{ model_has_permissions : "assigned to"
-    role_has_permissions ||--|| roles : "belongs to"
-    role_has_permissions ||--|| permissions : "belongs to"
+    roles ||--o{ model_has_roles : assigned_to
+    permissions ||--o{ model_has_permissions : assigned_to
+    role_has_permissions }o--|| roles : belongs_to
+    role_has_permissions }o--|| permissions : belongs_to
 
-    categories ||--o{ books : "categorizes"
-
-    books ||--o{ transactions : "borrowed in"
-    books ||--o{ bookmarks : "saved in"
-
-    statuses ||--o{ transactions : "defines status of"
+    categories ||--o{ books : categorizes
+    books ||--o{ transactions : borrowed_in
+    books ||--o{ bookmarks : saved_in
+    statuses ||--o{ transactions : defines
 
     users {
-        id PK
-        name
-        email UK
-        email_verified_at
-        password
-        remember_token
-        role
-        avatar_url
-        locale
-        theme_color
-        created_by FK
-        updated_by FK
-        deleted_by FK
-        created_at
-        updated_at
-        deleted_at
+        int id PK
+        string name
+        string email UK
+        datetime email_verified_at
+        string password
+        string remember_token
+        string role
+        string avatar_url
+        string locale
+        string theme_color
+        int created_by FK
+        int updated_by FK
+        int deleted_by FK
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
     }
 
     user_details {
-        id PK
-        user_id FK UK
-        nik
-        nis IDX
-        nisn IDX
-        class
-        address
-        phone_number
-        birth_date
-        birth_place
-        gender
-        religion
-        join_date
-        membership_status IDX
-        profile_photo
-        barcode
-        barcode_image
-        created_at
-        updated_at
-        deleted_at
+        int id PK
+        int user_id FK
+        string nik
+        string nis
+        string nisn
+        string class
+        string address
+        string phone_number
+        date birth_date
+        string birth_place
+        string gender
+        string religion
+        date join_date
+        string membership_status
+        string profile_photo
+        string barcode
+        string barcode_image
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
     }
 
     categories {
-        id PK
-        name
-        slug
-        created_by FK
-        updated_by FK
-        deleted_by FK
-        created_at
-        updated_at
-        deleted_at
+        int id PK
+        string name
+        string slug
+        int created_by FK
+        int updated_by FK
+        int deleted_by FK
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
     }
 
     books {
-        id PK
-        title
-        image
-        category_id FK
-        isbn
-        author
-        year_published
-        publisher
-        synopsis
-        book_count
-        bookshelf
-        source
-        price
-        type
-        barcode
-        barcode_image
-        created_by FK
-        updated_by FK
-        deleted_by FK
-        created_at
-        updated_at
-        deleted_at
+        int id PK
+        string title
+        string image
+        int category_id FK
+        string isbn
+        string author
+        int year_published
+        string publisher
+        text synopsis
+        int book_count
+        string bookshelf
+        string source
+        decimal price
+        string type
+        string barcode
+        string barcode_image
+        int created_by FK
+        int updated_by FK
+        int deleted_by FK
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
     }
 
     statuses {
-        id PK
-        name
-        amount
-        created_by FK
-        updated_by FK
-        deleted_by FK
-        created_at
-        updated_at
-        deleted_at
+        int id PK
+        string name
+        decimal amount
+        int created_by FK
+        int updated_by FK
+        int deleted_by FK
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
     }
 
     transactions {
-        id PK
-        code UK
-        borrow_date
-        due_date
-        return_date
-        book_id FK
-        user_id FK
-        status_id FK
-        penalty_total
-        notes
-        created_by FK
-        updated_by FK
-        deleted_by FK
-        created_at
-        updated_at
-        deleted_at
+        int id PK
+        string code UK
+        date borrow_date
+        date due_date
+        date return_date
+        int book_id FK
+        int user_id FK
+        int status_id FK
+        decimal penalty_total
+        text notes
+        int created_by FK
+        int updated_by FK
+        int deleted_by FK
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
     }
 
     bookmarks {
-        id PK
-        user_id FK
-        book_id FK
-        created_at
-        updated_at
+        int id PK
+        int user_id FK
+        int book_id FK
+        datetime created_at
+        datetime updated_at
     }
 
     settings {
-        id PK
-        name
-        logo
-        address
-        phone
-        limit_day
-        max_borrow
-        created_by FK
-        updated_by FK
-        deleted_by FK
-        created_at
-        updated_at
-        deleted_at
+        int id PK
+        string name
+        string logo
+        string address
+        string phone
+        int limit_day
+        int max_borrow
+        int created_by FK
+        int updated_by FK
+        int deleted_by FK
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
     }
 
     roles {
-        id PK
-        name
-        guard_name
-        created_at
-        updated_at
+        int id PK
+        string name
+        string guard_name
+        datetime created_at
+        datetime updated_at
     }
 
     permissions {
-        id PK
-        name
-        guard_name
-        created_at
-        updated_at
+        int id PK
+        string name
+        string guard_name
+        datetime created_at
+        datetime updated_at
     }
 ```
 
