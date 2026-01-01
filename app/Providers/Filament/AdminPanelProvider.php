@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\RedirectIfNotFilamentAdmin;
+use App\Models\Setting;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -30,6 +32,11 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->registration()
+            ->passwordReset()
+            ->emailVerification()
+            ->emailChangeVerification()
+            ->profile()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -55,8 +62,10 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-                Authenticate::class,
+                // Authenticate::class,
+                RedirectIfNotFilamentAdmin::class,
             ])
+            ->brandName(Setting::first()->name ?? 'Perpustakaan')
             ->plugins([
                 FilamentShieldPlugin::make(),
                 FilamentEditProfilePlugin::make()
@@ -65,6 +74,7 @@ class AdminPanelProvider extends PanelProvider
                     ->setNavigationGroup('Manajemen Pengguna')
                     ->setIcon('heroicon-o-user'),
 
-            ]);
+            ])
+            ->unsavedChangesAlerts();
     }
 }

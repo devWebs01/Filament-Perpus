@@ -1,7 +1,8 @@
 <?php
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Livewire\Volt\Volt;
 
 Route::get('/', function () {
     return view('pages.welcome');
@@ -10,7 +11,8 @@ Route::get('/', function () {
 Route::middleware(['auth'])->group(function () {
 
     Route::post('/logout', function (Request $request) {
-        Auth::guard()->logout();
+        Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

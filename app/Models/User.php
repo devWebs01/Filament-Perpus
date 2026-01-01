@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -32,6 +33,12 @@ class User extends Authenticatable
         'password',
         'email_verified_at',
     ];
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return auth()->check()
+            && auth()->user()->hasAnyRole(['admin', 'super_admin']);
+    }
 
     /**
      * The attributes that should be hidden for serialization.
