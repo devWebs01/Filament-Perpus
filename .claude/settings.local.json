@@ -28,7 +28,9 @@
       "Bash(grep:*)",
       "Bash(find:*)",
       "Bash(vendor/bin/rector process:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "mcp__laravel-boost__last-error",
+      "mcp__laravel-boost__database-query"
     ]
   },
   "enableAllProjectMcpServers": true,

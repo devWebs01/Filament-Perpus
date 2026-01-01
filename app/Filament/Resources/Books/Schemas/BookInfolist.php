@@ -46,6 +46,9 @@ class BookInfolist
                                 TextEntry::make('year_published')
                                     ->label('Tahun Terbit')
                                     ->formatStateUsing(fn ($record) => $record?->year_published ?? '-'),
+                                TextEntry::make('barcode')
+                                    ->label('Barcode')
+                                    ->formatStateUsing(fn ($record) => $record?->barcode ?? '-'),
 
                                 TextEntry::make('type')
                                     ->label('Tipe Buku')

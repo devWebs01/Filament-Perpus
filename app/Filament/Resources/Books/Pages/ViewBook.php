@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Users\Pages;
+namespace App\Filament\Resources\Books\Pages;
 
 use App\Filament\Resources\Books\BookResource;
 use Filament\Actions\DeleteAction;

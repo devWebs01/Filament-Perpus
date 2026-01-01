@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\UserDetail;
+use App\Services\BarcodeService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -19,6 +20,13 @@ use Illuminate\Support\Facades\Hash;
  */
 class LibrarySystemSeeder extends Seeder
 {
+    private BarcodeService $barcodeService;
+
+    public function __construct(BarcodeService $barcodeService)
+    {
+        $this->barcodeService = $barcodeService;
+    }
+
     /**
      * Run the database seeds.
      */
@@ -235,7 +243,8 @@ class LibrarySystemSeeder extends Seeder
             // Generate QR code for factory-created user details
             if (empty($userDetail->qr_code)) {
                 $uniqueQrCode = 'LIB_USER_'.strtoupper(substr(md5($userDetail->user_id.$userDetail->id.$student->email.now()->timestamp.microtime(true)), 0, 12));
-                $userDetail->update(['qr_code' => $uniqueQrCode]);
+                $qrCodeData = $this->barcodeService->generateUserQRCode($userDetail->user_id, $uniqueQrCode);
+                $userDetail->update(['qr_code' => json_encode($qrCodeData)]);
             }
         }
 
@@ -246,7 +255,8 @@ class LibrarySystemSeeder extends Seeder
             // Generate QR code for factory-created user details
             if (empty($userDetail->qr_code)) {
                 $uniqueQrCode = 'LIB_USER_'.strtoupper(substr(md5($userDetail->user_id.$userDetail->id.$user->email.now()->timestamp.microtime(true)), 0, 12));
-                $userDetail->update(['qr_code' => $uniqueQrCode]);
+                $qrCodeData = $this->barcodeService->generateUserQRCode($userDetail->user_id, $uniqueQrCode);
+                $userDetail->update(['qr_code' => json_encode($qrCodeData)]);
             }
         }
 
@@ -257,7 +267,8 @@ class LibrarySystemSeeder extends Seeder
             // Generate QR code for factory-created user details
             if (empty($userDetail->qr_code)) {
                 $uniqueQrCode = 'LIB_USER_'.strtoupper(substr(md5($userDetail->user_id.$userDetail->id.$user->email.now()->timestamp.microtime(true)), 0, 12));
-                $userDetail->update(['qr_code' => $uniqueQrCode]);
+                $qrCodeData = $this->barcodeService->generateUserQRCode($userDetail->user_id, $uniqueQrCode);
+                $userDetail->update(['qr_code' => json_encode($qrCodeData)]);
             }
         }
 
@@ -307,7 +318,8 @@ class LibrarySystemSeeder extends Seeder
             // Generate QR code for the new user detail
             if (empty($userDetail->qr_code)) {
                 $uniqueQrCode = 'LIB_USER_'.strtoupper(substr(md5($userDetail->user_id.$userDetail->id.$user->email.now()->timestamp.microtime(true)), 0, 12));
-                $userDetail->update(['qr_code' => $uniqueQrCode]);
+                $qrCodeData = $this->barcodeService->generateUserQRCode($userDetail->user_id, $uniqueQrCode);
+                $userDetail->update(['qr_code' => json_encode($qrCodeData)]);
             }
         }
 
@@ -343,9 +355,12 @@ class LibrarySystemSeeder extends Seeder
                     default => '❓'
                 };
 
+                $qrCodeData = BarcodeService::parseBarcode($detail->qr_code);
+                $qrCodeDisplay = $qrCodeData['code'] ?? $detail->qr_code;
+
                 $this->command->info("  {$userType} {$detail->user?->name}");
                 $this->command->info("    📧 Email: {$detail->user?->email}");
-                $this->command->info("    🪪 QR Code: {$detail->qr_code}");
+                $this->command->info("    🪪 QR Code: {$qrCodeDisplay}");
                 $this->command->info("    📋 Status: {$statusBadge} {$detail->membership_status}");
 
                 if (! empty($detail->nis)) {
@@ -380,9 +395,10 @@ class LibrarySystemSeeder extends Seeder
         foreach ($usersWithoutQr as $userDetail) {
             // Generate unique QR code based on user information
             $uniqueQrCode = 'LIB_USER_'.strtoupper(substr(md5($userDetail->user_id.$userDetail->id.$userDetail->user?->email.now()->timestamp.microtime(true)), 0, 12));
+            $qrCodeData = $this->barcodeService->generateUserQRCode($userDetail->user_id, $uniqueQrCode);
 
             $userDetail->update([
-                'qr_code' => $uniqueQrCode,
+                'qr_code' => json_encode($qrCodeData),
                 'membership_status' => $userDetail->membership_status ?? 'active', // Keep existing status or set to active
             ]);
 

@@ -205,16 +205,28 @@ class BookSeeder extends Seeder
                 'price' => rand(25000, 150000),
             ];
 
-            // PENTING: Generate barcode SEBELUM create (karena observer tidak jalan di seeder)
-            $bookData['barcode'] = $this->barcodeService->generateBookBarcode();
+            // Generate barcode code untuk seeder (ID akan ditambahkan setelah create)
+            $barcodeCode = 'BOK_'.uniqid();
 
-            // Create book dengan barcode
-            $bookModel = Book::create($bookData);
+            // Create book dulu, lalu update dengan barcode yang lengkap
+            // Nonaktifkan observer agar tidak mengganggu proses seeder
+            $bookModel = Book::withoutEvents(function () use ($bookData, $barcodeCode) {
+                $bookModel = Book::create($bookData);
+
+                // Generate barcode dengan ID yang sesuai
+                $barcodeImage = $this->barcodeService->generateBookBarcode($bookModel->id, $barcodeCode);
+
+                // Update book dengan barcode lengkap (code + image)
+                $bookModel->update(['barcode' => json_encode($barcodeImage)]);
+
+                return $bookModel;
+            });
 
             // Download image setelah book created
             $this->downloadBookImage($bookDetails['image'], $imagePath, $bookModel->title);
 
-            $this->command->info("   ✅ Buku ditambahkan: {$bookModel->title} (Barcode: {$bookModel->barcode})");
+            $barcodeData = BarcodeService::parseBarcode($bookModel->barcode);
+            $this->command->info("   ✅ Buku ditambahkan: {$bookModel->title} (Barcode: {$barcodeData['code']})");
 
             return true;
         } catch (\Exception $e) {
@@ -369,32 +381,42 @@ class BookSeeder extends Seeder
         $titleTranslated = $this->translateToId($bookData['title']);
         $synopsisTranslated = $this->translateToId($bookData['synopsis'] ?? '');
 
-        // PENTING: Generate barcode SEBELUM create
-        $barcode = $this->barcodeService->generateBookBarcode();
+        // Create book dulu dengan nonaktifkan observer
+        $bookModel = Book::withoutEvents(function () use ($bookData, $category, $titleTranslated, $synopsisTranslated, $imagePath) {
+            $bookModel = Book::create([
+                'title' => $titleTranslated ?: $bookData['title'],
+                'image' => $imagePath,
+                'category_id' => $category->id,
+                'isbn' => $bookData['isbn'],
+                'author' => $bookData['author'],
+                'year_published' => $bookData['year_published'],
+                'publisher' => $bookData['publisher'],
+                'synopsis' => $synopsisTranslated ?: $bookData['synopsis'],
+                'book_count' => $bookData['book_count'],
+                'source' => $bookData['source'],
+                'bookshelf' => $bookData['bookshelf'],
+                'type' => $bookData['type'],
+                'price' => $bookData['price'],
+            ]);
 
-        $bookModel = Book::create([
-            'title' => $titleTranslated ?: $bookData['title'],
-            'image' => $imagePath,
-            'category_id' => $category->id,
-            'isbn' => $bookData['isbn'],
-            'barcode' => $barcode,
-            'author' => $bookData['author'],
-            'year_published' => $bookData['year_published'],
-            'publisher' => $bookData['publisher'],
-            'synopsis' => $synopsisTranslated ?: $bookData['synopsis'],
-            'book_count' => $bookData['book_count'],
-            'source' => $bookData['source'],
-            'bookshelf' => $bookData['bookshelf'],
-            'type' => $bookData['type'],
-            'price' => $bookData['price'],
-        ]);
+            // Generate barcode dengan ID yang sesuai
+            $barcodeCode = 'BOK_'.uniqid();
+            $barcode = $this->barcodeService->generateBookBarcode($bookModel->id, $barcodeCode);
+
+            // Update dengan barcode lengkap
+            $bookModel->update(['barcode' => json_encode($barcode)]);
+
+            // Tampilkan informasi
+            $barcodeData = BarcodeService::parseBarcode($barcode);
+            $this->command->info("   ✅ Buku ditambahkan: {$bookModel->title} (Barcode: {$barcodeData['code']})");
+
+            return $bookModel;
+        });
 
         if (! Storage::disk('public')->exists($imagePath)) {
             $this->createPlaceholderImage($imagePath, $bookData['title']);
             $this->command->info("   ✅ Placeholder gambar dibuat: {$imageName}");
         }
-
-        $this->command->info("   ✅ Buku ditambahkan: {$bookModel->title} (Barcode: {$barcode})");
     }
 
     private function logApiFailure(string $category, string $error): void
