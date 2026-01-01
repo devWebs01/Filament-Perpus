@@ -27,6 +27,7 @@ class Transaction extends Model
         'return_date',
         'status_id',
         'penalty_total',
+        'notes',
     ];
 
     /**
