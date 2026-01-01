@@ -68,13 +68,47 @@ class ViewTransaction extends ViewRecord
                 ->label('Kembalikan')
                 ->icon('heroicon-o-arrow-uturn-left')
                 ->color('primary')
-                ->requiresConfirmation()
-                ->modalHeading('Konfirmasi Pengembalian')
-                ->modalDescription('Apakah Anda yakin ingin memproses pengembalian buku ini?')
+                ->modalHeading('Proses Pengembalian Buku')
+                ->modalDescription('Pilih status pengembalian dan sesuaikan denda jika diperlukan.')
+                ->modalSubmitActionLabel('Proses Pengembalian')
+                ->form([
+                    \Filament\Forms\Components\Select::make('return_status_id')
+                        ->label('Status Pengembalian')
+                        ->options(function () {
+                            return \App\Models\Status::whereIn('name', ['Dikembalikan', 'Hilang', 'Rusak Ringan', 'Rusak Berat'])
+                                ->pluck('name', 'id');
+                        })
+                        ->required()
+                        ->default(function () {
+                            return \App\Models\Status::where('name', 'Dikembalikan')->first()?->id;
+                        })
+                        ->live()
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            $status = \App\Models\Status::find($state);
+                            if ($status) {
+                                $set('fine_amount', $status->amount);
+                            }
+                        })
+                        ->selectablePlaceholder(false),
+                    \Filament\Forms\Components\TextInput::make('fine_amount')
+                        ->label('Denda (Rp)')
+                        ->numeric()
+                        ->prefix('Rp')
+                        ->default(function () {
+                            return \App\Models\Status::where('name', 'Dikembalikan')->first()?->amount ?? 0;
+                        })
+                        ->required()
+                        ->minValue(0)
+                        ->suffixIcon('heroicon-o-banknotes'),
+                    \Filament\Forms\Components\Textarea::make('notes')
+                        ->label('Catatan')
+                        ->rows(2)
+                        ->placeholder('Tambahkan catatan jika diperlukan...'),
+                ])
                 ->visible(fn ($record) => $record->status && in_array($record->status->name, ['Dipinjam', 'Terlambat'], true))
-                ->action(function ($record) {
+                ->action(function ($record, array $data) {
                     $service = app(\App\Services\TransactionService::class);
-                    $result = $service->returnBook($record->id);
+                    $result = $service->returnBook($record->id, $data);
 
                     \Filament\Notifications\Notification::make()
                         ->title($result['success'] ? 'Berhasil' : 'Gagal')

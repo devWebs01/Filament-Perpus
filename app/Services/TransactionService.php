@@ -196,12 +196,12 @@ class TransactionService
      * Proses pengembalian buku
      *
      * @param  int  $transactionId  ID transaction
-     * @param  bool  $calculatePenalty  Hitung denda otomatis
+     * @param  array{return_status_id?: int, fine_amount?: int, notes?: string|null}  $data  Data pengembalian
      * @return array{success: bool, message: string, penalty: int, days_overdue: int}
      */
-    public function returnBook(int $transactionId, bool $calculatePenalty = true): array
+    public function returnBook(int $transactionId, array $data = []): array
     {
-        return DB::transaction(function () use ($transactionId, $calculatePenalty): array {
+        return DB::transaction(function () use ($transactionId, $data): array {
             $transaction = Transaction::find($transactionId);
 
             if (! $transaction) {
@@ -226,11 +226,52 @@ class TransactionService
                 ];
             }
 
-            // Hitung keterlambatan
+            // Jika ada data custom (dari form modal)
+            if (isset($data['return_status_id'])) {
+                $returnStatus = Status::find($data['return_status_id']);
+                $fineAmount = (int) ($data['fine_amount'] ?? 0);
+                $notes = $data['notes'] ?? null;
+
+                // Hitung keterlambatan untuk informasi
+                $daysOverdue = 0;
+                if ($transaction->due_date < now()) {
+                    $daysOverdue = (int) now()->diffInDays($transaction->due_date);
+                }
+
+                $transaction->return_date = now();
+                $transaction->status_id = $returnStatus?->id;
+                $transaction->penalty_total = (string) $fineAmount;
+                if ($notes) {
+                    $transaction->notes = $notes;
+                }
+                $transaction->save();
+
+                $statusName = $returnStatus?->name ?? 'Dikembalikan';
+                $message = "Buku berhasil diproses dengan status: {$statusName}";
+                if ($fineAmount > 0) {
+                    $message .= '. Total denda: Rp '.number_format($fineAmount);
+                }
+
+                Log::info('Book returned with custom status', [
+                    'transaction_id' => $transaction->id,
+                    'status' => $statusName,
+                    'fine' => $fineAmount,
+                    'days_overdue' => $daysOverdue,
+                ]);
+
+                return [
+                    'success' => true,
+                    'message' => $message,
+                    'penalty' => $fineAmount,
+                    'days_overdue' => $daysOverdue,
+                ];
+            }
+
+            // Default behavior (backward compatibility)
             $daysOverdue = 0;
             $penalty = 0;
 
-            if ($calculatePenalty && $transaction->due_date < now()) {
+            if ($transaction->due_date < now()) {
                 $daysOverdue = (int) now()->diffInDays($transaction->due_date);
                 $penalty = $daysOverdue * $this->penaltyPerDay;
             }
