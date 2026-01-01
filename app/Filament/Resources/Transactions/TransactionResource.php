@@ -5,8 +5,13 @@ namespace App\Filament\Resources\Transactions;
 use App\Filament\Resources\Transactions\Pages\CreateTransaction;
 use App\Filament\Resources\Transactions\Pages\EditTransaction;
 use App\Filament\Resources\Transactions\Pages\ListTransactions;
+use App\Filament\Resources\Transactions\Pages\ViewTransaction;
+use App\Filament\Resources\Transactions\Schemas\TransactionForm;
+use App\Filament\Resources\Transactions\Schemas\TransactionInfolist;
+use App\Filament\Resources\Transactions\Tables\TransactionsTable;
 use App\Models\Transaction;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -27,7 +32,17 @@ class TransactionResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return \App\Filament\Resources\Transactions\Tables\TransactionsTable::configure($table);
+        return TransactionsTable::configure($table);
+    }
+
+    public static function form(Schema $schema): Schema
+    {
+        return TransactionForm::configure($schema);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return TransactionInfolist::configure($schema);
     }
 
     public static function getRelations(): array
@@ -43,6 +58,7 @@ class TransactionResource extends Resource
             'index' => ListTransactions::route('/'),
             'create' => CreateTransaction::route('/create'),
             'edit' => EditTransaction::route('/{record}/edit'),
+            'view' => ViewTransaction::route('/{record}/view'),
         ];
     }
 

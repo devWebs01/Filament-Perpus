@@ -23,13 +23,13 @@ class TransactionForm
     /**
      * Konfigurasi schema untuk form transaksi
      */
-    public static function configure(): array
+    public static function configure(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
     {
-        return [
+        return $schema->components([
             static::getMemberScanningSection(),
             static::getBookScanningSection(),
             static::getTransactionDetailsSection(),
-        ];
+        ]);
     }
 
     /**

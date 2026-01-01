@@ -14,7 +14,7 @@ class CreateTransaction extends CreateRecord
 
     public function form(Schema $schema): Schema
     {
-        return $schema->components(TransactionForm::configure());
+        return TransactionForm::configure($schema);
     }
 
     /**
