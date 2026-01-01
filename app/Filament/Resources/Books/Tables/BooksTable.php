@@ -37,7 +37,7 @@ class BooksTable
                 ImageColumn::make('barcode')
                     ->label('Barcode Buku')
                     ->disk('public')
-                    ->circular(),
+                    ->height(50),
 
                 TextColumn::make('category.name')
                     ->label('Kategori')

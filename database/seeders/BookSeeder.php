@@ -208,16 +208,16 @@ class BookSeeder extends Seeder
             // Generate barcode code untuk seeder (ID akan ditambahkan setelah create)
             $barcodeCode = 'BOK_'.uniqid();
 
-            // Create book dulu, lalu update dengan barcode yang lengkap
+            // Create book dulu, lalu update dengan barcode path
             // Nonaktifkan observer agar tidak mengganggu proses seeder
             $bookModel = Book::withoutEvents(function () use ($bookData, $barcodeCode) {
                 $bookModel = Book::create($bookData);
 
                 // Generate barcode dengan ID yang sesuai
-                $barcodeImage = $this->barcodeService->generateBookBarcode($bookModel->id, $barcodeCode);
+                $barcodePath = $this->barcodeService->generateBookBarcode($bookModel->id, $barcodeCode);
 
-                // Update book dengan barcode lengkap (code + image)
-                $bookModel->update(['barcode' => json_encode($barcodeImage)]);
+                // Update book dengan barcode path (string biasa)
+                $bookModel->update(['barcode' => $barcodePath]);
 
                 return $bookModel;
             });
@@ -225,8 +225,7 @@ class BookSeeder extends Seeder
             // Download image setelah book created
             $this->downloadBookImage($bookDetails['image'], $imagePath, $bookModel->title);
 
-            $barcodeData = BarcodeService::parseBarcode($bookModel->barcode);
-            $this->command->info("   ✅ Buku ditambahkan: {$bookModel->title} (Barcode: {$barcodeData['code']})");
+            $this->command->info("   ✅ Buku ditambahkan: {$bookModel->title} (Barcode: {$barcodeCode})");
 
             return true;
         } catch (\Exception $e) {
@@ -401,14 +400,13 @@ class BookSeeder extends Seeder
 
             // Generate barcode dengan ID yang sesuai
             $barcodeCode = 'BOK_'.uniqid();
-            $barcode = $this->barcodeService->generateBookBarcode($bookModel->id, $barcodeCode);
+            $barcodePath = $this->barcodeService->generateBookBarcode($bookModel->id, $barcodeCode);
 
-            // Update dengan barcode lengkap
-            $bookModel->update(['barcode' => json_encode($barcode)]);
+            // Update dengan barcode path
+            $bookModel->update(['barcode' => $barcodePath]);
 
             // Tampilkan informasi
-            $barcodeData = BarcodeService::parseBarcode($barcode);
-            $this->command->info("   ✅ Buku ditambahkan: {$bookModel->title} (Barcode: {$barcodeData['code']})");
+            $this->command->info("   ✅ Buku ditambahkan: {$bookModel->title} (Barcode: {$barcodeCode})");
 
             return $bookModel;
         });

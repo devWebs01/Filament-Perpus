@@ -3,55 +3,38 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
-use Milon\Barcode\DNS1D;
+use Milon\Barcode\DNS2D;
 
 /**
- * BarcodeImageService
+ * BarcodeService
  *
- * Service untuk generate barcode sebagai gambar dan menyimpan path-nya
- * langsung ke field barcode (Books) atau qr_code (UserDetail) dalam format JSON.
- *
- * Format penyimpanan di database:
- * - Books.barcode: {"code": "BOK_44SVZVB2T36X", "image": "barcodes/book_1_BOK_44SVZVB2T36X.png"}
- * - UserDetails.qr_code: {"code": "USR_A3F7B2D9E4C1", "image": "barcodes/user_1_USR_A3F7B2D9E4C1.png"}
+ * Service untuk generate QR code untuk books dan users.
+ * - Book QR: menyimpan path gambar ke field Books.barcode
+ * - User QR: menyimpan base64 data URL ke field UserDetails.qr_code
  */
 class BarcodeService
 {
-    /**
-     * Direktori penyimpanan barcode
-     */
-    private const BARCODE_DIRECTORY = 'barcodes';
+    private const QRCODE_DIRECTORY = 'qrcodes';
 
     /**
-     * Format gambar barcode
-     */
-    private const IMAGE_FORMAT = 'png';
-
-    /**
-     * Generate barcode image dan return sebagai array untuk disimpan JSON
+     * Generate QR Code image untuk Book
+     * Path gambar akan langsung disimpan ke field Books.barcode
      *
-     * @param  string  $barcodeCode  Kode barcode (contoh: BOK_44SVZVB2T36X)
-     * @param  string|null  $filename  Nama file tanpa extension (jika null gunakan barcode code)
-     * @return array{code: string, image: string} Data untuk disimpan ke database JSON
+     * @param  int  $bookId  ID book
+     * @param  string  $barcodeCode  Kode QR
+     * @return string Path relatif gambar
      *
-     * @throws \Exception Jika gagal generate atau save barcode
+     * @throws \Exception
      */
-    public function generateAndSave(string $barcodeCode, ?string $filename = null): array
+    public function generateBookBarcode(int $bookId, string $barcodeCode): string
     {
         try {
-            // Validasi barcode code
             if (empty($barcodeCode)) {
-                throw new \InvalidArgumentException('Barcode code tidak boleh kosong');
+                throw new \InvalidArgumentException('QR code tidak boleh kosong');
             }
 
-            // Gunakan barcode code sebagai filename jika tidak diberikan
-            $filename = $filename ?? $barcodeCode;
-
-            // Sanitize filename
-            $filename = preg_replace('/[^a-zA-Z0-9_-]/', '_', $filename);
-
-            // Path relatif untuk storage public
-            $relativePath = self::BARCODE_DIRECTORY.'/'.$filename.'.'.self::IMAGE_FORMAT;
+            $filename = "book_{$bookId}_{$barcodeCode}.png";
+            $relativePath = self::QRCODE_DIRECTORY.'/'.$filename;
             $fullPath = storage_path('app/public/'.$relativePath);
 
             // Pastikan direktori ada
@@ -60,74 +43,44 @@ class BarcodeService
                 @mkdir($directory, 0755, true);
             }
 
-            // Generate barcode image menggunakan DNS1D dengan pendekatan yang lebih stabil
-            $dns1d = new DNS1D;
+            // Generate QR Code image
+            $dns2d = new DNS2D;
 
-            // Set storage path untuk menghindari masalah path
-            $dns1d->setStorPath(storage_path('app/public/barcodes/'));
+            // getBarcodePNG return base64 string, perlu di-decode untuk mendapatkan binary
+            $base64Image = $dns2d->getBarcodePNG($barcodeCode, 'QRCODE', 3, 3);
 
-            // Gunakan getBarcodePNGPath untuk menghindari infinite loop
-            $barcodeImagePath = $dns1d->getBarcodePNGPath(
-                $barcodeCode,
-                'C128',  // Barcode type (Code128)
-                2,       // Scale
-                25,      // Height
-                [0, 0, 0],  // RGB color (black)
-                false    // Show text (false untuk menghindari masalah)
-            );
-
-            // Jika path dihasilkan, salin file ke lokasi yang diinginkan
-            if ($barcodeImagePath) {
-                $sourcePath = storage_path('app/public/barcodes/'.basename($barcodeImagePath));
-
-                if (file_exists($sourcePath)) {
-                    // Salin file ke lokasi target
-                    copy($sourcePath, $fullPath);
-                    // Hapus file sementara
-                    unlink($sourcePath);
-
-                    $barcodeImage = file_get_contents($fullPath);
-                } else {
-                    // Fallback ke PNG base64
-                    $barcodeImage = $dns1d->getBarcodePNG(
-                        $barcodeCode,
-                        'C128',
-                        2,
-                        25,
-                        [0, 0, 0],
-                        false
-                    );
-                }
-            } else {
-                // Fallback ke PNG base64
-                $barcodeImage = $dns1d->getBarcodePNG(
-                    $barcodeCode,
-                    'C128',
-                    2,
-                    25,
-                    [0, 0, 0],
-                    false
-                );
+            if ($base64Image === false) {
+                throw new \Exception('Failed to generate QR code image');
             }
 
-            // Simpan file gambar
-            file_put_contents($fullPath, $barcodeImage);
+            // Decode base64 ke binary image
+            $image = base64_decode($base64Image, true);
 
-            Log::info('Barcode image generated successfully', [
+            if ($image === false) {
+                throw new \Exception('Failed to decode QR code image');
+            }
+
+            // Simpan file gambar sebagai binary
+            $bytes = file_put_contents($fullPath, $image);
+
+            if ($bytes === false) {
+                throw new \Exception('Failed to write QR code image to storage');
+            }
+
+            Log::info('Book QR code generated successfully', [
+                'book_id' => $bookId,
                 'code' => $barcodeCode,
-                'filename' => $filename,
                 'path' => $relativePath,
+                'file_size' => $bytes,
             ]);
 
-            // Return array untuk disimpan sebagai JSON
-            return [
-                'code' => $barcodeCode,
-                'image' => $relativePath,  // Path relatif untuk storage
-            ];
+            return $relativePath;
         } catch (\Exception $e) {
-            Log::error('Failed to generate barcode image', [
+            Log::error('Failed to generate book QR code', [
+                'book_id' => $bookId,
                 'code' => $barcodeCode,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             throw $e;
@@ -135,95 +88,43 @@ class BarcodeService
     }
 
     /**
-     * Generate barcode image untuk Book
-     * Data akan disimpan ke field Books.barcode sebagai JSON
-     *
-     * @param  int  $bookId  ID book
-     * @param  string  $barcodeCode  Kode barcode
-     * @return array{code: string, image: string}
-     *
-     * @throws \Exception
-     */
-    public function generateBookBarcode(int $bookId, string $barcodeCode): array
-    {
-        $filename = 'book_'.$bookId.'_'.$barcodeCode;
-
-        return $this->generateAndSave($barcodeCode, $filename);
-    }
-
-    /**
      * Generate QR Code untuk User
-     * Data akan disimpan ke field UserDetails.qr_code sebagai JSON
+     * Kembalikan base64 data URL untuk digunakan langsung di <img src="">
      *
      * @param  int  $userId  ID user
-     * @param  string  $qrcodeCode  Kode QR (dari UserDetail.qr_code)
-     * @return array{code: string, image: string}
+     * @param  string  $qrcodeCode  Kode QR
+     * @return string Base64 data URL format: "data:image/png;base64,..."
      *
      * @throws \Exception
      */
-    public function generateUserQRCode(int $userId, string $qrcodeCode): array
+    public function generateUserQRCode(int $userId, string $qrcodeCode): string
     {
-        $filename = 'user_'.$userId.'_'.$qrcodeCode;
-
-        // Generate sebagai QRCODE type
         try {
             if (empty($qrcodeCode)) {
                 throw new \InvalidArgumentException('QR code tidak boleh kosong');
             }
 
-            $filename = preg_replace('/[^a-zA-Z0-9_-]/', '_', $filename);
-            $relativePath = self::BARCODE_DIRECTORY.'/'.$filename.'.'.self::IMAGE_FORMAT;
-            $fullPath = storage_path('app/public/'.$relativePath);
+            // Generate QR Code sebagai base64 string
+            $dns2d = new DNS2D;
+            $base64Image = $dns2d->getBarcodePNG($qrcodeCode, 'QRCODE', 3, 3);
 
-            $directory = dirname($fullPath);
-            if (! is_dir($directory)) {
-                @mkdir($directory, 0755, true);
+            if ($base64Image === false) {
+                throw new \Exception('Failed to generate QR code image');
             }
 
-            $dns1d = new DNS1D;
-            // Set storage path untuk menghindari masalah path
-            $dns1d->setStorPath(storage_path('app/public/barcodes/'));
-
-            // Gunakan getBarcodePNGPath untuk QR Code
-            $qrImagePath = $dns1d->getBarcodePNGPath(
-                $qrcodeCode,
-                'QRCODE',  // QR Code type
-                2,
-                2
-            );
-
-            if ($qrImagePath) {
-                $sourcePath = storage_path('app/public/barcodes/'.basename($qrImagePath));
-
-                if (file_exists($sourcePath)) {
-                    // Salin file ke lokasi target
-                    copy($sourcePath, $fullPath);
-                    // Hapus file sementara
-                    unlink($sourcePath);
-                } else {
-                    // Fallback ke base64
-                    $qrImage = $dns1d->getBarcodePNG($qrcodeCode, 'QRCODE', 2, 2);
-                    file_put_contents($fullPath, $qrImage);
-                }
-            } else {
-                // Fallback ke base64
-                $qrImage = $dns1d->getBarcodePNG($qrcodeCode, 'QRCODE', 2, 2);
-                file_put_contents($fullPath, $qrImage);
-            }
-
-            Log::info('QR code generated successfully', [
+            Log::info('User QR code generated successfully', [
+                'user_id' => $userId,
                 'code' => $qrcodeCode,
-                'path' => $relativePath,
             ]);
 
-            return [
-                'code' => $qrcodeCode,
-                'image' => $relativePath,
-            ];
+            // Kembalikan dalam format data URL
+            return 'data:image/png;base64,'.$base64Image;
         } catch (\Exception $e) {
-            Log::error('Failed to generate QR code', [
+            Log::error('Failed to generate user QR code', [
+                'user_id' => $userId,
                 'code' => $qrcodeCode,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             throw $e;
@@ -243,14 +144,21 @@ class BarcodeService
                 return false;
             }
 
+            // Skip jika format data URL (base64)
+            if (str_starts_with($imagePath, 'data:')) {
+                return true;
+            }
+
             $fullPath = storage_path('app/public/'.$imagePath);
 
             if (file_exists($fullPath)) {
-                unlink($fullPath);
+                $deleted = unlink($fullPath);
 
-                Log::info('Barcode image deleted', ['path' => $imagePath]);
+                if ($deleted) {
+                    Log::info('Barcode image deleted', ['path' => $imagePath]);
+                }
 
-                return true;
+                return $deleted;
             }
 
             return false;
@@ -275,16 +183,19 @@ class BarcodeService
             return false;
         }
 
-        $fullPath = storage_path('app/public/'.$imagePath);
+        // Data URL (base64) selalu dianggap ada
+        if (str_starts_with($imagePath, 'data:')) {
+            return true;
+        }
 
-        return file_exists($fullPath);
+        return file_exists(storage_path('app/public/'.$imagePath));
     }
 
     /**
      * Get barcode/QR image URL dari path
      *
-     * @param  string  $imagePath  Path relatif gambar
-     * @return string URL publik
+     * @param  string  $imagePath  Path relatif gambar atau base64 data URL
+     * @return string URL publik atau data URL
      */
     public function getBarcodeUrl(string $imagePath): string
     {
@@ -292,25 +203,30 @@ class BarcodeService
             return '';
         }
 
+        // Jika base64 data URL, return langsung
+        if (str_starts_with($imagePath, 'data:')) {
+            return $imagePath;
+        }
+
+        // Jika path file, return asset URL
         return asset('storage/'.$imagePath);
     }
 
     /**
-     * Parse barcode/QR data dari JSON
-     * Helper untuk extract code dan image dari field barcode/qr_code
+     * Helper untuk parse barcode data (JSON atau path)
      *
      * @param  array|string|null  $data  Data dari field barcode/qr_code
      * @return array{code: string|null, image: string|null}
      */
     public static function parseBarcode($data): array
     {
-        // Jika null atau empty string
         if (empty($data)) {
             return ['code' => null, 'image' => null];
         }
 
-        // Jika string JSON
+        // Jika string
         if (is_string($data)) {
+            // Coba decode sebagai JSON
             $decoded = json_decode($data, true);
             if (is_array($decoded)) {
                 return [
@@ -318,6 +234,9 @@ class BarcodeService
                     'image' => $decoded['image'] ?? null,
                 ];
             }
+
+            // Jika bukan JSON, assume sebagai image path atau data URL
+            return ['code' => null, 'image' => $data];
         }
 
         // Jika sudah array
@@ -335,13 +254,13 @@ class BarcodeService
      * Regenerate barcode image (hapus old, buat baru)
      *
      * @param  string|null  $oldImagePath  Path gambar lama
+     * @param  int  $bookId  ID buku
      * @param  string  $barcodeCode  Kode barcode baru
-     * @param  string|null  $filename  Nama file baru
-     * @return array{code: string, image: string}
+     * @return string Path gambar baru
      *
      * @throws \Exception
      */
-    public function regenerate(?string $oldImagePath, string $barcodeCode, ?string $filename = null): array
+    public function regenerateBookBarcode(?string $oldImagePath, int $bookId, string $barcodeCode): string
     {
         // Hapus barcode image lama jika ada
         if (! empty($oldImagePath)) {
@@ -349,6 +268,20 @@ class BarcodeService
         }
 
         // Generate yang baru
-        return $this->generateAndSave($barcodeCode, $filename);
+        return $this->generateBookBarcode($bookId, $barcodeCode);
+    }
+
+    /**
+     * Regenerate QR code untuk user
+     *
+     * @param  int  $userId  ID user
+     * @param  string  $qrcodeCode  Kode QR baru
+     * @return string Base64 data URL
+     *
+     * @throws \Exception
+     */
+    public function regenerateUserQRCode(int $userId, string $qrcodeCode): string
+    {
+        return $this->generateUserQRCode($userId, $qrcodeCode);
     }
 }

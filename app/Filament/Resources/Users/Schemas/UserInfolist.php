@@ -31,17 +31,18 @@ class UserInfolist
                     ->columnSpanFull(),
 
                 Section::make('Foto Profil')
-                    ->description('Foto profil pengguna')
+                    ->description('Foto profil dan QR Code pengguna')
                     ->schema([
                         ImageEntry::make('userDetail.profile_photo')
                             ->label('Foto Profil')
                             ->disk('public')
-                            ->defaultImageUrl(url('/placeholder-user.png'))
+                            ->defaultImageUrl(url('https://avatar.iran.liara.run/public'))
                             ->columnSpanFull(),
+
                         ImageEntry::make('userDetail.qr_code')
                             ->label('QR Code')
-                            ->disk('public')
-                            ->defaultImageUrl(url('/placeholder-user.png'))
+                            ->getStateUsing(fn ($record) => $record->userDetail?->qr_code)
+                            ->extraAttributes(['style' => 'max-width: 200px; height: auto;'])
                             ->columnSpanFull(),
                     ])
                     ->columnSpanFull(),

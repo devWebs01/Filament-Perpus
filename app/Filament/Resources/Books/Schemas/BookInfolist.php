@@ -46,9 +46,6 @@ class BookInfolist
                                 TextEntry::make('year_published')
                                     ->label('Tahun Terbit')
                                     ->formatStateUsing(fn ($record) => $record?->year_published ?? '-'),
-                                TextEntry::make('barcode')
-                                    ->label('Barcode')
-                                    ->formatStateUsing(fn ($record) => $record?->barcode ?? '-'),
 
                                 TextEntry::make('type')
                                     ->label('Tipe Buku')
@@ -68,13 +65,13 @@ class BookInfolist
                                 ImageEntry::make('image')
                                     ->label('Sampul Buku')
                                     ->disk('public')
-                                    ->getStateUsing(fn ($record) => $record?->image)
+                                    ->defaultImageUrl(url('/images/no-cover.png'))
                                     ->columnSpan(1),
 
                                 ImageEntry::make('barcode')
                                     ->label('Barcode')
                                     ->disk('public')
-                                    ->getStateUsing(fn ($record) => $record?->barcode)
+                                    ->extraAttributes(['style' => 'max-width: 200px; height: auto;'])
                                     ->columnSpan(1),
                             ]),
 
