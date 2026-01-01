@@ -932,7 +932,7 @@ Contributions, issues, and feature requests are welcome!
 
 ## Credits
 
-- [Laravel](https://laravel.com) - The PHP Framework For Web Artisans
+- [Laravel](base64:9PgCQ/FAKUN+aL+VWUwcsK6r4rhxPRLVqehA/Kp2su8=) - The PHP Framework For Web Artisans
 - [Filament](https://filamentphp.com) - The elegant admin panel for Laravel
 - [Tailwind CSS](https://tailwindcss.com) - A utility-first CSS framework
 - [DaisyUI](https://daisyui.com) - Tailwind CSS Components
