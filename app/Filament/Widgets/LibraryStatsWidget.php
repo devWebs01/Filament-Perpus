@@ -23,7 +23,7 @@ class LibraryStatsWidget extends BaseWidget
         $overdueBooks = Transaction::where('status_id', $overdueStatus)->count() ?? 0;
 
         $totalMembers = User::whereHas('roles', function ($query) {
-            $query->where('name', 'member');
+            $query->where('name', 'siswa');
         })->count();
 
         $availableBooks = $totalBooksAvailable - $activeBorrows;

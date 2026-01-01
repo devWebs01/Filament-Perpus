@@ -18,7 +18,7 @@ class ViewTransaction extends ViewRecord
                 ->icon('heroicon-o-check')
                 ->color('success')
                 ->requiresConfirmation()
-                ->visible(fn($record) => $record->status && $record->status->name === 'Menunggu Persetujuan')
+                ->visible(fn ($record) => $record->status && $record->status->name === 'Menunggu Persetujuan')
                 ->action(function ($record) {
                     $service = app(\App\Services\TransactionService::class);
                     $result = $service->confirmBorrow($record->id);
@@ -36,7 +36,9 @@ class ViewTransaction extends ViewRecord
                             ->danger()
                             ->send();
                     }
-                }),
+                })->after(
+                    fn () => redirect(TransactionResource::getUrl('index'))
+                ),
 
             \Filament\Actions\Action::make('reject')
                 ->label('Tolak Peminjaman')
@@ -46,7 +48,7 @@ class ViewTransaction extends ViewRecord
                 ->modalHeading('Tolak Peminjaman Buku')
                 ->modalDescription('Apakah Anda yakin ingin menolak peminjaman buku ini? Status akan diubah menjadi Ditolak.')
                 ->modalSubmitActionLabel('Ya, Tolak')
-                ->visible(fn($record) => $record->status && $record->status->name === 'Menunggu Persetujuan')
+                ->visible(fn ($record) => $record->status && $record->status->name === 'Menunggu Persetujuan')
                 ->action(function ($record) {
                     $tolakStatus = \App\Models\Status::where('name', 'Tolak')->first();
 
@@ -58,7 +60,9 @@ class ViewTransaction extends ViewRecord
                             ->success()
                             ->send();
                     }
-                }),
+                })->after(
+                    fn () => redirect(TransactionResource::getUrl('index'))
+                ),
 
             \Filament\Actions\Action::make('return_book')
                 ->label('Kembalikan')
@@ -67,23 +71,26 @@ class ViewTransaction extends ViewRecord
                 ->requiresConfirmation()
                 ->modalHeading('Konfirmasi Pengembalian')
                 ->modalDescription('Apakah Anda yakin ingin memproses pengembalian buku ini?')
-                ->visible(fn($record) => $record->status && in_array($record->status->name, ['Dipinjam', 'Terlambat'], true))
+                ->visible(fn ($record) => $record->status && in_array($record->status->name, ['Dipinjam', 'Terlambat'], true))
                 ->action(function ($record) {
                     $service = app(\App\Services\TransactionService::class);
                     $result = $service->returnBook($record->id);
 
                     \Filament\Notifications\Notification::make()
-                                ->title($result['success'] ? 'Berhasil' : 'Gagal')
-                                ->body($result['message'])
+                        ->title($result['success'] ? 'Berhasil' : 'Gagal')
+                        ->body($result['message'])
                         ->{$result['success'] ? 'success' : 'danger'}()
-                            ->send();
-                }),
+                        ->send();
+
+                })->after(
+                    fn () => redirect(TransactionResource::getUrl('index'))
+                ),
 
             EditAction::make()
-                ->hidden(fn($record) => $record->status && in_array($record->status->name, ['Dikembalikan', 'Dibatalkan'], true)),
+                ->hidden(fn ($record) => $record->status && in_array($record->status->name, ['Dikembalikan', 'Dibatalkan'], true)),
 
             \Filament\Actions\DeleteAction::make()
-                ->hidden(fn($record) => $record->status && in_array($record->status->name, ['Dipinjam', 'Terlambat'], true)),
+                ->hidden(fn ($record) => $record->status && in_array($record->status->name, ['Dipinjam', 'Terlambat'], true)),
             \Filament\Actions\ForceDeleteAction::make(),
             \Filament\Actions\RestoreAction::make(),
         ];

@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Transactions\Tables;
 
-use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
@@ -16,6 +15,7 @@ class TransactionsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('code')
                     ->label('Kode')
@@ -27,14 +27,14 @@ class TransactionsTable
                     ->label('Anggota')
                     ->searchable()
                     ->sortable()
-                    ->description(fn($record): string => $record->user->userDetail->nis ?? $record->user->userDetail->nisn ?? '-'),
+                    ->description(fn ($record): string => $record->user->userDetail->nis ?? $record->user->userDetail->nisn ?? '-'),
 
                 TextColumn::make('book.title')
                     ->label('Buku')
                     ->searchable()
                     ->sortable()
                     ->limit(30)
-                    ->tooltip(fn(TextColumn $column): ?string => $column->getState())
+                    ->tooltip(fn (TextColumn $column): ?string => $column->getState())
                     ->wrap(),
 
                 TextColumn::make('borrow_date')
@@ -47,7 +47,7 @@ class TransactionsTable
                     ->label('Jatuh Tempo')
                     ->date('d M Y')
                     ->sortable()
-                    ->color(fn($record) => $record->due_date < now() && $record->status->name === 'Dipinjam' ? 'danger' : 'default')
+                    ->color(fn ($record) => $record->due_date < now() && $record->status->name === 'Dipinjam' ? 'danger' : 'default')
                     ->toggleable(),
 
                 TextColumn::make('return_date')
@@ -59,7 +59,7 @@ class TransactionsTable
                 TextColumn::make('status.name')
                     ->label('Status')
                     ->badge()
-                    ->color(fn($record): string => match ($record->status->name) {
+                    ->color(fn ($record): string => match ($record->status->name) {
                         'Dipinjam' => 'success',
                         'Dikembalikan' => 'info',
                         'Terlambat' => 'danger',

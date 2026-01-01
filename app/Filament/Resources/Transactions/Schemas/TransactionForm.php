@@ -60,7 +60,8 @@ class TransactionForm
                     Placeholder::make('scanned_member_info')
                         ->label('Info Anggota')
                         ->content(fn (Get $get) => static::getMemberInfoPlaceholder($get))
-                        ->visible(fn (Get $get) => ! empty($get('user_id'))),
+                        ->visible(fn (Get $get) => ! empty($get('user_id')))
+                        ->columnSpanFull(),
                 ]),
             ])
             ->columns(1);
@@ -94,7 +95,8 @@ class TransactionForm
                     Placeholder::make('scanned_book_info')
                         ->label('Info Buku')
                         ->content(fn (Get $get) => static::getBookInfoPlaceholder($get))
-                        ->visible(fn (Get $get) => ! empty($get('book_id'))),
+                        ->visible(fn (Get $get) => ! empty($get('book_id')))
+                        ->columnSpanFull(),
                 ]),
             ])
             ->columns(1);
@@ -139,7 +141,8 @@ class TransactionForm
                             $set('user_nis', $userDetail?->nis ?? '-');
                             $set('user_class', $userDetail?->class ?? '-');
                         }
-                    }),
+                    })
+                    ->columnSpanFull(),
 
                 // User NIS
                 TextInput::make('user_nis')
@@ -190,7 +193,8 @@ class TransactionForm
                             $set('book_author', $book->author ?? '-');
                             $set('book_available_count', $book->getAvailableCount());
                         }
-                    }),
+                    })
+                    ->columnSpanFull(),
 
                 // Book Author
                 TextInput::make('book_author')
@@ -232,7 +236,7 @@ class TransactionForm
                         return Status::pluck('name', 'id')->toArray();
                     })
                     ->default(function () {
-                        return Status::where('name', 'Menunggu Persetujuan')
+                        return Status::where('name', 'Dipinjam')
                             ->first()?->id;
                     })
                     ->required()
@@ -361,16 +365,17 @@ class TransactionForm
         $class = $userDetail?->class ?? '-';
         $barcode = $userDetail?->barcode ?? '-';
 
-        $available = $userDetail?->membership_status === 'active' ? '✓ Aktif' : '✗ Tidak Aktif';
+        $available = $userDetail?->membership_status === 'active' ? '✔️ Aktif' : '❌ Tidak Aktif';
 
         return new HtmlString(<<<HTML
             <div class="fi-ta-placeholder-text space-y-2">
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <span class="font-semibold">Nama:</span>
-                        <span class="ml-1">{$user->name}</span>
+                        <span class="font-semibold block text-lg">{$user->name}</span>
                     </div>
-                    <div>
+                    <!-- <div>
+                         <span class="font-semibold">Kode Barcode:</span>
+                    <span class="ml-1">{$barcode}</span>
                         <span class="font-semibold">Status:</span>
                         <span class="ml-1">{$available}</span>
                     </div>
@@ -381,11 +386,10 @@ class TransactionForm
                     <div>
                         <span class="font-semibold">Kelas:</span>
                         <span class="ml-1">{$class}</span>
-                    </div>
+                    </div> -->
                 </div>
                 <div>
-                    <span class="font-semibold">Kode Barcode:</span>
-                    <span class="ml-1 text-primary-600 dark:text-primary-400">{$barcode}</span>
+                    <span class="ml-1">{$available}</span>
                 </div>
             </div>
             HTML);
@@ -413,9 +417,9 @@ class TransactionForm
         $availableCount = $book->getAvailableCount();
 
         if ($availableCount > 0) {
-            $status = '<span class="text-success-600 dark:text-success-400">✓ Tersedia ('.$availableCount.')</span>';
+            $status = '<span class="text-success-600 dark:text-success-400">✔️ Tersedia ('.$availableCount.')</span>';
         } else {
-            $status = '<span class="text-danger-600 dark:text-danger-400">✗ Habis</span>';
+            $status = '<span class="text-danger-600 dark:text-danger-400">❌ Habis</span>';
         }
 
         $barcode = $book->barcode ?? '-';
@@ -425,7 +429,7 @@ class TransactionForm
                 <div>
                     <span class="font-semibold block text-lg">{$book->title}</span>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
+                <!-- <div class="grid grid-cols-2 gap-2">
                     <div>
                         <span class="font-semibold">Penulis:</span>
                         <span class="ml-1">{$author}</span>
@@ -442,14 +446,13 @@ class TransactionForm
                         <span class="font-semibold">Tahun:</span>
                         <span class="ml-1">{$year}</span>
                     </div>
-                </div>
+                </div> -->
                 <div class="grid grid-cols-2 gap-2">
-                    <div>
+                    <!-- <div>
                         <span class="font-semibold">Kode Barcode:</span>
                         <span class="ml-1 text-primary-600 dark:text-primary-400">{$barcode}</span>
-                    </div>
+                    </div> -->
                     <div>
-                        <span class="font-semibold">Stok:</span>
                         <span class="ml-1">{$status}</span>
                     </div>
                 </div>
