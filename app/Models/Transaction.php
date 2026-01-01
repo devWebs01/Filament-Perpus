@@ -52,7 +52,7 @@ class Transaction extends Model
             // Auto-generate kode transaksi unik
             $transaction->code = static::generateUniqueCode();
 
-            if ($transaction->user_id && $transaction->user->isStudent()) {
+            if ($transaction->user_id && $transaction->user->userDetail?->isStudent()) {
                 $setting = \App\Models\Setting::first();
                 $maxBorrow = (int) ($setting->max_borrow ?? 3);
 

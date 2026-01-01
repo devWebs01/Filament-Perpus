@@ -40,7 +40,7 @@ class RecentTransactionsWidget extends BaseWidget
                     ->sortable()
                     ->limit(30),
 
-                TextColumn::make('loan_date')
+                TextColumn::make('borrow_date')
                     ->label('Tanggal Pinjam')
                     ->date('d M Y')
                     ->sortable(),

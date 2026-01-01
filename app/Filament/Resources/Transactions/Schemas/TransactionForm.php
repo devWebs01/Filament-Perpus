@@ -11,9 +11,11 @@ use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Illuminate\Support\HtmlString;
 use JeffersonGoncalves\Filament\QrCodeField\Forms\Components\QrCodeInput;
 
 class TransactionForm
@@ -24,46 +26,76 @@ class TransactionForm
     public static function configure(): array
     {
         return [
-            static::getBarcodeScanningSection(),
+            static::getMemberScanningSection(),
+            static::getBookScanningSection(),
             static::getTransactionDetailsSection(),
         ];
     }
 
     /**
-     * Section untuk Barcode Scanning
+     * Section untuk Scan Kartu Anggota
      */
-    protected static function getBarcodeScanningSection(): Section
+    protected static function getMemberScanningSection(): Section
     {
-        return Section::make('Pindai Barcode')
-            ->description('Scan barcode kartu anggota atau buku menggunakan kamera')
+        return Section::make('Scan Kartu Anggota')
+            ->description('Scan QR code kartu anggota perpustakaan')
             ->collapsible()
             ->schema([
-                // Input QR Code
-                QrCodeInput::make('qrcode_scanner')
-                    ->label('Scan QR Code')
-                    ->placeholder('Arahkan kamera ke QR code')
-                    ->helperText('Scan kartu anggota terlebih dahulu, kemudian scan buku')
-                    ->live(debounce: 300)
-                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
-                        if (! $state) {
-                            return;
-                        }
+                Grid::make(2)->schema([
+                    // Input QR Code Anggota
+                    QrCodeInput::make('member_qrcode_scanner')
+                        ->label('Scan Kartu Anggota')
+                        ->placeholder('Arahkan kamera ke QR code kartu')
+                        ->live(debounce: 300)
+                        ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                            if (! $state) {
+                                return;
+                            }
 
-                        // Proses hasil scan
-                        static::processScanResult(trim($state), $get, $set);
-                    }),
+                            static::processMemberScan(trim($state), $get, $set);
+                        })
+                        ->columnSpanFull(),
 
-                // Info anggota dari scan
-                Placeholder::make('scanned_member_info')
-                    ->label('Info Anggota')
-                    ->content(fn (Get $get) => static::getMemberInfoPlaceholder($get))
-                    ->visible(fn (Get $get) => ! empty($get('user_id'))),
+                    // Info anggota dari scan
+                    Placeholder::make('scanned_member_info')
+                        ->label('Info Anggota')
+                        ->content(fn (Get $get) => static::getMemberInfoPlaceholder($get))
+                        ->visible(fn (Get $get) => ! empty($get('user_id'))),
+                ]),
+            ])
+            ->columns(1);
+    }
 
-                // Info buku dari scan
-                Placeholder::make('scanned_book_info')
-                    ->label('Info Buku')
-                    ->content(fn (Get $get) => static::getBookInfoPlaceholder($get))
-                    ->visible(fn (Get $get) => ! empty($get('book_id'))),
+    /**
+     * Section untuk Scan Barcode Buku
+     */
+    protected static function getBookScanningSection(): Section
+    {
+        return Section::make('Scan Barcode Buku')
+            ->description('Scan barcode buku yang akan dipinjam')
+            ->collapsible()
+            ->schema([
+                Grid::make(2)->schema([
+                    // Input Barcode Buku
+                    QrCodeInput::make('book_barcode_scanner')
+                        ->label('Barcode Buku')
+                        ->placeholder('Scan atau masukkan kode barcode buku')
+                        ->live(debounce: 300)
+                        ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                            if (! $state) {
+                                return;
+                            }
+
+                            static::processBookScan(trim($state), $get, $set);
+                        })
+                        ->columnSpanFull(),
+
+                    // Info buku dari scan
+                    Placeholder::make('scanned_book_info')
+                        ->label('Info Buku')
+                        ->content(fn (Get $get) => static::getBookInfoPlaceholder($get))
+                        ->visible(fn (Get $get) => ! empty($get('book_id'))),
+                ]),
             ])
             ->columns(1);
     }
@@ -133,7 +165,7 @@ class TransactionForm
                     ->getSearchResultsUsing(function (string $search): array {
                         return Book::where('title', 'like', "%{$search}%")
                             ->orWhere('isbn', 'like', "%{$search}%")
-                            ->where('available_count', '>', 0)
+                            ->whereColumn('book_count', '>', 0)
                             ->limit(10)
                             ->pluck('title', 'id')
                             ->toArray();
@@ -156,7 +188,7 @@ class TransactionForm
                         $book = Book::find($state);
                         if ($book) {
                             $set('book_author', $book->author ?? '-');
-                            $set('book_available_count', $book->available_count ?? 0);
+                            $set('book_available_count', $book->getAvailableCount());
                         }
                     }),
 
@@ -222,155 +254,206 @@ class TransactionForm
                     ->maxLength(255)
                     ->columnSpanFull(),
             ])
-            ->columns(2);
+            ->columns(2)
+            ->columnSpanFull();
     }
 
     /**
-     * Proses hasil scan QR code menggunakan BarcodeScannerService
+     * Proses hasil scan kartu anggota
      */
-    protected static function processScanResult(string $qrcode, Get $get, Set $set): void
+    protected static function processMemberScan(string $qrcode, Get $get, Set $set): void
     {
         if (empty($qrcode)) {
             return;
         }
 
-        // Gunakan BarcodeScannerService untuk scan
         $scanner = app(BarcodeScannerService::class);
+        $result = $scanner->scanUserBarcode($qrcode);
 
-        // Tentukan tipe barcode
-        $barcodeType = $scanner->parseBarcodeType($qrcode);
+        // Always clear scanner field
+        $set('member_qrcode_scanner', '');
 
-        if ($barcodeType['type'] === 'user') {
-            // Scan user
-            $result = $scanner->scanUserBarcode($qrcode);
+        if ($result['success']) {
+            $userDetail = $result['user'];
+            $set('user_id', $userDetail->user_id);
+            $set('user_nis', $userDetail->nis ?? '-');
+            $set('user_class', $userDetail->class ?? '-');
 
-            if ($result['success']) {
-                $userDetail = $result['user'];
-                $set('user_id', $userDetail->user_id);
-                $set('user_nis', $userDetail->nis ?? '-');
-                $set('user_class', $userDetail->class ?? '-');
-                $set('qrcode_scanner', '');
-
-                Notification::make()
-                    ->title('User Ditemukan')
-                    ->body("Anggota: {$userDetail->user->name}")
-                    ->success()
-                    ->send();
-            } else {
-                Notification::make()
-                    ->title('User Tidak Ditemukan')
-                    ->body($result['message'])
-                    ->warning()
-                    ->send();
-            }
-        } elseif ($barcodeType['type'] === 'book') {
-            // Scan buku
-            $result = $scanner->scanBookBarcode($qrcode);
-
-            if ($result['success']) {
-                $book = $result['book'];
-                $set('book_id', $book->id);
-                $set('book_author', $book->author ?? '-');
-                $set('book_available_count', $book->available_count ?? 0);
-                $set('qrcode_scanner', '');
-
-                Notification::make()
-                    ->title('Buku Ditemukan')
-                    ->body("Buku: {$book->title} (Stok: {$book->available_count})")
-                    ->success()
-                    ->send();
-            } else {
-                Notification::make()
-                    ->title('Buku Tidak Ditemukan')
-                    ->body($result['message'])
-                    ->warning()
-                    ->send();
-            }
+            Notification::make()
+                ->title('Anggota Ditemukan')
+                ->body("Anggota: {$userDetail->user->name}")
+                ->success()
+                ->send();
         } else {
             Notification::make()
-                ->title('QR Code Tidak Dikenali')
-                ->body('Format QR code tidak valid atau tidak ditemukan di sistem')
-                ->danger()
+                ->title('Anggota Tidak Ditemukan')
+                ->body($result['message'])
+                ->warning()
                 ->send();
         }
+    }
 
-        // Reset scanner
-        $set('qrcode_scanner', '');
+    /**
+     * Proses hasil scan barcode buku
+     */
+    protected static function processBookScan(string $barcode, Get $get, Set $set): void
+    {
+        if (empty($barcode)) {
+            return;
+        }
+
+        $scanner = app(BarcodeScannerService::class);
+        $result = $scanner->scanBookBarcode($barcode);
+
+        // Always clear scanner field
+        $set('book_barcode_scanner', '');
+
+        if ($result['success']) {
+            $book = $result['book'];
+            $available = $result['available']; // Assuming scanBookBarcode returns 'available' boolean
+
+            // Check availability
+            if (! $available && $book->getAvailableCount() <= 0) {
+                Notification::make()
+                    ->title('Stok Buku Habis')
+                    ->body("Buku \"{$book->title}\" saat ini tidak tersedia untuk dipinjam.")
+                    ->danger()
+                    ->send();
+
+                return;
+            }
+
+            $set('book_id', $book->id);
+            $set('book_author', $book->author ?? '-');
+            $set('book_available_count', $book->getAvailableCount());
+
+            Notification::make()
+                ->title('Buku Ditemukan')
+                ->body("Buku: {$book->title} (Stok: {$book->getAvailableCount()})")
+                ->success()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('Buku Tidak Ditemukan')
+                ->body($result['message'])
+                ->warning()
+                ->send();
+        }
     }
 
     /**
      * Generate placeholder text untuk info anggota
      */
-    protected static function getMemberInfoPlaceholder(Get $get): string
+    protected static function getMemberInfoPlaceholder(Get $get): HtmlString
     {
         $userId = $get('user_id');
         if (! $userId) {
-            return 'Belum ada anggota yang dipilih';
+            return new HtmlString('Belum ada anggota yang dipilih');
         }
 
         $user = User::find($userId);
         if (! $user) {
-            return 'Data anggota tidak ditemukan';
+            return new HtmlString('Data anggota tidak ditemukan');
         }
 
         $userDetail = $user->userDetail;
         $nis = $userDetail?->nis ?? '-';
         $class = $userDetail?->class ?? '-';
-        $qrCode = $userDetail?->barcode ?? '-';
+        $barcode = $userDetail?->barcode ?? '-';
 
-        // Parse QR code jika JSON
-        if (is_string($qrCode) && str_starts_with($qrCode, '{')) {
-            $parsed = json_decode($qrCode, true);
-            $qrCodeDisplay = $parsed['code'] ?? '-';
-        } else {
-            $qrCodeDisplay = '-';
-        }
+        $available = $userDetail?->membership_status === 'active' ? '✓ Aktif' : '✗ Tidak Aktif';
 
-        return "
-            <div class='space-y-1'>
-                <div><strong>Nama:</strong> {$user->name}</div>
-                <div><strong>NIS:</strong> {$nis}</div>
-                <div><strong>Kelas:</strong> {$class}</div>
-                <div><strong>Kode QR:</strong> {$qrCodeDisplay}</div>
+        return new HtmlString(<<<HTML
+            <div class="fi-ta-placeholder-text space-y-2">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <span class="font-semibold">Nama:</span>
+                        <span class="ml-1">{$user->name}</span>
+                    </div>
+                    <div>
+                        <span class="font-semibold">Status:</span>
+                        <span class="ml-1">{$available}</span>
+                    </div>
+                    <div>
+                        <span class="font-semibold">NIS:</span>
+                        <span class="ml-1">{$nis}</span>
+                    </div>
+                    <div>
+                        <span class="font-semibold">Kelas:</span>
+                        <span class="ml-1">{$class}</span>
+                    </div>
+                </div>
+                <div>
+                    <span class="font-semibold">Kode Barcode:</span>
+                    <span class="ml-1 text-primary-600 dark:text-primary-400">{$barcode}</span>
+                </div>
             </div>
-        ";
+            HTML);
     }
 
     /**
      * Generate placeholder text untuk info buku
      */
-    protected static function getBookInfoPlaceholder(Get $get): string
+    protected static function getBookInfoPlaceholder(Get $get): HtmlString
     {
         $bookId = $get('book_id');
         if (! $bookId) {
-            return 'Belum ada buku yang dipilih';
+            return new HtmlString('Belum ada buku yang dipilih');
         }
 
         $book = Book::find($bookId);
         if (! $book) {
-            return 'Data buku tidak ditemukan';
+            return new HtmlString('Data buku tidak ditemukan');
         }
 
         $isbn = $book->isbn ?? '-';
         $author = $book->author ?? '-';
-        $status = $book->available_count > 0 ? '✓ Tersedia' : '✗ Habis';
-        $barcode = $book->barcode ?? '-';
+        $publisher = $book->publisher ?? '-';
+        $year = $book->year_published ?? '-';
+        $availableCount = $book->getAvailableCount();
 
-        // Parse barcode jika path file
-        if (is_string($barcode) && str_starts_with($barcode, 'qrcodes/')) {
-            $barcodeDisplay = substr($barcode, 0, 30).'...';
+        if ($availableCount > 0) {
+            $status = '<span class="text-success-600 dark:text-success-400">✓ Tersedia ('.$availableCount.')</span>';
         } else {
-            $barcodeDisplay = $barcode;
+            $status = '<span class="text-danger-600 dark:text-danger-400">✗ Habis</span>';
         }
 
-        return "
-            <div class='space-y-1'>
-                <div><strong>Judul:</strong> {$book->title}</div>
-                <div><strong>Penulis:</strong> {$author}</div>
-                <div><strong>ISBN:</strong> {$isbn}</div>
-                <div><strong>Barcode:</strong> {$barcodeDisplay}</div>
-                <div><strong>Stok:</strong> {$book->available_count} {$status}</div>
+        $barcode = $book->barcode ?? '-';
+
+        return new HtmlString(<<<HTML
+            <div class="fi-ta-placeholder-text space-y-2">
+                <div>
+                    <span class="font-semibold block text-lg">{$book->title}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <span class="font-semibold">Penulis:</span>
+                        <span class="ml-1">{$author}</span>
+                    </div>
+                    <div>
+                        <span class="font-semibold">Penerbit:</span>
+                        <span class="ml-1">{$publisher}</span>
+                    </div>
+                    <div>
+                        <span class="font-semibold">ISBN:</span>
+                        <span class="ml-1">{$isbn}</span>
+                    </div>
+                    <div>
+                        <span class="font-semibold">Tahun:</span>
+                        <span class="ml-1">{$year}</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <span class="font-semibold">Kode Barcode:</span>
+                        <span class="ml-1 text-primary-600 dark:text-primary-400">{$barcode}</span>
+                    </div>
+                    <div>
+                        <span class="font-semibold">Stok:</span>
+                        <span class="ml-1">{$status}</span>
+                    </div>
+                </div>
             </div>
-        ";
+            HTML);
     }
 }

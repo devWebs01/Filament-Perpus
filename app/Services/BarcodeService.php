@@ -103,8 +103,9 @@ class BarcodeService
     public function generateBookBarcodeWithCode(int $bookId): array
     {
         try {
-            // Generate unique barcode code dengan format BOK_uniqid()
-            $barcodeCode = 'BOK_'.strtolower(uniqid());
+            // Generate unique barcode code dengan format BOK_ + 12 UPPERCASE alphanumeric
+            // Format konsisten dengan user barcode: LIB_USER_XXXXXXXXXXXX
+            $barcodeCode = 'BOK_'.strtoupper(substr(md5($bookId.microtime()), 0, 12));
 
             // Generate QR image sebagai file
             $imagePath = $this->generateBookBarcode($bookId, $barcodeCode);

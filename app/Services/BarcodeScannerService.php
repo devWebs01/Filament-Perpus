@@ -21,16 +21,36 @@ class BarcodeScannerService
      */
     public function findUserByBarcode(string $barcode): ?UserDetail
     {
-        // Cari langsung berdasarkan barcode (sekarang menyimpan kode, bukan JSON)
-        $userDetail = UserDetail::where('barcode', $barcode)->first();
+        // Normalize input ke UPPERCASE untuk konsistensi
+        $barcode = strtoupper(trim($barcode));
+
+        Log::info('findUserByBarcode called', [
+            'barcode' => $barcode,
+        ]);
+
+        // Cari langsung berdasarkan barcode dengan case-insensitive query
+        $userDetail = UserDetail::whereRaw('UPPER(barcode) = ?', [$barcode])->first();
 
         if ($userDetail) {
+            Log::info('User found via barcode', [
+                'user_id' => $userDetail->user_id,
+                'name' => $userDetail->user->name,
+            ]);
+
             return $userDetail;
         }
 
         // Fallback: coba cari berdasarkan user_id jika barcode langsung berisi ID
         if (is_numeric($barcode)) {
-            return UserDetail::where('user_id', (int) $barcode)->first();
+            $userDetail = UserDetail::where('user_id', (int) $barcode)->first();
+            if ($userDetail) {
+                Log::info('User found via ID', [
+                    'user_id' => $userDetail->user_id,
+                    'name' => $userDetail->user->name,
+                ]);
+
+                return $userDetail;
+            }
         }
 
         // Fallback: coba cari user berdasarkan NIS/NISN
@@ -38,7 +58,20 @@ class BarcodeScannerService
             ->orWhere('nisn', $barcode)
             ->first();
 
-        return $userDetail;
+        if ($userDetail) {
+            Log::info('User found via NIS/NISN', [
+                'user_id' => $userDetail->user_id,
+                'name' => $userDetail->user->name,
+            ]);
+
+            return $userDetail;
+        }
+
+        Log::warning('User not found', [
+            'barcode' => $barcode,
+        ]);
+
+        return null;
     }
 
     /**
@@ -48,23 +81,58 @@ class BarcodeScannerService
      */
     public function findBookByBarcode(string $barcode): ?Book
     {
-        // First try exact match (for ISBN)
-        $book = Book::where('isbn', $barcode)->first();
+        // Normalize input ke UPPERCASE untuk konsistensi
+        $barcode = strtoupper(trim($barcode));
+
+        Log::info('findBookByBarcode called', [
+            'input_barcode' => $barcode,
+            'input_length' => strlen($barcode),
+        ]);
+
+        // OPSI 1: Cari berdasarkan ISBN (numeric 10-13 digit)
+        if (preg_match('/^\d{10}(\d{3})?$/', $barcode)) {
+            $book = Book::where('isbn', $barcode)->first();
+            if ($book) {
+                Log::info('Book found via ISBN', [
+                    'book_id' => $book->id,
+                    'title' => $book->title,
+                ]);
+
+                return $book;
+            }
+        }
+
+        // OPSI 2: Cari berdasarkan barcode code (UPPERCASE)
+        // Query dengan UPPER() untuk case-insensitive matching
+        $book = Book::whereRaw('UPPER(barcode) = ?', [$barcode])->first();
         if ($book) {
+            Log::info('Book found via barcode code', [
+                'book_id' => $book->id,
+                'title' => $book->title,
+                'barcode_db' => $book->barcode,
+            ]);
+
             return $book;
         }
 
-        // For barcode, query directly to barcode field
-        $book = Book::where('barcode', $barcode)->first();
-        if ($book) {
-            return $book;
+        // OPSI 3: Cari berdasarkan numeric ID
+        if (is_numeric($barcode) && strlen($barcode) <= 5) {
+            $book = Book::find((int) $barcode);
+            if ($book) {
+                Log::info('Book found via ID', [
+                    'book_id' => $book->id,
+                    'title' => $book->title,
+                ]);
+
+                return $book;
+            }
         }
 
-        // Fallback: try to match case-insensitive
-        $book = Book::whereRaw('LOWER(barcode) = LOWER(?)', [$barcode])->first();
-        if ($book) {
-            return $book;
-        }
+        Log::warning('Book not found', [
+            'barcode_input' => $barcode,
+            'total_books' => Book::count(),
+            'books_with_barcode' => Book::whereNotNull('barcode')->count(),
+        ]);
 
         return null;
     }
@@ -133,7 +201,10 @@ class BarcodeScannerService
             ];
         }
 
-        // Cek format BOK_ + alphanumeric characters (case-insensitive)
+        // Normalize ke uppercase untuk konsistensi
+        $barcode = strtoupper(trim($barcode));
+
+        // Format: BOK_ + alphanumeric (case-insensitive untuk backward compatibility)
         if (preg_match('/^BOK_[A-Z0-9]+$/i', $barcode)) {
             return [
                 'valid' => true,
@@ -142,7 +213,7 @@ class BarcodeScannerService
             ];
         }
 
-        // Cek jika ISBN (10 atau 13 digit)
+        // Format: ISBN (10 atau 13 digit)
         if (preg_match('/^\d{10}(\d{3})?$/', $barcode)) {
             return [
                 'valid' => true,
@@ -151,10 +222,19 @@ class BarcodeScannerService
             ];
         }
 
+        // Format: Numeric ID (1-5 digit)
+        if (is_numeric($barcode) && strlen($barcode) <= 5) {
+            return [
+                'valid' => true,
+                'type' => 'book_id',
+                'message' => 'Format Book ID valid',
+            ];
+        }
+
         return [
             'valid' => false,
             'type' => null,
-            'message' => 'Format barcode buku tidak dikenali',
+            'message' => 'Format barcode buku tidak dikenali. Gunakan: BOK_XXXXXXXX, ISBN, atau ID Buku',
         ];
     }
 
@@ -226,7 +306,21 @@ class BarcodeScannerService
      */
     public function scanBookBarcode(string $barcode): array
     {
+        // Normalize input ke UPPERCASE untuk konsistensi
+        $barcode = strtoupper(trim($barcode));
+
+        Log::info('scanBookBarcode called', [
+            'input_barcode' => $barcode,
+            'input_length' => strlen($barcode),
+        ]);
+
         $validation = $this->validateBookBarcode($barcode);
+
+        Log::info('Book barcode validation', [
+            'valid' => $validation['valid'],
+            'type' => $validation['type'],
+            'message' => $validation['message'],
+        ]);
 
         if (! $validation['valid']) {
             return [
@@ -240,6 +334,10 @@ class BarcodeScannerService
         $book = $this->findBookByBarcode($barcode);
 
         if (! $book instanceof \App\Models\Book) {
+            Log::warning('Book not found after validation passed', [
+                'barcode' => $barcode,
+            ]);
+
             return [
                 'success' => false,
                 'book' => null,
@@ -248,11 +346,20 @@ class BarcodeScannerService
             ];
         }
 
+        $availableCount = $book->getAvailableCount();
+        $isAvailable = $availableCount > 0;
+
+        Log::info('Book found successfully', [
+            'book_id' => $book->id,
+            'title' => $book->title,
+            'available_count' => $availableCount,
+        ]);
+
         return [
             'success' => true,
             'book' => $book,
-            'message' => 'Buku ditemukan: '.$book->title,
-            'available' => $book->isAvailable(),
+            'message' => 'Buku ditemukan: '.$book->title.' (Stok: '.$availableCount.')',
+            'available' => $isAvailable,
         ];
     }
 
