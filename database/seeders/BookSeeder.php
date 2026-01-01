@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Book;
 use App\Models\Category;
+use App\Services\BarcodeService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
@@ -15,6 +16,13 @@ use Stichoza\GoogleTranslate\GoogleTranslate;
 
 class BookSeeder extends Seeder
 {
+    private BarcodeService $barcodeService;
+
+    public function __construct(BarcodeService $barcodeService)
+    {
+        $this->barcodeService = $barcodeService;
+    }
+
     /**
      * Run the database seeds.
      */
@@ -174,11 +182,10 @@ class BookSeeder extends Seeder
             $translatedTitle = $this->translateToId($originalTitle);
             $translatedSynopsis = $this->translateToId($originalSynopsis);
 
-            // Simpan data buku ke DB menggunakan $imagePath (bukan hanya filename)
+            // Buat data buku
             $bookData = [
-                // simpan judul & sinopsis yang sudah diterjemahkan
                 'title' => $translatedTitle ?: $originalTitle,
-                'image' => $imagePath, // simpan path relatif 'books/...'
+                'image' => $imagePath,
                 'category_id' => $category->id,
                 'isbn' => $bookDetails['id'] ?? uniqid(),
                 'author' => $this->cleanAuthors($bookDetails['authors'] ?? 'Unknown Author'),
@@ -198,10 +205,16 @@ class BookSeeder extends Seeder
                 'price' => rand(25000, 150000),
             ];
 
+            // PENTING: Generate barcode SEBELUM create (karena observer tidak jalan di seeder)
+            $bookData['barcode'] = $this->barcodeService->generateBookBarcode();
+
+            // Create book dengan barcode
             $bookModel = Book::create($bookData);
 
-            // PENTING: pass $imagePath (bukan $imageName) agar file disimpan di storage/app/public/books/...
+            // Download image setelah book created
             $this->downloadBookImage($bookDetails['image'], $imagePath, $bookModel->title);
+
+            $this->command->info("   ✅ Buku ditambahkan: {$bookModel->title} (Barcode: {$bookModel->barcode})");
 
             return true;
         } catch (\Exception $e) {
@@ -213,12 +226,11 @@ class BookSeeder extends Seeder
 
     /**
      * Download book image with error handling
-     * $storagePath harus berformat 'books/filename.jpg' atau path relatif lain di dalam disk 'public'
      */
     private function downloadBookImage(string $imageUrl, string $storagePath, string $bookTitle): void
     {
         try {
-            // pastikan direktori ada (dirname('books/xxx.jpg') => 'books')
+            // pastikan direktori ada
             $dir = dirname($storagePath);
             if ($dir !== '.' && ! Storage::disk('public')->exists($dir)) {
                 Storage::disk('public')->makeDirectory($dir);
@@ -235,7 +247,7 @@ class BookSeeder extends Seeder
             }
         } catch (\Exception $e) {
             $this->createPlaceholderImage($storagePath, $bookTitle);
-            $this->command->warn("⚠️  Error saat mengunduh gambar, menggunakan placeholder untuk: {$bookTitle} - ".$e->getMessage());
+            $this->command->warn("⚠️  Error saat mengunduh gambar untuk: {$bookTitle} - ".$e->getMessage());
         }
     }
 
@@ -266,7 +278,6 @@ class BookSeeder extends Seeder
             imagestring($image, 4, $x, 320, $label, $textColor);
 
             $fullPath = storage_path("app/public/{$path}");
-            // pastikan direktori file ada
             $dir = dirname($fullPath);
             if (! is_dir($dir)) {
                 @mkdir($dir, 0755, true);
@@ -305,7 +316,7 @@ class BookSeeder extends Seeder
                 'isbn' => '978-602-123-456-1',
                 'publisher' => 'Penerbit Informatika',
                 'year_published' => 2023,
-                'synopsis' => 'Buku panduan lengkap...',
+                'synopsis' => 'Buku panduan lengkap tentang algoritma dan pemrograman dasar...',
                 'category' => 'Ilmu Komputer',
                 'book_count' => 5,
                 'source' => 'Pembelian Langsung',
@@ -313,7 +324,34 @@ class BookSeeder extends Seeder
                 'type' => 'textbook',
                 'price' => 85000,
             ],
-            // ... tambah lainnya ...
+            [
+                'title' => 'Web Development dengan Laravel',
+                'author' => 'Ahmad Rizal, S.T.',
+                'isbn' => '978-602-123-456-2',
+                'publisher' => 'Penerbit Informatika',
+                'year_published' => 2024,
+                'synopsis' => 'Panduan lengkap mengembangkan aplikasi web modern dengan Laravel framework...',
+                'category' => 'Ilmu Komputer',
+                'book_count' => 3,
+                'source' => 'Pembelian Langsung',
+                'bookshelf' => 'Rak A2',
+                'type' => 'textbook',
+                'price' => 95000,
+            ],
+            [
+                'title' => 'Business Strategy dan Management',
+                'author' => 'Prof. Dr. Siti Nurhaliza',
+                'isbn' => '978-602-123-456-3',
+                'publisher' => 'Penerbit Bisnis',
+                'year_published' => 2023,
+                'synopsis' => 'Strategi bisnis modern dan manajemen perusahaan di era digital...',
+                'category' => 'Bisnis & Manajemen',
+                'book_count' => 4,
+                'source' => 'Pembelian Langsung',
+                'bookshelf' => 'Rak B1',
+                'type' => 'reference',
+                'price' => 120000,
+            ],
         ];
     }
 
@@ -327,15 +365,19 @@ class BookSeeder extends Seeder
         $imageName = 'book_'.Str::slug($bookData['title']).'.jpg';
         $imagePath = "books/{$imageName}";
 
-        // Terjemahkan title & synopsis lokal juga
+        // Terjemahkan title & synopsis lokal juga (sudah dalam bahasa Indonesia)
         $titleTranslated = $this->translateToId($bookData['title']);
         $synopsisTranslated = $this->translateToId($bookData['synopsis'] ?? '');
 
-        Book::create([
+        // PENTING: Generate barcode SEBELUM create
+        $barcode = $this->barcodeService->generateBookBarcode();
+
+        $bookModel = Book::create([
             'title' => $titleTranslated ?: $bookData['title'],
             'image' => $imagePath,
             'category_id' => $category->id,
             'isbn' => $bookData['isbn'],
+            'barcode' => $barcode,
             'author' => $bookData['author'],
             'year_published' => $bookData['year_published'],
             'publisher' => $bookData['publisher'],
@@ -352,7 +394,7 @@ class BookSeeder extends Seeder
             $this->command->info("   ✅ Placeholder gambar dibuat: {$imageName}");
         }
 
-        $this->command->info("   ✅ Buku ditambahkan: {$bookData['title']} ({$bookData['category']})");
+        $this->command->info("   ✅ Buku ditambahkan: {$bookModel->title} (Barcode: {$barcode})");
     }
 
     private function logApiFailure(string $category, string $error): void

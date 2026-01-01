@@ -16,9 +16,9 @@ class BarcodeService
     /**
      * Prefix untuk berbagai tipe entitas
      */
-    private const PREFIX_USER = 'USR';
+    private const PREFIX_USER = 'USR_';
 
-    private const PREFIX_BOOK = 'BOK';
+    private const PREFIX_BOOK = 'BOK_';
 
     /**
      * Panjang barcode selain prefix
@@ -33,11 +33,11 @@ class BarcodeService
     /**
      * Generate barcode unik untuk UserDetail
      *
-     * Format: USR + 12 karakter unik (total 15 karakter)
-     * Contoh: USR A3F7B2D9E4C1
+     * Format: USR_ + 12 karakter unik (total 16 karakter)
+     * Contoh: USR_A3F7B2D9E4C1
      *
      * @param  int|null  $userId  ID user untuk referensi
-     * @return string Barcode unik 15 karakter
+     * @return string Barcode unik 16 karakter
      */
     public function generateUserBarcode(?int $userId = null): string
     {
@@ -52,11 +52,11 @@ class BarcodeService
     /**
      * Generate barcode unik untuk Book
      *
-     * Format: BOK + 12 karakter unik (total 15 karakter)
-     * Contoh: BOK X9K4M2P7N3L8
+     * Format: BOK_ + 12 karakter unik (total 16 karakter)
+     * Contoh: BOK_X9K4M2P7N3L8
      *
      * @param  int|null  $bookId  ID buku untuk referensi
-     * @return string Barcode unik 15 karakter
+     * @return string Barcode unik 16 karakter
      */
     public function generateBookBarcode(?int $bookId = null): string
     {
@@ -77,7 +77,7 @@ class BarcodeService
      * 3. Jika duplikat, retry dengan tambahan random factor
      * 4. Ulangi sampai MAX_RETRY atau temukan barcode unik
      *
-     * @param  string  $prefix  Prefix barcode (USR/BOK)
+     * @param  string  $prefix  Prefix barcode (USR_/BOK_)
      * @param  string  $table  Nama tabel untuk cek duplikasi
      * @param  string  $column  Nama kolom untuk cek duplikasi
      * @param  mixed  $context  Data kontekstual untuk unikitas (ID, dll)
@@ -145,10 +145,10 @@ class BarcodeService
             : '';
 
         // Combine semua components
-        $combined = pack('J', $microtime). // 8 bytes timestamp
-            $randomBytes.                   // 4 bytes random
-            $contextHash.                   // 4 bytes context (jika ada)
-            pack('C', $attempt);            // 1 byte attempt number
+        $combined = pack('J', $microtime).     // 8 bytes timestamp
+            $randomBytes.               // 4 bytes random
+            $contextHash.               // 4 bytes context (jika ada)
+            pack('C', $attempt);         // 1 byte attempt number
 
         // Hash dan encode ke base32 untuk karakter yang aman
         $hash = hash('sha256', $combined, true);
@@ -166,15 +166,15 @@ class BarcodeService
      * Base32 encoding menggunakan karakter yang mudah dibaca
      * (tanpa confusing characters seperti 0O, 1Il)
      *
-     * Charset: 2-7, A-Z (tanpa I, O), dan angka
+     * Charset: A-Z, 2-7 (standard RFC 4648)
      *
      * @param  string  $data  Binary data
      * @return string Base32 encoded string
      */
     protected function base32Encode(string $data): string
     {
-        // Base32 alphabet tanpa confusing characters
-        $alphabet = '234567ABCDEFGHJKMNPQRSTUVWXYZ'; // 32 chars
+        // Base32 alphabet - standard RFC 4648
+        $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'; // 32 chars
         $output = '';
         $bits = 0;
         $value = 0;
@@ -186,13 +186,15 @@ class BarcodeService
 
             while ($bits >= 5) {
                 $bits -= 5;
-                $output .= $alphabet[($value >> $bits) & 31];
+                $index = ($value >> $bits) & 31;
+                $output .= $alphabet[$index];
             }
         }
 
         // Handle remaining bits
         if ($bits > 0) {
-            $output .= $alphabet[($value << (5 - $bits)) & 31];
+            $index = ($value << (5 - $bits)) & 31;
+            $output .= $alphabet[$index];
         }
 
         return $output;
@@ -272,8 +274,8 @@ class BarcodeService
                 str_starts_with($barcode, self::PREFIX_BOOK) => 'book',
                 default => 'unknown',
             },
-            'prefix' => substr($barcode, 0, 3),
-            'code' => substr($barcode, 3),
+            'prefix' => substr($barcode, 0, 4),
+            'code' => substr($barcode, 4),
         ];
     }
 }

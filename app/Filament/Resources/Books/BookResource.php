@@ -6,7 +6,9 @@ use App\Filament\Resources\Books\Pages\CreateBook;
 use App\Filament\Resources\Books\Pages\EditBook;
 use App\Filament\Resources\Books\Pages\ListBooks;
 use App\Filament\Resources\Books\Schemas\BookForm;
+use App\Filament\Resources\Books\Schemas\BookInfolist;
 use App\Filament\Resources\Books\Tables\BooksTable;
+use App\Filament\Resources\Users\Pages\ViewBook;
 use App\Models\Book;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -41,6 +43,11 @@ class BookResource extends Resource
         return BooksTable::configure($table);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return BookInfolist::configure($schema);
+    }
+
     public static function getRelations(): array
     {
         return [
@@ -54,6 +61,7 @@ class BookResource extends Resource
             'index' => ListBooks::route('/'),
             'create' => CreateBook::route('/create'),
             'edit' => EditBook::route('/{record}/edit'),
+            'view' => ViewBook::route('/{record}'),
         ];
     }
 

@@ -11,6 +11,7 @@
         "bezhansalleh/filament-shield": "^4.0",
         "filament/filament": "^4.0",
         "jantinnerezo/livewire-alert": "^4.0",
+        "jeffersongoncalves/filament-qrcode-field": "^2.0",
         "joaopaulolndev/filament-edit-profile": "^2.0",
         "laravel/folio": "^1.1",
         "laravel/framework": "^12.0",

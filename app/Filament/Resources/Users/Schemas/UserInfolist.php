@@ -30,19 +30,19 @@ class UserInfolist
                     ])
                     ->columnSpanFull(),
 
-                Section::make('Peran Pengguna')
-                    ->description('Peran yang ditetapkan pada akun')
+                Section::make('Foto Profil')
+                    ->description('Foto profil pengguna')
                     ->schema([
-                        TextEntry::make('roles')
-                            ->label('Peran')
-                            ->badge()
-                            ->formatStateUsing(
-                                fn ($state) => collect($state)
-                                    ->pluck('name')
-                                    ->map(fn ($role) => str_replace('_', ' ', ucfirst($role)))
-                                    ->join(', ')
-                            )
-                            ->color('primary'),
+                        ImageEntry::make('userDetail.profile_photo')
+                            ->label('Foto Profil')
+                            ->disk('public')
+                            ->defaultImageUrl(url('/placeholder-user.png'))
+                            ->columnSpanFull(),
+                        ImageEntry::make('userDetail.qr_code')
+                            ->label('QR Code')
+                            ->disk('public')
+                            ->defaultImageUrl(url('/placeholder-user.png'))
+                            ->columnSpanFull(),
                     ])
                     ->columnSpanFull(),
 
@@ -51,6 +51,16 @@ class UserInfolist
                     ->schema([
                         Grid::make(2)
                             ->schema([
+                                TextEntry::make('roles')
+                                    ->label('Peran')
+                                    ->badge()
+                                    ->formatStateUsing(
+                                        fn ($state) => collect($state)
+                                            ->pluck('name')
+                                            ->map(fn ($role) => str_replace('_', ' ', ucfirst($role)))
+                                            ->join(', ')
+                                    )
+                                    ->color('primary'),
                                 TextEntry::make('userDetail.nik')
                                     ->label('NIK')
                                     ->default('-'),
@@ -119,12 +129,6 @@ class UserInfolist
                                     ->date('d M Y')
                                     ->default('-'),
                             ]),
-
-                        ImageEntry::make('userDetail.profile_photo')
-                            ->label('Foto Profil')
-                            ->circular()
-                            ->defaultImageUrl(url('/placeholder-user.png'))
-                            ->columnSpanFull(),
 
                         TextEntry::make('userDetail.address')
                             ->label('Alamat')

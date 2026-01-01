@@ -9,6 +9,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
@@ -33,6 +34,11 @@ class BooksTable
                     ->circular()
                     ->defaultImageUrl(url('/images/no-cover.png')),
 
+                ImageColumn::make('barcode')
+                    ->label('Barcode Buku')
+                    ->disk('public')
+                    ->circular(),
+
                 TextColumn::make('category.name')
                     ->label('Kategori')
                     ->badge()
@@ -50,6 +56,7 @@ class BooksTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
+                ViewAction::make()->button(),
                 EditAction::make()->button(),
                 DeleteAction::make()->button(),
             ])

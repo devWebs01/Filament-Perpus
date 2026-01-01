@@ -15,15 +15,12 @@ use Illuminate\Support\Facades\Log;
  */
 class BookObserver
 {
-    /**
-     * Constructor: inject BarcodeService
-     */
-    public function __construct(
-        /**
-         * Instance BarcodeService
-         */
-        protected BarcodeService $barcodeService
-    ) {}
+    private BarcodeService $barcodeService;
+
+    public function __construct(BarcodeService $barcodeService)
+    {
+        $this->barcodeService = $barcodeService;
+    }
 
     /**
      * Handle the Book "creating" event.
@@ -32,28 +29,26 @@ class BookObserver
      * Generate barcode hanya jika field barcode kosong.
      *
      * @param  Book  $book  Instance Book yang sedang dibuat
+     *
+     * @throws \Exception
      */
     public function creating(Book $book): void
     {
         // Hanya generate jika barcode kosong atau null
         if (empty($book->barcode)) {
             try {
-                $book->barcode = $this->barcodeService->generateBookBarcode(
-                    bookId: $book->id ?? null
-                );
+                $book->barcode = $this->barcodeService->generateBookBarcode($book->id);
 
                 Log::info('Barcode generated for new book', [
                     'title' => $book->title,
                     'barcode' => $book->barcode,
                 ]);
             } catch (\Exception $e) {
-                // Log error tapi jangan gagalkan proses create
                 Log::error('Failed to generate barcode for book', [
                     'title' => $book->title,
                     'error' => $e->getMessage(),
                 ]);
 
-                // Re-throw jika ingin proses create gagal saat barcode gagal
                 throw $e;
             }
         }
@@ -69,7 +64,7 @@ class BookObserver
      */
     public function created(Book $book): void
     {
-        Log::info('Book created', [
+        Log::info('Book created successfully', [
             'id' => $book->id,
             'title' => $book->title,
             'barcode' => $book->barcode,
@@ -81,26 +76,31 @@ class BookObserver
      *
      * Event ini dipicu SEBELUM record di-update di database.
      * Generate barcode hanya jika:
-     * 1. Barcode saat ini kosong/null
-     * 2. Barcode belum pernah di-set sebelumnya
+     * 1. Barcode saat ini kosong/null (tidak pernah di-generate)
+     * 2. User tidak secara eksplisit mengubah barcode
+     *
+     * PERBAIKAN: Mengecek apakah user sengaja mengubah barcode atau tidak
      *
      * @param  Book  $book  Instance Book yang sedang di-update
+     *
+     * @throws \Exception
      */
     public function updating(Book $book): void
     {
-        // Cek apakah barcode akan diupdate menjadi null/kosong
-        // ATAU barcode saat ini kosong dan tidak ada perubahan explicit
+        // Ambil nilai original (sebelum update)
         $originalBarcode = $book->getOriginal('barcode');
         $newBarcode = $book->barcode;
 
-        // Generate jika:
-        // 1. Barcode asli kosong/null
-        // 2. Barcode baru juga kosong (tidak di-set manual)
-        if (empty($originalBarcode) && empty($newBarcode)) {
+        // Cek apakah user mengubah barcode field secara eksplisit
+        $barcodeWasChanged = $book->isDirty('barcode');
+
+        // Generate barcode hanya jika:
+        // 1. Barcode original kosong/null (belum pernah di-generate)
+        // 2. User TIDAK mengubah barcode field secara eksplisit
+        // 3. Barcode baru masih kosong
+        if (empty($originalBarcode) && ! $barcodeWasChanged && empty($newBarcode)) {
             try {
-                $book->barcode = $this->barcodeService->generateBookBarcode(
-                    bookId: $book->id ?? null
-                );
+                $book->barcode = $this->barcodeService->generateBookBarcode($book->id);
 
                 Log::info('Barcode generated during book update', [
                     'id' => $book->id,
@@ -122,13 +122,13 @@ class BookObserver
     /**
      * Handle the Book "updated" event.
      *
-     * Event ini dipricu SETELAH record berhasil di-update.
+     * Event ini dipicu SETELAH record berhasil di-update.
      *
      * @param  Book  $book  Instance Book yang baru di-update
      */
     public function updated(Book $book): void
     {
-        // Log hanya jika ada perubahan barcode
+        // Log hanya jika ada perubahan pada barcode
         if ($book->wasChanged('barcode')) {
             Log::info('Book barcode updated', [
                 'id' => $book->id,
@@ -191,7 +191,7 @@ class BookObserver
     /**
      * Handle the Book "force deleted" event.
      *
-     * Dipricu saat record di-hard delete dari soft delete.
+     * Dipicu saat record di-hard delete dari soft delete.
      *
      * @param  Book  $book  Instance Book yang di-force delete
      */

@@ -16,16 +16,6 @@ use Illuminate\Support\Facades\Log;
 class UserDetailObserver
 {
     /**
-     * Constructor: inject BarcodeService
-     */
-    public function __construct(
-        /**
-         * Instance BarcodeService
-         */
-        protected BarcodeService $barcodeService
-    ) {}
-
-    /**
      * Handle the UserDetail "creating" event.
      *
      * Event ini dipicu SEBELUM record disimpan ke database.
@@ -38,7 +28,8 @@ class UserDetailObserver
         // Hanya generate jika qr_code kosong atau null
         if (empty($userDetail->qr_code)) {
             try {
-                $userDetail->qr_code = $this->barcodeService->generateUserBarcode(
+                $barcodeService = app(BarcodeService::class);
+                $userDetail->qr_code = $barcodeService->generateUserBarcode(
                     userId: $userDetail->user_id ?? null
                 );
 
@@ -98,7 +89,8 @@ class UserDetailObserver
         // 2. QR code baru juga kosong (tidak di-set manual)
         if (empty($originalQrCode) && empty($newQrCode)) {
             try {
-                $userDetail->qr_code = $this->barcodeService->generateUserBarcode(
+                $barcodeService = app(BarcodeService::class);
+                $userDetail->qr_code = $barcodeService->generateUserBarcode(
                     userId: $userDetail->user_id ?? null
                 );
 

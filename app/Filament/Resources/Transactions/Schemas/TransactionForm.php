@@ -5,24 +5,26 @@ namespace App\Filament\Resources\Transactions\Schemas;
 use App\Models\Book;
 use App\Models\Status;
 use App\Models\User;
-use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use JeffersonGoncalves\Filament\QrCodeField\Forms\Components\QrCodeInput;
 
 class TransactionForm
 {
-    public static function configure(Schema $schema): Schema
+    /**
+     * Konfigurasi schema untuk form transaksi
+     */
+    public static function configure(): array
     {
-        return $schema
-            ->components([
-                static::getBarcodeScanningSection(),
-                static::getTransactionDetailsSection(),
-            ]);
+        return [
+            static::getBarcodeScanningSection(),
+            static::getTransactionDetailsSection(),
+        ];
     }
 
     /**
@@ -31,95 +33,37 @@ class TransactionForm
     protected static function getBarcodeScanningSection(): Section
     {
         return Section::make('Pindai Barcode')
-            ->description('Scan barcode kartu anggota dan buku, atau pilih manual')
+            ->description('Scan barcode kartu anggota atau buku menggunakan kamera')
+            ->collapsible()
             ->schema([
-                // Hidden fields untuk menyimpan hasil scan
-                Hidden::make('scanned_user_id'),
-                Hidden::make('scanned_book_id'),
-
-                // Barcode Input untuk User
-                TextInput::make('user_barcode')
-                    ->label('Barcode Kartu Anggota')
-                    ->placeholder('Scan QR Code kartu anggota atau ketik NIS/NISN')
-                    ->suffixAction(
-                        Action::make('scan_user_barcode')
-                            ->icon('heroicon-o-arrow-path')
-                            ->label('Scan')
-                            ->color('primary')
-                            ->requiresConfirmation(false)
-                            ->action(function () {
-                                // Ini akan di-handle via Livewire atau API call
-                                return 'Scanned';
-                            })
-                    )
-                    ->reactive()
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        if (empty($state)) {
+                // Input QR Code
+                QrCodeInput::make('qrcode_scanner')
+                    ->label('Scan QR Code')
+                    ->placeholder('Arahkan kamera ke QR code')
+                    ->helperText('Scan kartu anggota terlebih dahulu, kemudian scan buku')
+                    ->live(debounce: 500)
+                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                        if (! $state) {
                             return;
                         }
 
-                        // Cari user berdasarkan barcode
-                        $userDetail = \App\Models\UserDetail::where('qr_code', $state)
-                            ->orWhere('nis', $state)
-                            ->orWhere('nisn', $state)
-                            ->first();
-
-                        if ($userDetail) {
-                            $set('user_id', $userDetail->user_id);
-                            $set('user_name', $userDetail->user->name);
-                        } else {
-                            $set('user_id', null);
-                            $set('user_name', 'User tidak ditemukan');
-                        }
+                        // Proses hasil scan
+                        static::processScanResult($state, $get, $set);
                     }),
 
-                // Display user info setelah scan
-                Placeholder::make('user_name')
-                    ->label('Anggota')
-                    ->content('Belum ada kartu yang dipindai'),
+                // Info anggota dari scan
+                Placeholder::make('scanned_member_info')
+                    ->label('Info Anggota')
+                    ->content(fn (Get $get) => static::getMemberInfoPlaceholder($get))
+                    ->visible(fn (Get $get) => ! empty($get('user_id'))),
 
-                // Barcode Input untuk Book
-                TextInput::make('book_barcode')
-                    ->label('Barcode Buku')
-                    ->placeholder('Scan barcode buku atau ketik ISBN')
-                    ->suffixAction(
-                        Action::make('scan_book_barcode')
-                            ->icon('heroicon-o-arrow-path')
-                            ->label('Scan')
-                            ->color('primary')
-                    )
-                    ->reactive()
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        if (empty($state)) {
-                            return;
-                        }
-
-                        // Cari buku berdasarkan barcode
-                        $book = \App\Models\Book::where('barcode', $state)
-                            ->orWhere('isbn', $state)
-                            ->first();
-
-                        if ($book) {
-                            $set('book_id', $book->id);
-                            $set('book_title', $book->title);
-                            $set('book_available', $book->isAvailable() ? 'Tersedia' : 'Tidak Tersedia');
-                        } else {
-                            $set('book_id', null);
-                            $set('book_title', 'Buku tidak ditemukan');
-                            $set('book_available', '-');
-                        }
-                    }),
-
-                // Display book info setelah scan
-                Placeholder::make('book_title')
-                    ->label('Buku')
-                    ->content('Belum ada buku yang dipindai'),
-
-                Placeholder::make('book_available')
-                    ->label('Ketersediaan')
-                    ->content('-'),
+                // Info buku dari scan
+                Placeholder::make('scanned_book_info')
+                    ->label('Info Buku')
+                    ->content(fn (Get $get) => static::getBookInfoPlaceholder($get))
+                    ->visible(fn (Get $get) => ! empty($get('book_id'))),
             ])
-            ->columns(2);
+            ->columns(1);
     }
 
     /**
@@ -128,94 +72,275 @@ class TransactionForm
     protected static function getTransactionDetailsSection(): Section
     {
         return Section::make('Detail Transaksi')
+            ->description('Informasi lengkap peminjaman buku')
             ->schema([
+                // User Selection
                 Select::make('user_id')
                     ->label('Anggota')
-                    ->options(function () {
-                        return \App\Models\User::query()
+                    ->placeholder('Pilih anggota atau scan kartu')
+                    ->searchable()
+                    ->preload()
+                    ->allowHtml()
+                    ->getSearchResultsUsing(function (string $search): array {
+                        return User::where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%")
+                            ->limit(10)
                             ->pluck('name', 'id')
                             ->toArray();
                     })
-                    ->searchable()
+                    ->getOptionLabelUsing(fn ($value) => User::find($value)?->name ?? '-')
                     ->required()
-                    ->live()
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        if ($state) {
-                            $user = \App\Models\User::find($state);
-                            $userDetail = $user?->userDetail;
-                            $set('user_nis', $userDetail->nis ?? '-');
-                            $set('user_class', $userDetail->class ?? '-');
+                    ->live(debounce: 300)
+                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                        if (! $state) {
+                            $set('user_nis', '');
+                            $set('user_class', '');
+
+                            return;
+                        }
+
+                        $user = User::find($state);
+                        if ($user) {
+                            $userDetail = $user->userDetail;
+                            $set('user_nis', $userDetail?->nis ?? '-');
+                            $set('user_class', $userDetail?->class ?? '-');
                         }
                     }),
 
-                // Display user detail info
+                // User NIS
                 TextInput::make('user_nis')
                     ->label('NIS')
                     ->disabled()
-                    ->dehydrated(false),
+                    ->dehydrated(false)
+                    ->columnSpan(1),
 
+                // User Class
                 TextInput::make('user_class')
                     ->label('Kelas')
                     ->disabled()
-                    ->dehydrated(false),
+                    ->dehydrated(false)
+                    ->columnSpan(1),
 
+                // Book Selection
                 Select::make('book_id')
                     ->label('Buku')
-                    ->options(function () {
-                        return \App\Models\Book::pluck('title', 'id')
+                    ->placeholder('Pilih buku atau scan barcode')
+                    ->searchable()
+                    ->preload()
+                    ->allowHtml()
+                    ->getSearchResultsUsing(function (string $search): array {
+                        return Book::where('title', 'like', "%{$search}%")
+                            ->orWhere('isbn', 'like', "%{$search}%")
+                            ->where('available_count', '>', 0)
+                            ->limit(10)
+                            ->pluck('title', 'id')
                             ->toArray();
                     })
-                    ->searchable()
+                    ->getOptionLabelUsing(function ($value) {
+                        $book = Book::find($value);
+
+                        return $book ? "{$book->title} ({$book->author})" : '-';
+                    })
                     ->required()
-                    ->live()
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        if ($state) {
-                            $book = \App\Models\Book::find($state);
+                    ->live(debounce: 300)
+                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                        if (! $state) {
+                            $set('book_author', '');
+                            $set('book_available_count', 0);
+
+                            return;
+                        }
+
+                        $book = Book::find($state);
+                        if ($book) {
                             $set('book_author', $book->author ?? '-');
-                            $set('book_available_count', $book?->getAvailableCount() ?? 0);
+                            $set('book_available_count', $book->available_count ?? 0);
                         }
                     }),
 
-                // Display book detail info
+                // Book Author
                 TextInput::make('book_author')
                     ->label('Penulis')
                     ->disabled()
-                    ->dehydrated(false),
+                    ->dehydrated(false)
+                    ->columnSpan(1),
 
+                // Book Available Count
                 TextInput::make('book_available_count')
                     ->label('Stok Tersedia')
+                    ->numeric()
                     ->disabled()
-                    ->dehydrated(false),
+                    ->dehydrated(false)
+                    ->columnSpan(1),
 
+                // Borrow Date
                 DatePicker::make('borrow_date')
                     ->label('Tanggal Pinjam')
                     ->default(now())
                     ->required()
-                    ->native(false),
+                    ->native(false)
+                    ->columnSpan(1),
 
+                // Due Date
                 DatePicker::make('due_date')
                     ->label('Jatuh Tempo')
-                    ->default(now()->addDays(7))
+                    ->default(fn () => now()->addDays(7))
                     ->required()
                     ->native(false)
-                    ->minDate(now()),
+                    ->minDate(now())
+                    ->columnSpan(1),
 
+                // Status
                 Select::make('status_id')
                     ->label('Status')
                     ->relationship('status', 'name')
+                    ->options(function () {
+                        return Status::pluck('name', 'id')->toArray();
+                    })
                     ->default(function () {
-                        return Status::where('name', 'Menunggu Persetujuan')->first()?->id;
+                        return Status::where('name', 'Menunggu Persetujuan')
+                            ->first()?->id;
                     })
                     ->required()
-                    ->disabled(fn (string $context): bool => $context === 'edit'),
+                    ->disabled(fn ($context) => $context === 'edit'),
 
+                // Penalty Total
                 TextInput::make('penalty_total')
                     ->label('Denda (Rp)')
                     ->numeric()
                     ->default(0)
-                    ->disabled()
+                    ->minValue(0)
+                    ->disabled(fn ($context) => $context === 'create')
                     ->dehydrated(),
+
+                // Notes
+                TextInput::make('notes')
+                    ->label('Catatan')
+                    ->placeholder('Catatan tambahan jika ada')
+                    ->maxLength(255)
+                    ->columnSpanFull(),
             ])
             ->columns(2);
+    }
+
+    /**
+     * Proses hasil scan QR code
+     */
+    protected static function processScanResult(string $qrcode, Get $get, Set $set): void
+    {
+        // Bersihkan data
+        $qrcode = trim($qrcode);
+
+        if (empty($qrcode)) {
+            return;
+        }
+
+        // Coba cari user berdasarkan QR code (bisa dari NIS atau ID user)
+        $user = User::where('id', $qrcode)
+            ->orWhere('email', $qrcode)
+            ->orWhereHas('userDetail', function ($q) use ($qrcode) {
+                $q->where('nis', $qrcode);
+            })
+            ->first();
+
+        if ($user) {
+            $set('user_id', $user->id);
+            $userDetail = $user->userDetail;
+            $set('user_nis', $userDetail?->nis ?? '-');
+            $set('user_class', $userDetail?->class ?? '-');
+            // Reset QR code input
+            $set('qrcode_scanner', '');
+
+            return;
+        }
+
+        // Coba cari buku berdasarkan QR code (bisa dari ISBN atau ID buku)
+        $book = Book::where('id', $qrcode)
+            ->orWhere('isbn', $qrcode)
+            ->first();
+
+        if ($book && $book->available_count > 0) {
+            $set('book_id', $book->id);
+            $set('book_author', $book->author ?? '-');
+            $set('book_available_count', $book->available_count ?? 0);
+            // Reset QR code input
+            $set('qrcode_scanner', '');
+
+            return;
+        }
+
+        // Jika tidak ditemukan
+        if (! $user && ! $book) {
+            \Filament\Notifications\Notification::make()
+                ->title('QR Code tidak dikenali')
+                ->body('QR code tidak ditemukan di sistem. Silakan input manual.')
+                ->warning()
+                ->send();
+        } elseif ($book && $book->available_count <= 0) {
+            \Filament\Notifications\Notification::make()
+                ->title('Buku tidak tersedia')
+                ->body('Stok buku sudah habis.')
+                ->warning()
+                ->send();
+        }
+
+        $set('qrcode_scanner', '');
+    }
+
+    /**
+     * Generate placeholder text untuk info anggota
+     */
+    protected static function getMemberInfoPlaceholder(Get $get): string
+    {
+        $userId = $get('user_id');
+        if (! $userId) {
+            return 'Belum ada anggota yang dipilih';
+        }
+
+        $user = User::find($userId);
+        if (! $user) {
+            return 'Data anggota tidak ditemukan';
+        }
+
+        $userDetail = $user->userDetail;
+        $nis = $userDetail?->nis ?? '-';
+        $class = $userDetail?->class ?? '-';
+
+        return "
+            <div class='space-y-1'>
+                <div><strong>Nama:</strong> ".$user->name.'</div>
+                <div><strong>NIS:</strong> '.$nis.'</div>
+                <div><strong>Kelas:</strong> '.$class.'</div>
+            </div>
+        ';
+    }
+
+    /**
+     * Generate placeholder text untuk info buku
+     */
+    protected static function getBookInfoPlaceholder(Get $get): string
+    {
+        $bookId = $get('book_id');
+        if (! $bookId) {
+            return 'Belum ada buku yang dipilih';
+        }
+
+        $book = Book::find($bookId);
+        if (! $book) {
+            return 'Data buku tidak ditemukan';
+        }
+
+        $isbn = $book->isbn ?? '-';
+        $author = $book->author ?? '-';
+        $status = $book->available_count > 0 ? '✓ Tersedia' : '✗ Habis';
+
+        return "
+            <div class='space-y-1'>
+                <div><strong>Judul:</strong> ".$book->title.'</div>
+                <div><strong>Penulis:</strong> '.$author.'</div>
+                <div><strong>ISBN:</strong> '.$isbn.'</div>
+                <div><strong>Stok:</strong> '.$book->available_count.' '.$status.'</div>
+            </div>
+        ';
     }
 }
