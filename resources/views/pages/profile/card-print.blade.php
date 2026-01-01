@@ -562,12 +562,12 @@ state([
                             <!-- QR Code Section -->
                             <div class="qr-code-section">
                                 <div class="qr-code-container">
-                                    @if ($userDetail?->qr_code)
+                                    @if ($userDetail?->barcode)
                                         @php
-                                            $qrCodeExists = Storage::disk('public')->exists($userDetail->qr_code);
+                                            $qrCodeExists = Storage::disk('public')->exists($userDetail->barcode);
                                         @endphp
                                         @if ($qrCodeExists)
-                                            <img src="{{ Storage::url($userDetail->qr_code) }}" alt="QR Code - {{ $user->name }}"
+                                            <img src="{{ Storage::url($userDetail->barcode) }}" alt="QR Code - {{ $user->name }}"
                                                 class="qr-code-image">
                                         @else
                                             <div class="qr-code-placeholder">

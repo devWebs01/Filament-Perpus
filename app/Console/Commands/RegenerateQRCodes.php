@@ -20,14 +20,14 @@ class RegenerateQRCodes extends Command
      *
      * @var string
      */
-    protected $description = 'Regenerate all QR codes as base64 data URLs';
+    protected $description = 'Regenerate all QR codes as files (users stored in user_barcode/, books in book_barcode/)';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $this->info('🔄 Regenerating QR codes as base64 data URLs...');
+        $this->info('🔄 Regenerating QR codes as files...');
 
         if ($this->option('user-id')) {
             $this->regenerateSingleUserQRCode((int) $this->option('user-id'));
@@ -36,6 +36,7 @@ class RegenerateQRCodes extends Command
         }
 
         $this->info('✅ QR code regeneration completed!');
+        $this->displayStorageInfo();
     }
 
     /**
@@ -49,14 +50,23 @@ class RegenerateQRCodes extends Command
 
         foreach ($userDetails as $userDetail) {
             try {
-                // Generate new QR code
-                $uniqueQrCode = 'LIB_USER_'.strtoupper(substr(md5($userDetail->user_id.$userDetail->id.$userDetail->user?->email.now()->timestamp), 0, 12));
-                $qrCodeData = app(BarcodeService::class)->generateUserQRCode($userDetail->user_id, $uniqueQrCode);
+                // Delete old QR code file if exists
+                $oldImagePath = $userDetail->barcode_image;
+                if ($oldImagePath && ! str_starts_with($oldImagePath, 'data:')) {
+                    app(BarcodeService::class)->deleteBarcode($oldImagePath);
+                }
 
-                // Update user detail
-                $userDetail->update(['qr_code' => $qrCodeData]);
+                // Generate new QR code (returns array with code and image_path)
+                $result = app(BarcodeService::class)->generateUserBarcode($userDetail->user_id);
 
-                $this->info("   ✅ {$userDetail->user?->name}: {$uniqueQrCode}");
+                // Update user detail with separate fields
+                $userDetail->update([
+                    'barcode' => $result['code'],
+                    'barcode_image' => $result['image_path'],
+                ]);
+
+                $this->info("   ✅ {$userDetail->user?->name}: {$result['code']}");
+                $this->info("      📁 {$result['image_path']}");
             } catch (\Exception $e) {
                 $this->error("   ❌ Failed for {$userDetail->user?->name}: {$e->getMessage()}");
             }
@@ -79,16 +89,45 @@ class RegenerateQRCodes extends Command
         try {
             $this->info("🔄 Regenerating QR code for {$userDetail->user?->name}...");
 
-            // Generate new QR code
-            $uniqueQrCode = 'LIB_USER_'.strtoupper(substr(md5($userDetail->user_id.$userDetail->id.$userDetail->user?->email.now()->timestamp), 0, 12));
-            $qrCodeData = app(BarcodeService::class)->generateUserQRCode($userDetail->user_id, $uniqueQrCode);
+            // Delete old QR code file if exists
+            $oldImagePath = $userDetail->barcode_image;
+            if ($oldImagePath && ! str_starts_with($oldImagePath, 'data:')) {
+                app(BarcodeService::class)->deleteBarcode($oldImagePath);
+            }
 
-            // Update user detail
-            $userDetail->update(['qr_code' => $qrCodeData]);
+            // Generate new QR code (returns array with code and image_path)
+            $result = app(BarcodeService::class)->generateUserBarcode($userDetail->user_id);
 
-            $this->info("   ✅ QR Code generated: {$uniqueQrCode}");
+            // Update user detail with separate fields
+            $userDetail->update([
+                'barcode' => $result['code'],
+                'barcode_image' => $result['image_path'],
+            ]);
+
+            $this->info("   ✅ QR Code generated: {$result['code']}");
+            $this->info("      📁 {$result['image_path']}");
         } catch (\Exception $e) {
             $this->error("❌ Failed: {$e->getMessage()}");
         }
+    }
+
+    /**
+     * Display storage information
+     */
+    private function displayStorageInfo(): void
+    {
+        $this->newLine();
+        $this->info('📁 Storage Information:');
+        $this->info('═══════════════════════════════════════════════════════════');
+
+        $userQrDir = storage_path('app/public/user_barcode');
+        $bookQrDir = storage_path('app/public/book_barcode');
+
+        $userFiles = is_dir($userQrDir) ? count(glob($userQrDir.'/*.png')) : 0;
+        $bookFiles = is_dir($bookQrDir) ? count(glob($bookQrDir.'/*.png')) : 0;
+
+        $this->info("   📱 User QR codes: {$userFiles} files in user_barcode/");
+        $this->info("   📚 Book QR codes: {$bookFiles} files in book_barcode/");
+        $this->info('═══════════════════════════════════════════════════════════');
     }
 }

@@ -27,23 +27,22 @@ class UserInfolist
                                     ->copyable()
                                     ->icon('heroicon-o-envelope'),
                             ]),
-                    ])
-                    ->columnSpanFull(),
+                        Grid::make(2)
+                            ->schema([
+                                ImageEntry::make('userDetail.profile_photo')
+                                    ->label('Foto Profil')
+                                    ->disk('public')
+                                    ->extraImgAttributes(['style' => 'max-width: 100px; height: auto;'])
+                                    ->defaultImageUrl(
+                                        fn($record) => 'https://api.dicebear.com/9.x/lorelei/svg?seed=' . urlencode($record->name)
+                                    ),
 
-                Section::make('Foto Profil')
-                    ->description('Foto profil dan QR Code pengguna')
-                    ->schema([
-                        ImageEntry::make('userDetail.profile_photo')
-                            ->label('Foto Profil')
-                            ->disk('public')
-                            ->defaultImageUrl(url('https://avatar.iran.liara.run/public'))
-                            ->columnSpanFull(),
-
-                        ImageEntry::make('userDetail.qr_code')
-                            ->label('QR Code')
-                            ->getStateUsing(fn ($record) => $record->userDetail?->qr_code)
-                            ->extraAttributes(['style' => 'max-width: 200px; height: auto;'])
-                            ->columnSpanFull(),
+                                ImageEntry::make('userDetail.barcode_image')
+                                    ->label(fn($record) => "Kode Barcode " . ($record->userDetail?->barcode ?? 'N/A'))
+                                    ->disk('public')
+                                    ->extraImgAttributes(['style' => 'max-width: 100px; height: auto;'])
+                                    ->placeholder('-'),
+                            ]),
                     ])
                     ->columnSpanFull(),
 
@@ -56,9 +55,9 @@ class UserInfolist
                                     ->label('Peran')
                                     ->badge()
                                     ->formatStateUsing(
-                                        fn ($state) => collect($state)
+                                        fn($state) => collect($state)
                                             ->pluck('name')
-                                            ->map(fn ($role) => str_replace('_', ' ', ucfirst($role)))
+                                            ->map(fn($role) => str_replace('_', ' ', ucfirst($role)))
                                             ->join(', ')
                                     )
                                     ->color('primary'),
@@ -84,7 +83,7 @@ class UserInfolist
 
                                 TextEntry::make('userDetail.gender')
                                     ->label('Jenis Kelamin')
-                                    ->formatStateUsing(fn (?string $state) => match ($state) {
+                                    ->formatStateUsing(fn(?string $state) => match ($state) {
                                         'male' => 'Laki-laki',
                                         'female' => 'Perempuan',
                                         default => '-',
@@ -92,7 +91,7 @@ class UserInfolist
 
                                 TextEntry::make('userDetail.religion')
                                     ->label('Agama')
-                                    ->formatStateUsing(fn (?string $state) => match ($state) {
+                                    ->formatStateUsing(fn(?string $state) => match ($state) {
                                         'islam' => 'Islam',
                                         'christian' => 'Kristen Protestan',
                                         'catholic' => 'Katolik',
@@ -106,7 +105,7 @@ class UserInfolist
                                 TextEntry::make('userDetail.membership_status')
                                     ->label('Status Keanggotaan')
                                     ->badge()
-                                    ->color(fn (?string $state) => match ($state) {
+                                    ->color(fn(?string $state) => match ($state) {
                                         'active' => 'success',
                                         'suspended' => 'warning',
                                         'expired' => 'danger',

@@ -5,10 +5,12 @@ namespace App\Filament\Resources\Transactions\Schemas;
 use App\Models\Book;
 use App\Models\Status;
 use App\Models\User;
+use App\Services\BarcodeScannerService;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -41,14 +43,14 @@ class TransactionForm
                     ->label('Scan QR Code')
                     ->placeholder('Arahkan kamera ke QR code')
                     ->helperText('Scan kartu anggota terlebih dahulu, kemudian scan buku')
-                    ->live(debounce: 500)
+                    ->live(debounce: 300)
                     ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
                         if (! $state) {
                             return;
                         }
 
                         // Proses hasil scan
-                        static::processScanResult($state, $get, $set);
+                        static::processScanResult(trim($state), $get, $set);
                     }),
 
                 // Info anggota dari scan
@@ -224,66 +226,75 @@ class TransactionForm
     }
 
     /**
-     * Proses hasil scan QR code
+     * Proses hasil scan QR code menggunakan BarcodeScannerService
      */
     protected static function processScanResult(string $qrcode, Get $get, Set $set): void
     {
-        // Bersihkan data
-        $qrcode = trim($qrcode);
-
         if (empty($qrcode)) {
             return;
         }
 
-        // Coba cari user berdasarkan QR code (bisa dari NIS atau ID user)
-        $user = User::where('id', $qrcode)
-            ->orWhere('email', $qrcode)
-            ->orWhereHas('userDetail', function ($q) use ($qrcode) {
-                $q->where('nis', $qrcode);
-            })
-            ->first();
+        // Gunakan BarcodeScannerService untuk scan
+        $scanner = app(BarcodeScannerService::class);
 
-        if ($user) {
-            $set('user_id', $user->id);
-            $userDetail = $user->userDetail;
-            $set('user_nis', $userDetail?->nis ?? '-');
-            $set('user_class', $userDetail?->class ?? '-');
-            // Reset QR code input
-            $set('qrcode_scanner', '');
+        // Tentukan tipe barcode
+        $barcodeType = $scanner->parseBarcodeType($qrcode);
 
-            return;
-        }
+        if ($barcodeType['type'] === 'user') {
+            // Scan user
+            $result = $scanner->scanUserBarcode($qrcode);
 
-        // Coba cari buku berdasarkan QR code (bisa dari ISBN atau ID buku)
-        $book = Book::where('id', $qrcode)
-            ->orWhere('isbn', $qrcode)
-            ->first();
+            if ($result['success']) {
+                $userDetail = $result['user'];
+                $set('user_id', $userDetail->user_id);
+                $set('user_nis', $userDetail->nis ?? '-');
+                $set('user_class', $userDetail->class ?? '-');
+                $set('qrcode_scanner', '');
 
-        if ($book && $book->available_count > 0) {
-            $set('book_id', $book->id);
-            $set('book_author', $book->author ?? '-');
-            $set('book_available_count', $book->available_count ?? 0);
-            // Reset QR code input
-            $set('qrcode_scanner', '');
+                Notification::make()
+                    ->title('User Ditemukan')
+                    ->body("Anggota: {$userDetail->user->name}")
+                    ->success()
+                    ->send();
+            } else {
+                Notification::make()
+                    ->title('User Tidak Ditemukan')
+                    ->body($result['message'])
+                    ->warning()
+                    ->send();
+            }
+        } elseif ($barcodeType['type'] === 'book') {
+            // Scan buku
+            $result = $scanner->scanBookBarcode($qrcode);
 
-            return;
-        }
+            if ($result['success']) {
+                $book = $result['book'];
+                $set('book_id', $book->id);
+                $set('book_author', $book->author ?? '-');
+                $set('book_available_count', $book->available_count ?? 0);
+                $set('qrcode_scanner', '');
 
-        // Jika tidak ditemukan
-        if (! $user && ! $book) {
-            \Filament\Notifications\Notification::make()
-                ->title('QR Code tidak dikenali')
-                ->body('QR code tidak ditemukan di sistem. Silakan input manual.')
-                ->warning()
+                Notification::make()
+                    ->title('Buku Ditemukan')
+                    ->body("Buku: {$book->title} (Stok: {$book->available_count})")
+                    ->success()
+                    ->send();
+            } else {
+                Notification::make()
+                    ->title('Buku Tidak Ditemukan')
+                    ->body($result['message'])
+                    ->warning()
+                    ->send();
+            }
+        } else {
+            Notification::make()
+                ->title('QR Code Tidak Dikenali')
+                ->body('Format QR code tidak valid atau tidak ditemukan di sistem')
+                ->danger()
                 ->send();
-        } elseif ($book && $book->available_count <= 0) {
-            \Filament\Notifications\Notification::make()
-                ->title('Buku tidak tersedia')
-                ->body('Stok buku sudah habis.')
-                ->warning()
-                ->send();
         }
 
+        // Reset scanner
         $set('qrcode_scanner', '');
     }
 
@@ -305,14 +316,24 @@ class TransactionForm
         $userDetail = $user->userDetail;
         $nis = $userDetail?->nis ?? '-';
         $class = $userDetail?->class ?? '-';
+        $qrCode = $userDetail?->barcode ?? '-';
+
+        // Parse QR code jika JSON
+        if (is_string($qrCode) && str_starts_with($qrCode, '{')) {
+            $parsed = json_decode($qrCode, true);
+            $qrCodeDisplay = $parsed['code'] ?? '-';
+        } else {
+            $qrCodeDisplay = '-';
+        }
 
         return "
             <div class='space-y-1'>
-                <div><strong>Nama:</strong> ".$user->name.'</div>
-                <div><strong>NIS:</strong> '.$nis.'</div>
-                <div><strong>Kelas:</strong> '.$class.'</div>
+                <div><strong>Nama:</strong> {$user->name}</div>
+                <div><strong>NIS:</strong> {$nis}</div>
+                <div><strong>Kelas:</strong> {$class}</div>
+                <div><strong>Kode QR:</strong> {$qrCodeDisplay}</div>
             </div>
-        ';
+        ";
     }
 
     /**
@@ -333,14 +354,23 @@ class TransactionForm
         $isbn = $book->isbn ?? '-';
         $author = $book->author ?? '-';
         $status = $book->available_count > 0 ? '✓ Tersedia' : '✗ Habis';
+        $barcode = $book->barcode ?? '-';
+
+        // Parse barcode jika path file
+        if (is_string($barcode) && str_starts_with($barcode, 'qrcodes/')) {
+            $barcodeDisplay = substr($barcode, 0, 30).'...';
+        } else {
+            $barcodeDisplay = $barcode;
+        }
 
         return "
             <div class='space-y-1'>
-                <div><strong>Judul:</strong> ".$book->title.'</div>
-                <div><strong>Penulis:</strong> '.$author.'</div>
-                <div><strong>ISBN:</strong> '.$isbn.'</div>
-                <div><strong>Stok:</strong> '.$book->available_count.' '.$status.'</div>
+                <div><strong>Judul:</strong> {$book->title}</div>
+                <div><strong>Penulis:</strong> {$author}</div>
+                <div><strong>ISBN:</strong> {$isbn}</div>
+                <div><strong>Barcode:</strong> {$barcodeDisplay}</div>
+                <div><strong>Stok:</strong> {$book->available_count} {$status}</div>
             </div>
-        ';
+        ";
     }
 }

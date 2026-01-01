@@ -20,7 +20,8 @@ class Book extends Model
         'image',
         'category_id',
         'isbn',
-        'barcode',
+        'barcode', // Barcode code (e.g., BOK_XXX)
+        'barcode_image', // Barcode image path (e.g., book_barcode/book_1_BOK_XXX.png)
         'author',
         'year_published',
         'publisher',
@@ -81,5 +82,33 @@ class Book extends Model
     public function bookmarks(): HasMany
     {
         return $this->hasMany(Bookmark::class);
+    }
+
+    /**
+     * Get the barcode image URL
+     *
+     * @return string|null URL to barcode image or null if not set
+     */
+    public function getBarcodeImageUrlAttribute(): ?string
+    {
+        if (empty($this->barcode_image)) {
+            return null;
+        }
+
+        // If already a full URL, return as is
+        if (str_starts_with($this->barcode_image, 'http')) {
+            return $this->barcode_image;
+        }
+
+        // Return as asset URL
+        return asset('storage/'.$this->barcode_image);
+    }
+
+    /**
+     * Check if book has a barcode
+     */
+    public function hasBarcode(): bool
+    {
+        return ! empty($this->barcode) && ! empty($this->barcode_image);
     }
 }

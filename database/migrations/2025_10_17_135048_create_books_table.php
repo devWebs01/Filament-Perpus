@@ -25,7 +25,6 @@ return new class extends Migration
             $table->string('bookshelf')->nullable();
             $table->string('source')->nullable();
             $table->string('price')->nullable();
-            $table->string('barcode')->unique()->nullable();
             $table->enum('type', [
                 'fiction',
                 'non-fiction',
@@ -34,6 +33,10 @@ return new class extends Migration
                 'journal',
                 'other',
             ]);
+
+            $table->string('barcode')->nullable(); // QR Code for book
+            $table->string('barcode_image')->nullable(); // QR Code for book
+
             $table->timestamps();
             $table->softDeletes();
             $table->userstamps();

@@ -21,18 +21,28 @@ class UsersTable
     {
         return $table
             ->columns([
+
                 ImageColumn::make('userDetail.profile_photo')
                     ->label('Foto')
                     ->disk('public')
                     ->circular()
-                    ->defaultImageUrl(url('https://avatar.iran.liara.run/public')),
+                    ->defaultImageUrl(
+                        fn ($record) => 'https://api.dicebear.com/9.x/lorelei/svg?seed='.urlencode($record->name)
+                    ),
+
+                ImageColumn::make('userDetail.barcode_image')
+                    ->label('Barcode')
+                    ->disk('public')
+                    ->height(50),
 
                 TextColumn::make('name')
+                    ->label('Nama')
                     ->searchable(),
                 TextColumn::make('email')
-                    ->label('Email address')
+                    ->label('Email')
                     ->searchable(),
                 TextColumn::make('role')
+                    ->label('Peran')
                     ->searchable(),
             ])
             ->filters([
@@ -48,7 +58,7 @@ class UsersTable
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    FilamentExportBulkAction::make('Export'),
+                    FilamentExportBulkAction::make('Ekspor'),
                 ]),
             ]);
     }

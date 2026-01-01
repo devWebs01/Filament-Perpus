@@ -38,7 +38,8 @@ class UserDetailFactory extends Factory
                 'default-user-4.jpg',
                 'default-user-5.jpg',
             ]),
-            'qr_code' => $this->faker->unique()->regexify('LIB_[A-Z0-9]{10}'),
+            // barcode will be generated automatically by UserDetailObserver
+            'barcode' => null,
         ];
     }
 

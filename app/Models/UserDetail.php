@@ -41,7 +41,8 @@ class UserDetail extends Model
         'join_date',
         'membership_status',
         'profile_photo',
-        'qr_code',
+        'barcode', // QR code string (e.g., LIB_USER_XXX)
+        'barcode_image', // QR code image path (e.g., user_barcode/user_1_LIB_USER_XXX.png)
     ];
 
     /**
@@ -117,5 +118,33 @@ class UserDetail extends Model
     public function isMembershipActive(): bool
     {
         return $this->membership_status === 'active';
+    }
+
+    /**
+     * Get the QR code image URL
+     *
+     * @return string|null URL to QR code image or null if not set
+     */
+    public function getQrCodeImageUrlAttribute(): ?string
+    {
+        if (empty($this->barcode_image)) {
+            return null;
+        }
+
+        // If already a full URL, return as is
+        if (str_starts_with($this->barcode_image, 'http')) {
+            return $this->barcode_image;
+        }
+
+        // Return as asset URL
+        return asset('storage/'.$this->barcode_image);
+    }
+
+    /**
+     * Check if user has a QR code
+     */
+    public function hasQrCode(): bool
+    {
+        return ! empty($this->barcode) && ! empty($this->barcode_image);
     }
 }

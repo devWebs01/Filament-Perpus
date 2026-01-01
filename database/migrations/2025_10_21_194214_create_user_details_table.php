@@ -50,7 +50,8 @@ return new class extends Migration
             $table->string('profile_photo')->nullable(); // Profile photo path
 
             // QR Code for member identification
-            $table->string('qr_code')->nullable(); // QR Code for member
+            $table->string('barcode')->nullable(); // QR Code for member
+            $table->string('barcode_image')->nullable(); // QR Code for member
 
             // Timestamps
             $table->timestamps();

@@ -34,7 +34,7 @@ class BooksTable
                     ->circular()
                     ->defaultImageUrl(url('/images/no-cover.png')),
 
-                ImageColumn::make('barcode')
+                ImageColumn::make('barcode_image')
                     ->label('Barcode Buku')
                     ->disk('public')
                     ->height(50),
