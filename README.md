@@ -267,28 +267,30 @@ npm run dev
 php artisan storage:link
 ```
 
-#### 9. Create Admin User
+#### 9. Jalankan Database Seeder
 
 ```bash
-php artisan tinker
-
-# Di tinker:
-User::create([
-    'name' => 'Admin',
-    'email' => 'admin@example.com',
-    'password' => bcrypt('password'),
-    'role' => 'admin'
-]);
-exit
+php artisan db:seed
 ```
 
-#### 10. Seeding (Opsional)
+Ini akan menjalankan semua seeder yang telah disiapkan:
+- **RoleAndPermissionSeeder**: Membuat roles & permissions (Filament Shield)
+- **LibrarySystemSeeder**: Membuat users, user details, dan QR codes
+- **SettingSeeder**: Konfigurasi pengaturan perpustakaan
+- **StatusSeeder**: Data status transaksi (Menunggu, Dipinjam, dll)
+- **BookSeeder**: Data buku sample (online/offline mode)
+- **TransactionSeeder**: Data transaksi sample
 
-```bash
-# Seed data kategori dan status
-php artisan db:seed --class=StatusSeeder
-php artisan db:seed --class=CategorySeeder
-```
+**Akun untuk Login (Password: `password`):**
+
+| Role | Email | Keterangan |
+|------|-------|------------|
+| 👑 Super Admin | admin@testing.com | System maintenance only |
+| 📚 Ketua Perpustakaan | ketua@testing.com | Akses penuh |
+| 👨‍💼 Petugas | petugas1@testing.com<br>petugas2@testing.com<br>staff@testing.com | Operasional |
+| 👨‍🎓 Siswa | siswa@testing.com<br>siswa2@testing.com<br>anggota@testing.com | User biasa |
+
+> **Catatan**: Seeder juga akan membuat user tambahan dengan factory, sehingga total user yang dibuat adalah sekitar 19 user dengan berbagai status keanggotaan.
 
 ---
 
@@ -373,156 +375,154 @@ erDiagram
 
     statuses ||--o{ transactions : "defines status of"
 
-    settings ||--o{ settings : "singleton"
-
     users {
-        int id PK
-        string name
-        string email UK
-        timestamp email_verified_at
-        string password
-        string remember_token
-        string role
-        string avatar_url
-        string locale
-        string theme_color
-        int created_by FK
-        int updated_by FK
-        int deleted_by FK
-        timestamp created_at
-        timestamp updated_at
-        timestamp deleted_at
+        id PK
+        name
+        email UK
+        email_verified_at
+        password
+        remember_token
+        role
+        avatar_url
+        locale
+        theme_color
+        created_by FK
+        updated_by FK
+        deleted_by FK
+        created_at
+        updated_at
+        deleted_at
     }
 
     user_details {
-        int id PK
-        int user_id FK UK
-        string nik
-        string nis IDX
-        string nisn IDX
-        string class
-        text address
-        string phone_number
-        date birth_date
-        string birth_place
-        string gender
-        string religion
-        date join_date
-        string membership_status IDX
-        string profile_photo
-        string barcode
-        string barcode_image
-        timestamp created_at
-        timestamp updated_at
-        timestamp deleted_at
+        id PK
+        user_id FK UK
+        nik
+        nis IDX
+        nisn IDX
+        class
+        address
+        phone_number
+        birth_date
+        birth_place
+        gender
+        religion
+        join_date
+        membership_status IDX
+        profile_photo
+        barcode
+        barcode_image
+        created_at
+        updated_at
+        deleted_at
     }
 
     categories {
-        int id PK
-        string name
-        string slug
-        int created_by FK
-        int updated_by FK
-        int deleted_by FK
-        timestamp created_at
-        timestamp updated_at
-        timestamp deleted_at
+        id PK
+        name
+        slug
+        created_by FK
+        updated_by FK
+        deleted_by FK
+        created_at
+        updated_at
+        deleted_at
     }
 
     books {
-        int id PK
-        string title
-        string image
-        int category_id FK
-        string isbn
-        string author
-        int year_published
-        string publisher
-        text synopsis
-        int book_count
-        string bookshelf
-        string source
-        string price
-        string type
-        string barcode
-        string barcode_image
-        int created_by FK
-        int updated_by FK
-        int deleted_by FK
-        timestamp created_at
-        timestamp updated_at
-        timestamp deleted_at
+        id PK
+        title
+        image
+        category_id FK
+        isbn
+        author
+        year_published
+        publisher
+        synopsis
+        book_count
+        bookshelf
+        source
+        price
+        type
+        barcode
+        barcode_image
+        created_by FK
+        updated_by FK
+        deleted_by FK
+        created_at
+        updated_at
+        deleted_at
     }
 
     statuses {
-        int id PK
-        string name
-        string amount
-        int created_by FK
-        int updated_by FK
-        int deleted_by FK
-        timestamp created_at
-        timestamp updated_at
-        timestamp deleted_at
+        id PK
+        name
+        amount
+        created_by FK
+        updated_by FK
+        deleted_by FK
+        created_at
+        updated_at
+        deleted_at
     }
 
     transactions {
-        int id PK
-        string code UK
-        date borrow_date
-        date due_date
-        date return_date
-        int book_id FK
-        int user_id FK
-        int status_id FK
-        string penalty_total
-        text notes
-        int created_by FK
-        int updated_by FK
-        int deleted_by FK
-        timestamp created_at
-        timestamp updated_at
-        timestamp deleted_at
+        id PK
+        code UK
+        borrow_date
+        due_date
+        return_date
+        book_id FK
+        user_id FK
+        status_id FK
+        penalty_total
+        notes
+        created_by FK
+        updated_by FK
+        deleted_by FK
+        created_at
+        updated_at
+        deleted_at
     }
 
     bookmarks {
-        int id PK
-        int user_id FK
-        int book_id FK
-        timestamp created_at
-        timestamp updated_at
+        id PK
+        user_id FK
+        book_id FK
+        created_at
+        updated_at
     }
 
     settings {
-        int id PK
-        string name
-        string logo
-        string address
-        string phone
-        string limit_day
-        int max_borrow
-        int created_by FK
-        int updated_by FK
-        int deleted_by FK
-        timestamp created_at
-        timestamp updated_at
-        timestamp deleted_at
+        id PK
+        name
+        logo
+        address
+        phone
+        limit_day
+        max_borrow
+        created_by FK
+        updated_by FK
+        deleted_by FK
+        created_at
+        updated_at
+        deleted_at
     }
 
     roles {
-        int id PK
-        string name
-        string guard_name
-        timestamp created_at
-        timestamp updated_at
+        id PK
+        name
+        guard_name
+        created_at
+        updated_at
     }
 
     permissions {
-        int id PK
-        string name
-        string guard_name
-        timestamp created_at
-        timestamp updated_at
+        id PK
+        name
+        guard_name
+        created_at
+        updated_at
     }
 ```
 
