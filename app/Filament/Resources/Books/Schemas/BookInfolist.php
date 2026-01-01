@@ -21,35 +21,35 @@ class BookInfolist
                             ->schema([
                                 TextEntry::make('title')
                                     ->label('Judul Buku')
-                                    ->formatStateUsing(fn($record) => $record?->title ?? '-')
+                                    ->formatStateUsing(fn ($record) => $record?->title ?? '-')
                                     ->columnSpan(2),
 
                                 TextEntry::make('category')
                                     ->label('Kategori')
-                                    ->formatStateUsing(fn($record) => $record?->category?->name ?? '-'),
+                                    ->formatStateUsing(fn ($record) => $record?->category?->name ?? '-'),
 
                                 TextEntry::make('isbn')
                                     ->label('ISBN')
-                                    ->formatStateUsing(fn($record) => $record?->isbn ?? '-'),
+                                    ->formatStateUsing(fn ($record) => $record?->isbn ?? '-'),
                             ]),
 
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('author')
                                     ->label('Penulis')
-                                    ->formatStateUsing(fn($record) => $record?->author ?? '-'),
+                                    ->formatStateUsing(fn ($record) => $record?->author ?? '-'),
 
                                 TextEntry::make('publisher')
                                     ->label('Penerbit')
-                                    ->formatStateUsing(fn($record) => $record?->publisher ?? '-'),
+                                    ->formatStateUsing(fn ($record) => $record?->publisher ?? '-'),
 
                                 TextEntry::make('year_published')
                                     ->label('Tahun Terbit')
-                                    ->formatStateUsing(fn($record) => $record?->year_published ?? '-'),
+                                    ->formatStateUsing(fn ($record) => $record?->year_published ?? '-'),
 
                                 TextEntry::make('type')
                                     ->label('Tipe Buku')
-                                    ->formatStateUsing(fn($record) => match ($record?->type) {
+                                    ->formatStateUsing(fn ($record) => match ($record?->type) {
                                         'fiction' => 'Fiksi',
                                         'non-fiction' => 'Non-Fiksi',
                                         'reference' => 'Referensi',
@@ -68,7 +68,7 @@ class BookInfolist
                         ImageEntry::make('barcode_image')
                             ->label('Gambar Barcode')
                             ->disk('public')
-                            ->defaultImageUrl(fn($record) => $record?->barcode_image)
+                            ->defaultImageUrl(fn ($record) => $record?->barcode_image)
                             ->extraAttributes(['style' => 'max-width: 200px; height: auto;'])
                             ->default('-'),
 
@@ -87,7 +87,7 @@ class BookInfolist
                         TextEntry::make('synopsis')
                             ->label('Sinopsis')
                             ->markdown()
-                            ->formatStateUsing(fn($record) => $record?->synopsis ?? '<em>Tidak ada sinopsis</em>')
+                            ->formatStateUsing(fn ($record) => $record?->synopsis ?? '<em>Tidak ada sinopsis</em>')
                             ->columnSpanFull(),
                     ])
                     ->columnSpanFull(),
@@ -99,29 +99,29 @@ class BookInfolist
                             ->schema([
                                 TextEntry::make('price')
                                     ->label('Harga')
-                                    ->formatStateUsing(fn($record) => $record && $record->price !== null
-                                        ? 'Rp ' . number_format($record->price, 2, ',', '.')
+                                    ->formatStateUsing(fn ($record) => $record && $record->price !== null
+                                        ? 'Rp '.number_format($record->price, 2, ',', '.')
                                         : '-'),
 
                                 TextEntry::make('book_count')
                                     ->label('Jumlah Eksemplar')
-                                    ->formatStateUsing(fn($record) => $record?->book_count ?? 0),
+                                    ->formatStateUsing(fn ($record) => $record?->book_count ?? 0),
                             ]),
 
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('bookshelf')
                                     ->label('Lokasi Rak Buku')
-                                    ->formatStateUsing(fn($record) => $record?->bookshelf ?? '-'),
+                                    ->formatStateUsing(fn ($record) => $record?->bookshelf ?? '-'),
 
                                 TextEntry::make('source')
                                     ->label('Sumber')
-                                    ->formatStateUsing(fn($record) => $record?->source ?? '-'),
+                                    ->formatStateUsing(fn ($record) => $record?->source ?? '-'),
                             ]),
 
                         TextEntry::make('available')
                             ->label('Tersedia')
-                            ->formatStateUsing(fn($record) => method_exists($record, 'getAvailableCount')
+                            ->formatStateUsing(fn ($record) => method_exists($record, 'getAvailableCount')
                                 ? ($record->getAvailableCount())
                                 : ($record?->available ?? '-'))
                             ->columnSpanFull(),

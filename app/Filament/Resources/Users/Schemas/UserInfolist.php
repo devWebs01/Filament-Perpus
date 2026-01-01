@@ -34,11 +34,11 @@ class UserInfolist
                                     ->disk('public')
                                     ->extraImgAttributes(['style' => 'max-width: 100px; height: auto;'])
                                     ->defaultImageUrl(
-                                        fn($record) => 'https://api.dicebear.com/9.x/lorelei/svg?seed=' . urlencode($record->name)
+                                        fn ($record) => 'https://api.dicebear.com/9.x/lorelei/svg?seed='.urlencode($record->name)
                                     ),
 
                                 ImageEntry::make('userDetail.barcode_image')
-                                    ->label(fn($record) => "Kode Barcode " . ($record->userDetail?->barcode ?? 'N/A'))
+                                    ->label(fn ($record) => 'Kode Barcode '.($record->userDetail?->barcode ?? 'N/A'))
                                     ->disk('public')
                                     ->extraImgAttributes(['style' => 'max-width: 100px; height: auto;'])
                                     ->placeholder('-'),
@@ -55,9 +55,9 @@ class UserInfolist
                                     ->label('Peran')
                                     ->badge()
                                     ->formatStateUsing(
-                                        fn($state) => collect($state)
+                                        fn ($state) => collect($state)
                                             ->pluck('name')
-                                            ->map(fn($role) => str_replace('_', ' ', ucfirst($role)))
+                                            ->map(fn ($role) => str_replace('_', ' ', ucfirst($role)))
                                             ->join(', ')
                                     )
                                     ->color('primary'),
@@ -83,7 +83,7 @@ class UserInfolist
 
                                 TextEntry::make('userDetail.gender')
                                     ->label('Jenis Kelamin')
-                                    ->formatStateUsing(fn(?string $state) => match ($state) {
+                                    ->formatStateUsing(fn (?string $state) => match ($state) {
                                         'male' => 'Laki-laki',
                                         'female' => 'Perempuan',
                                         default => '-',
@@ -91,7 +91,7 @@ class UserInfolist
 
                                 TextEntry::make('userDetail.religion')
                                     ->label('Agama')
-                                    ->formatStateUsing(fn(?string $state) => match ($state) {
+                                    ->formatStateUsing(fn (?string $state) => match ($state) {
                                         'islam' => 'Islam',
                                         'christian' => 'Kristen Protestan',
                                         'catholic' => 'Katolik',
@@ -105,7 +105,7 @@ class UserInfolist
                                 TextEntry::make('userDetail.membership_status')
                                     ->label('Status Keanggotaan')
                                     ->badge()
-                                    ->color(fn(?string $state) => match ($state) {
+                                    ->color(fn (?string $state) => match ($state) {
                                         'active' => 'success',
                                         'suspended' => 'warning',
                                         'expired' => 'danger',
