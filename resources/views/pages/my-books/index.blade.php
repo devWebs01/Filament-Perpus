@@ -240,7 +240,7 @@ $extendLoan = function ($transactionId) {
                                             @elseif ($transaction->status->id === 1)
                                                 @livewire('cancel-borrow-modal', ['transactionId' => $transaction->id])
 
-                                                <x-button icon="book" class="w-full" onclick="cancel_borrow.showModal()">
+                                                <x-button icon="o-x-mark" class="w-full" onclick="cancel_borrow.showModal()">
                                                     Batalkan Peminjaman Buku
                                                 </x-button>
 
@@ -283,7 +283,7 @@ $extendLoan = function ($transactionId) {
                             Mulai eksplorasi katalog kami dan temukan buku-buku menarik untuk dipinjam
                         </p>
 
-                        <x-button icon="book" href="{{ route('catalog') }}">
+                        <x-button icon="o-book-open" href="{{ route('catalog') }}">
                             Jelajahi Katalog
                         </x-button>
 

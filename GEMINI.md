@@ -1,4 +1,1923 @@
 <laravel-boost-guidelines>
+=== .ai/custom-package-guidelines rules ===
+
+# Filament 4 - Custom Packages Integration
+
+## Overview
+Project ini menggunakan beberapa package Filament tambahan. Berikut guidelines untuk penggunaannya.
+
+## Package Terinstall
+
+### 1. Filament Shield - `bezhansalleh/filament-shield`
+Role & Permission management untuk Filament.
+
+#### Commands
+```bash
+# Install shield
+php artisan shield:install
+
+# Generate permissions untuk resources
+php artisan shield:generate --all
+
+# Create super admin
+php artisan shield:super-admin --user=1
+
+# Publish translations
+php artisan shield:translation --locale=id
+```
+
+#### Usage di Resources
+```php
+use BezhanSalleh\FilamentShield\Forms\Components\ShieldSelect;
+use BezhanSalleh\FilamentShield\Support\Utils;
+
+// Di Resource class
+protected static ?string $permission = 'view_any_posts';
+
+// Di form
+ShieldSelect::make('roles')
+    ->multiple()
+    ->preload()
+    ->searchable()
+    ->relationship('roles', 'name');
+```
+
+#### Check Permissions
+```php
+// Di blade
+@can('view_any_posts')
+    // ...
+@endcan
+
+// Di PHP
+$user->can('view_any_posts');
+```
+
+#### Config
+```php
+// config/shield.php
+'permission_prefixes' => [
+    'resource' => [
+        'view_any',
+        'view',
+        'create',
+        'update',
+        'delete',
+        'delete_any',
+        'force_delete',
+        'force_delete_any',
+        'restore',
+        'restore_any',
+    ],
+],
+```
+
+---
+
+### 2. Filament Edit Profile - `joaopaulolndev/filament-edit-profile`
+Custom profile edit page.
+
+#### Commands
+```bash
+php artisan filament-edit-profile:install
+```
+
+#### Custom Fields
+```php
+use Joaopaulolndev\FilamentEditProfile\Forms\Components\IconButton;
+
+// Custom form di config atau publish views
+// resources/views/vendor/filament-edit-profile/profile-form.blade.php
+```
+
+#### Common Usage
+- Edit password
+- Upload avatar
+- Custom profile fields (phone, address, dll)
+
+---
+
+### 3. Filament Export - `alperenersoy/filament-export`
+Export data ke berbagai format.
+
+#### Usage di Resources
+```php
+use Alperenersoy\FilamentExport\Actions\FilamentExportBulkAction;
+use Alperenersoy\FilamentExport\Actions\FilamentExportHeaderAction;
+
+// Bulk action
+public static function getTableBulkActions(): array
+{
+    return [
+        FilamentExportBulkAction::make('export')
+            ->fileName('posts-' . date('Y-m-d'))
+            ->format([
+                \Alperenersoy\FilamentExport\Enums\ExportFormat::Csv,
+                \Alperenersoy\FilamentExport\Enums\ExportFormat::Xlsx,
+            ]),
+    ];
+}
+
+// Header action
+public static function getTableActions(): array
+{
+    return [
+        FilamentExportHeaderAction::make('export-all')
+            ->timeFormat('d-m-Y_H-i'),
+    ];
+}
+```
+
+---
+
+### 4. Filament QRCode Field - `jeffersongoncalves/filament-qrcode-field`
+Generate dan display QR code di forms.
+
+#### Usage
+```php
+use Jeffersongoncalves\FilamentQrcodeField\Forms\QrCodeColumn;
+use Jeffersongoncalves\FilamentQrcodeField\Forms\QrCodeField;
+
+// Di form
+QrCodeField::make('qr_code')
+    ->label('QR Code')
+    ->value(fn ($record) => route('book-detail', $record))
+    ->generateOnEntry() // Auto-generate saat create
+
+// Di table
+QrCodeColumn::make('qr_code')
+    ->label('Scan')
+```
+
+---
+
+### 5. Livewire Alert - `jantinnerezo/livewire-alert`
+Flash notifications untuk Livewire.
+
+#### Usage di Livewire Components
+```php
+use Jantinnerezo\LivewireAlert\LivewireAlert;
+
+class MyComponent extends Component
+{
+    use LivewireAlert;
+
+    public function save(): void
+    {
+        // Success
+        $this->alert('success', 'Data berhasil disimpan!');
+
+        // Error
+        $this->alert('error', 'Terjadi kesalahan!');
+
+        // Warning
+        $this->alert('warning', 'Perhatian!');
+
+        // Info
+        $this->alert('info', 'Informasi penting');
+
+        // With configuration
+        $this->alert('success', 'Saved!', [
+            'position' => 'top-end',
+            'timer' => 3000,
+            'toast' => true,
+        ]);
+    }
+}
+```
+
+#### Available Positions
+- 'top-right'
+- 'top-left'
+- 'top-center'
+- 'bottom-right'
+- 'bottom-left'
+- 'bottom-center'
+- 'center'
+
+---
+
+### 6. Mary - UI Components
+Alternative UI components library.
+
+#### Usage
+```blade
+<x-mary-button icon="o-user" label="Profile" />
+<x-mary-input label="Email" wire:model="email" />
+<x-mary-modal id="modal-id">
+    <x-slot name="title">Modal Title</x-slot>
+    Modal content here
+</x-mary-modal>
+```
+
+---
+
+### 7. Barcode - `milon/barcode`
+Generate barcode untuk books/items.
+
+#### Usage
+```php
+use Milon\Barcode\DNS2D;
+
+// Di blade
+{!! DNS2D::getBarcodeHTML('081231723897', 'QRCODE') !!}
+
+// QR Code
+{!! DNS2D::getBarcodeHTML($book->id, 'QRCODE') !!}
+
+// Barcode 1D
+{!! DNS1D::getBarcodeHTML('123456789012', 'C39') !!}
+```
+
+---
+
+### 8. Google Translate - `stichoza/google-translate-php`
+Translation service.
+
+#### Usage
+```php
+use Stichoza\GoogleTranslate\GoogleTranslate;
+
+$translate = new GoogleTranslate('id'); // Target language
+$result = $translate->translate('Hello World'); // 'Halo Dunia'
+
+// Detect language
+$translate = new GoogleTranslate();
+$lang = $translate->detect('Hallo Welt'); // 'de'
+
+// Translate with source
+$translate->setSource('en')->setTarget('id')->translate('Book');
+```
+
+---
+
+### 9. Userstamps - `wildside/userstamps`
+Automatic created_by, updated_by tracking.
+
+#### Setup
+```bash
+php artisan userstamps:install
+```
+
+#### Usage di Models
+```php
+use Wildside\Userstamps\Userstamps;
+
+class Book extends Model
+{
+    use Userstamps;
+
+    // Auto-adds:
+    // - created_by
+    // - updated_by
+    // - deleted_by
+}
+```
+
+#### Migration
+```php
+$table->unsignedBigInteger('created_by')->nullable();
+$table->unsignedBigInteger('updated_by')->nullable();
+$table->unsignedBigInteger('deleted_by')->nullable();
+```
+
+---
+
+## General Best Practices untuk Package Filament
+
+### 1. Publish Configs
+```bash
+# Publish config untuk customization
+php artisan vendor:publish --tag="filament-shield-config"
+php artisan vendor:publish --tag="filament-edit-profile-config"
+```
+
+### 2. Override Views
+```bash
+# Publish views untuk customization
+php artisan vendor:publish --tag="filament-edit-profile-views"
+```
+
+### 3. Check Package Updates
+```bash
+composer outdated
+```
+
+### 4. Cache Permissions (Shield)
+```bash
+php artisan shield:cache-reset
+```
+
+---
+
+## Integration Pattern Examples
+
+### Resource dengan Shield Permission
+```php
+class BookResource extends Resource
+{
+    protected static ?string $model = Book::class;
+
+    protected static ?string $permission = 'books';
+
+    protected static ?string $navigationIcon = 'heroicon-o-book-open';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\TextInput::make('title')
+                    ->required()
+                    ->maxLength(255),
+
+                QrCodeField::make('qr_code')
+                    ->value(fn ($record) => $record->id)
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('title')
+                    ->searchable(),
+
+                QrCodeColumn::make('id')
+                    ->label('QR'),
+            ])
+            ->bulkActions([
+                FilamentExportBulkAction::make('export'),
+            ])
+            ->headerActions([
+                FilamentExportHeaderAction::make('export-all'),
+            ]);
+    }
+}
+```
+
+### Livewire Component dengan Alert
+```php
+use Livewire\Component;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
+
+class BorrowBook extends Component
+{
+    use LivewireAlert;
+
+    public function borrow($bookId): void
+    {
+        // Validate
+        // Create transaction
+
+        $this->alert('success', 'Buku berhasil dipinjam!', [
+            'position' => 'center',
+            'timer' => 3000,
+            'toast' => false,
+        ]);
+    }
+
+    public function render()
+    {
+        return view('livewire.borrow-book');
+    }
+}
+```
+
+
+=== .ai/official-guide rules ===
+
+# Livewire Volt - Official Documentation Guide
+
+## Overview
+Volt is an elegantly crafted functional API for Livewire that supports single-file components, allowing a component's PHP logic and Blade templates to coexist in the same file.
+
+**Official Docs**: [Livewire Volt Documentation](https://livewire.laravel.com/docs/3.x/volt)
+
+## Installation
+
+```bash
+composer require livewire/volt
+php artisan volt:install
+```
+
+## Creating Components
+
+```bash
+# Basic component
+php artisan make:volt counter
+
+# With test file
+php artisan make:volt counter --test --pest
+
+# Class-based component
+php artisan make:volt counter --class
+```
+
+## Core Concepts
+
+### State Management
+
+```php
+<?php
+use function Livewire\Volt\{state};
+
+state(['count' => 0]);
+
+// Or with closure for lazy evaluation
+state(['count' => fn () => User::count()]);
+?>
+```
+
+### Actions
+
+```php
+<?php
+use function Livewire\Volt\{state};
+
+state(['count' => 0]);
+
+// Simple action
+$increment = fn () => $this->count++;
+
+// Action with dependencies
+$delete = function (PostRepository $posts) {
+    $posts->delete($this->postId);
+};
+?>
+
+<div>
+    <h1>{{ $count }}</h1>
+    <button wire:click="increment">+</button>
+</div>
+```
+
+### Computed Properties
+
+```php
+<?php
+use App\Models\User;
+use function Livewire\Volt\{computed};
+
+$count = computed(function () {
+    return User::count();
+});
+
+// With cache persistence (default 3600s)
+$count = computed(function () {
+    return User::count();
+})->persist();
+
+// Custom cache duration
+$count = computed(function () {
+    return User::count();
+})->persist(seconds: 10);
+?>
+```
+
+### Lifecycle Hooks
+
+```php
+<?php
+use function Livewire\Volt\{mount, boot, booted, hydrate, dehydrate, updating, updated};
+
+mount(fn () => /* Component initialization */);
+boot(fn () => /* Before mount */);
+booted(fn () => /* After mount */);
+hydrate(fn () => /* Before hydration */);
+dehydrate(fn () => /* After dehydration */);
+updating(['count' => fn () => /* Before updating count */]);
+updated(['count' => fn () => /* After updating count */]);
+?>
+```
+
+## Validation
+
+```php
+<?php
+use function Livewire\Volt\{rules};
+
+rules([
+    'name' => 'required|min:6',
+    'email' => 'required|email',
+])
+->messages([
+    'email.required' => 'Email is required',
+])
+->attributes([
+    'email' => 'email address',
+]);
+
+$submit = function () {
+    $this->validate();
+};
+?>
+```
+
+## Forms
+
+```php
+<?php
+use App\Livewire\Forms\PostForm;
+use function Livewire\Volt\{form};
+
+form(PostForm::class);
+
+$save = function () {
+    $this->form->store();
+};
+?>
+
+<form wire:submit="save">
+    <input type="text" wire:model="form.title">
+    @error('form.title') <span>{{ $message }}</span> @enderror
+    <button type="submit">Save</button>
+</form>
+```
+
+## Pagination
+
+```php
+<?php
+use function Livewire\Volt\{usesPagination, with};
+
+usesPagination();
+
+with(fn () => [
+    'posts' => Post::paginate(10),
+]);
+?>
+
+<div>
+    @foreach ($posts as $post)
+        <!-- ... -->
+    @endforeach
+    {{ $posts->links() }}
+</div>
+```
+
+## Property Modifiers
+
+```php
+<?php
+use function Livewire\Volt\{state};
+
+// Locked - client cannot modify
+state(['id'])->locked();
+
+// Reactive - auto-update from parent
+state(['todos'])->reactive();
+
+// Modelable - share state via wire:model
+state(['form'])->modelable();
+
+// URL - sync with query params
+state(['search'])->url();
+
+// With options
+state(['page' => 1])->url(as: 'p', history: true, keep: true);
+?>
+```
+
+## Anonymous Components with @volt
+
+```php
+<?php
+use function Livewire\Volt\{state};
+
+state(['count' => 0]);
+$increment = fn () => $this->count++;
+?>
+
+<x-app-layout>
+    @volt('counter')
+        <div>
+            <h1>{{ $count }}</h1>
+            <button wire:click="increment">+</button>
+        </div>
+    @endvolt
+</x-app-layout>
+```
+
+## Class-Based Components
+
+```php
+<?php
+use Livewire\Attributes\{Layout, Title};
+use Livewire\Volt\Component;
+use Livewire\WithPagination;
+
+new
+#[Layout('layouts.guest')]
+#[Title('Login')]
+class extends Component
+{
+    use WithPagination;
+
+    public string $name = '';
+
+    public function with(): array
+    {
+        return [
+            'posts' => Post::paginate(10),
+        ];
+    }
+
+    public function rendering(\Illuminate\View\View $view): void
+    {
+        $view->title('Custom Title');
+    }
+}
+?>
+```
+
+## File Uploads
+
+```php
+<?php
+use function Livewire\Volt\{state, usesFileUploads};
+
+usesFileUploads();
+
+state(['photo']);
+
+$save = function () {
+    $this->validate([
+        'photo' => 'image|max:1024',
+    ]);
+
+    $this->photo->store('photos');
+};
+?>
+```
+
+## Event Listeners
+
+```php
+<?php
+use function Livewire\Volt\{on};
+
+on(['eventName' => function () {
+    // Handle event
+}]);
+
+// Dynamic listeners
+on(fn ($post) => [
+    'event-'.$post->id => function () {
+        // Handle dynamic event
+    },
+]);
+?>
+```
+
+## Traits
+
+```php
+<?php
+use function Livewire\Volt\{uses};
+
+use App\Contracts\Sorting;
+use App\Concerns\WithSorting;
+
+uses([Sorting::class, WithSorting::class]);
+?>
+```
+
+## Testing
+
+```php
+use Livewire\Volt\Volt;
+
+it('increments the counter', function () {
+    Volt::test('counter')
+        ->assertSee('0')
+        ->call('increment')
+        ->assertSee('1');
+});
+
+// Nested component
+Volt::test('users.stats');
+
+// Anonymous component in page
+$this->get('/users')
+    ->assertSeeVolt('stats');
+```
+
+## Best Practices
+
+1. **Use closures for expensive operations** - Prevents premature execution
+2. **Use `wire:key` in loops** - Ensures proper reactivity
+3. **Use `with()` for computed data** - Cleaner than inline logic
+4. **Use `action()->renderless()` for non-rendering actions** - Performance optimization
+5. **Use `protect()` for private helpers** - Security best practice
+
+## Resources
+
+- [Official Documentation](https://livewire.laravel.com/docs/3.x/volt)
+- [GitHub Repository](https://github.com/livewire/volt)
+- [Introducing Volt Blog Post](https://laravel.com/blog/introducing-volt-an-elegantly-crafted-functional-api-for-livewire)
+
+
+=== .ai/pages rules ===
+
+# Laravel Folio - Page Based Routing
+
+## Overview
+Folio menyediakan page-based routing untuk Laravel. Routes otomatis didaftarkan berdasarkan file structure di `resources/views/pages/`.
+
+## Conventions
+
+### File Structure = Routes
+```
+resources/views/pages/
+├── catalog.blade.php           → /catalog
+├── my-books/
+│   └── index.blade.php         → /my-books
+├── book-detail/
+│   └── [book].blade.php        → /book-detail/{book}
+└── api/
+    └── [id].blade.php          → /api/{id}
+```
+
+### Named Routes
+```php
+<?php
+use function Laravel\Folio\name;
+
+name('catalog'); // Route bernama 'catalog'
+```
+
+### Route Parameters
+```php
+<?php
+use function Laravel\Folio\{name, middleware};
+
+// Parameter dari URL: [book].blade.php
+$book = fn($book) => Book::findOrFail($book);
+
+// Atau dari query string
+$bookId = fn(?int $id = null) => $id ?? 1;
+```
+
+### Middleware
+```php
+<?php
+use function Laravel\Folio\middleware;
+
+middleware(['auth', 'verified']);
+
+// Atau per-route
+middleware(['auth'])->only([['book-detail', 'create']]);
+```
+
+## Best Practices
+
+### 1. Gunakan Volt di Folio Pages
+```php
+<?php
+use function Livewire\Volt\{state, with};
+
+state(['search' => '']);
+
+with([
+    'books' => fn() => Book::when($this->search, fn($q) => $q->where('title', 'like', '%' . $this->search . '%'))->paginate(12),
+]);
+?>
+
+@volt
+<div>{{ $books->links() }}</div>
+@endvolt
+```
+
+### 2. Route Model Binding
+```php
+<?php
+// Automatic model resolution
+$book = fn(Book $book) => $book;
+
+// Custom resolution with validation
+$book = function ($book) {
+    return Book::where('slug', $book)->firstOrFail();
+};
+?>
+```
+
+### 3. Validation di Page Level
+```php
+<?php
+use Illuminate\Http\Request;
+
+// Untuk form submissions
+$validated = request()->validate([
+    'title' => 'required|max:255',
+    'author' => 'required',
+]);
+?>
+```
+
+## Folder Organization
+
+### Grouped Routes
+```
+pages/
+├── admin/              → Semua routes /admin/*
+│   ├── users.blade.php
+│   └── books.blade.php
+├── user/               → Semua routes /user/*
+│   ├── profile.blade.php
+│   └── settings.blade.php
+└── api/                → Semua routes /api/*
+```
+
+### Index & Show Pattern
+```
+pages/
+├── books/
+│   ├── index.blade.php      → /books (list)
+│   └── [book].blade.php     → /books/{book} (detail)
+```
+
+## Accessing Named Routes
+
+```blade
+<!-- Generate URL -->
+<a href="{{ route('catalog') }}">Catalog</a>
+
+<!-- Redirect -->
+{{ redirect()->route('my-books') }}
+
+<!-- Livewire dispatch -->
+<script>
+    Livewire.dispatch('navigate', { url: '{{ route('catalog') }}' });
+</script>
+```
+
+## Common Patterns
+
+### Paginated Index dengan Search
+```php
+<?php
+use function Laravel\Folio\name;
+use function Livewire\Volt\{state, with};
+
+name('books');
+
+state(['search' => '']);
+
+with([
+    'books' => function () {
+        return Book::when($this->search, fn($q) =>
+            $q->where('title', 'like', '%' . $this->search . '%')
+        )->paginate(12);
+    },
+]);
+?>
+
+@volt
+<div>
+    <input wire:model.live="search" placeholder="Cari buku..." />
+    @foreach ($books as $book)
+        <div>{{ $book->title }}</div>
+    @endforeach
+    {{ $books->links() }}
+</div>
+@endvolt
+```
+
+### Detail Page dengan Related Data
+```php
+<?php
+use App\Models\Book;
+
+$book = fn(Book $book) => $book->load(['category', 'author']);
+?>
+
+<x-book-detail :book="$book" />
+```
+
+## Tips
+
+1. **List routes**: `php artisan folio:list`
+2. **Cache routes**: `php artisan route:cache`
+3. **Clear cache**: `php artisan route:clear`
+4. **Gunakan folder untuk grouping** - lebih rapi daripada nama file panjang
+5. **Parameter pakai bracket** `[slug].blade.php` bukan `{slug}.blade.php`
+
+
+=== .ai/custom-components rules ===
+
+# Livewire Volt - Functional Components
+
+## Overview
+Volt menyediakan functional API untuk membuat Livewire components. Menggunakan sintaks function-based daripada class-based.
+
+## Conventions
+
+### File Structure
+- Volt components diletakkan di folder `resources/views/livewire/` atau sebagai Folio pages
+- Gunakan `@volt` directive di Blade files
+- Namespace: `App\Livewire` untuk class-based, `Livewire\Volt` untuk functional
+
+### State Management
+```php
+// Define state dengan state()
+state(['search' => '', 'filter' => 'all']);
+
+// Access state dengan $this
+$updatedSearch = function ($value) {
+    $this->search = $value; // atau $this->search = ...
+};
+```
+
+### Computed Properties (with)
+```php
+with([
+    'transactions' => function () {
+        return Transaction::paginate(10);
+    },
+    'stats' => function () {
+        return ['active' => 1, 'returned' => 2];
+    },
+]);
+```
+
+### Actions
+```php
+$extendLoan = function ($transactionId) {
+    $transaction = Transaction::find($transactionId);
+    // logic here
+};
+
+// Call dari blade: onclick="Livewire.dispatch('extendLoan', { id: 1 })"
+```
+
+### Lifecycle Hooks
+```php
+$mount = function () {
+    // Initialize component
+};
+
+$updatedSearch = function () {
+    // Reactive side effect when search changes
+};
+```
+
+## Best Practices
+
+1. **Gunakan `wire:key` di loops**
+   ```blade
+   @foreach ($items as $item)
+       <div wire:key="item-{{ $item->id }}">{{ $item->name }}</div>
+   @endforeach
+   ```
+
+2. **Validasi di actions**
+   ```php
+   $submit = function () {
+       $this->validate([
+           'email' => 'required|email',
+       ]);
+   };
+   ```
+
+3. **Gunakan `wire:model.live` untuk real-time updates**
+   ```blade
+   <input wire:model.live="search" />
+   ```
+
+4. **Pagination reset**
+   ```php
+   $this->resetPage(); // Reset ke halaman 1
+   ```
+
+## Common Patterns
+
+### Paginated List dengan Search & Filter
+```php
+state(['search' => '', 'filter' => 'all']);
+
+with([
+    'items' => function () {
+        $query = Item::query();
+
+        if ($this->filter !== 'all') {
+            $query->where('status', $this->filter);
+        }
+
+        if ($this->search) {
+            $query->where('name', 'like', '%' . $this->search . '%');
+        }
+
+        return $query->paginate(10);
+    },
+]);
+
+$refreshData = function () {
+    $this->resetPage();
+};
+```
+
+### Cache di Computed Properties
+```php
+with([
+    'stats' => function () {
+        $cacheKey = 'stats_' . auth()->id();
+        return cache()->remember($cacheKey, now()->addMinutes(5), function () {
+            // Expensive query here
+        });
+    },
+]);
+```
+
+## Blade Integration
+```blade
+@volt
+<div>
+    {{ $transactions->links() }}
+</div>
+@endvolt
+
+<!-- Atau dengan named volt component -->
+<volt-my-component :userId="$user->id" />
+```
+
+## Important Notes
+
+- Gunakan `<livewire:` tag untuk inline components dengan `:key`
+- Hindari `@livewire()` directive dengan parameter `key:` (tidak supported)
+- Dispatch events: `Livewire.dispatch('eventName', { param: value })`
+
+
+=== .ai/integration-patterns rules ===
+
+# Livewire 3 - Full Stack Framework
+
+## Overview
+Livewire 3 adalah major rewrite dengan performa lebih baik dan API yang lebih bersih. Namespace: `App\Livewire`
+
+## Key Changes from Livewire 2
+
+### 1. wire:model Deferred by Default
+```blade
+<!-- Livewire 3: deferred by default (update on blur/change) -->
+<input wire:model="search" />
+
+<!-- Untuk real-time updates, gunakan .live modifier -->
+<input wire:model.live="search" />
+
+<!-- Livewire 2: real-time by default (deprecated) -->
+<input wire:model.defer="search" /> ❌
+```
+
+### 2. Dispatch Events
+```php
+// Livewire 3
+$this->dispatch('postCreated');
+
+// Livewire 2 (deprecated)
+$this->emit('postCreated'); ❌
+$this->emitTo('comments', 'postCreated'); ❌
+$this->emitUp('postCreated'); ❌
+
+// Dispatch to specific component
+$this->dispatch('postCreated')->to(ComponentName::class);
+
+// Dispatch to browser (JS)
+$this->dispatch('notify')->self();
+```
+
+### 3. Component Namespace
+```php
+// Livewire 3
+namespace App\Livewire;
+
+class UserProfile extends Component
+{
+    // ...
+}
+
+// Livewire 2 (deprecated)
+namespace App\Http\Livewire; ❌
+```
+
+### 4. Alpine.js Included
+Alpine.js sudah included secara default. Tidak perlu include manual.
+
+```blade
+<!-- Alpine dan Livewire bekerja seamless -->
+<div x-data="{ open: false }">
+    <button @click="open = true">Open</button>
+    <div x-show="open">
+        <input wire:model="search" />
+    </div>
+</div>
+```
+
+## Conventions
+
+### Component Structure
+```php
+namespace App\Livewire;
+
+use Livewire\Component;
+use Livewire\Attributes\{Reactive, Locked, Computed};
+
+class UserProfile extends Component
+{
+    // Public properties = state
+    public string $search = '';
+    public int $userId;
+
+    // Computed properties
+    #[Computed]
+    public function user(): User
+    {
+        return User::find($this->userId);
+    }
+
+    // Reactive props (auto-update saat parent berubah)
+    #[Reactive]
+    public $postId;
+
+    // Locked props (tidak dikirim ke client)
+    #[Locked]
+    public string $apiKey;
+
+    // Actions
+    public function save(): void
+    {
+        $this->validate();
+        // Save logic
+    }
+
+    // Lifecycle hooks
+    public function mount(): void
+    {
+        // Initialize
+    }
+
+    public function updatingSearch(): void
+    {
+        // Before search updates
+    }
+
+    public function updatedSearch(): void
+    {
+        // After search updates - reset pagination
+        $this->resetPage();
+    }
+
+    public function render()
+    {
+        return view('livewire.user-profile');
+    }
+}
+```
+
+### Validation
+```php
+class CreatePost extends Component
+{
+    public string $title = '';
+    public string $content = '';
+
+    protected $rules = [
+        'title' => 'required|min:3|max:255',
+        'content' => 'required|min:10',
+    ];
+
+    // Custom error messages
+    protected $messages = [
+        'title.required' => 'Judul wajib diisi',
+    ];
+
+    public function save(): void
+    {
+        $validated = $this->validate();
+
+        Post::create($validated);
+
+        session()->flash('message', 'Post berhasil dibuat!');
+    }
+
+    // Real-time validation
+    public function updated($property): void
+    {
+        $this->validateOnly($property);
+    }
+}
+```
+
+### Pagination
+```php
+class PostList extends Component
+{
+    use WithPagination;
+
+    public string $search = '';
+
+    protected $paginationTheme = 'tailwind'; // atau 'bootstrap'
+
+    public function render()
+    {
+        return view('livewire.post-list', [
+            'posts' => Post::where('title', 'like', '%' . $this->search . '%')
+                ->latest()
+                ->paginate(10),
+        ]);
+    }
+
+    // Reset page saat filter berubah
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+}
+```
+
+## Blade Directives
+
+### New Directives di Livewire 3
+```blade
+<!-- Loading state -->
+<div wire:loading>wire:loading class was added</div>
+<div wire:loading.remove>Remove me when loading</div>
+<div wire:loading.class="opacity-50">Add class when loading</div>
+<div wire:loading.target="save">Only for save action</div>
+
+<!-- Dirty state (unsaved changes) -->
+<div wire:dirty>Changes unsaved</div>
+
+<!-- Conditional rendering -->
+<div wire:show="showModal">Show when $showModal is true</div>
+<div wire:hide="showModal">Hide when $showModal is true</div>
+
+<!-- Transitions -->
+<div wire:transition.fade>Smooth fade</div>
+<div wire:transition.slide>Slide effect</div>
+
+<!-- Offline detection -->
+<div wire:offline>You are offline</div>
+
+<!-- Clock (auto-refresh every second) -->
+<div wire:clock>2024-01-01 12:00:00</div>
+
+<!-- Polling (auto-refresh) -->
+<div wire:poll.5s>Refresh every 5 seconds</div>
+
+<!-- Navigate without page reload -->
+<a wire:navigate href="/other-page">SPA-like navigation</a>
+```
+
+## Best Practices
+
+### 1. Eager Loading untuk Relationships
+```php
+public function render()
+{
+    // ❌ N+1 queries
+    return view('livewire.posts', [
+        'posts' => Post::paginate(10),
+    ]);
+
+    // ✅ Eager load
+    return view('livewire.posts', [
+        'posts' => Post::with(['author', 'category'])->paginate(10),
+    ]);
+}
+```
+
+### 2. Gunakan Form Request untuk Complex Validation
+```php
+use App\Http\Requests\StorePostRequest;
+
+public function save(StorePostRequest $request): void
+{
+    Post::create($request->validated());
+}
+```
+
+### 3. Database Transactions
+```php
+use Illuminate\Support\Facades\DB;
+
+public function transferFunds(): void
+{
+    DB::transaction(function () {
+        // Multiple related operations
+    });
+}
+```
+
+### 4. Cache Expensive Queries
+```php
+public function render()
+{
+    $stats = cache()->remember('user.stats', now()->addHour(), function () {
+        return User::count();
+    });
+
+    return view('livewire.dashboard', compact('stats'));
+}
+```
+
+## Testing
+```php
+use Livewire\Attributes\Validate;
+
+test('user can create post', function () {
+    Livewire::test(CreatePost::class)
+        ->set('title', 'Test Post')
+        ->set('content', 'Test content here')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect();
+
+    $this->assertDatabaseHas(Post::class, [
+        'title' => 'Test Post',
+    ]);
+});
+```
+
+## Common Patterns
+
+### Datatable dengan Search & Filter
+```php
+class UserList extends Component
+{
+    use WithPagination;
+
+    public string $search = '';
+    public string $roleFilter = 'all';
+    public int $perPage = 10;
+
+    public function render(): View
+    {
+        $query = User::query();
+
+        if ($this->search) {
+            $query->where('name', 'like', '%' . $this->search . '%')
+                ->orWhere('email', 'like', '%' . $this->search . '%');
+        }
+
+        if ($this->roleFilter !== 'all') {
+            $query->where('role', $this->roleFilter);
+        }
+
+        return view('livewire.user-list', [
+            'users' => $query->paginate($this->perPage),
+        ]);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedRoleFilter(): void
+    {
+        $this->resetPage();
+    }
+}
+```
+
+### Modal Form
+```php
+class CreateUserModal extends Component
+{
+    public bool $showModal = false;
+    public string $name = '';
+    public string $email = '';
+
+    protected $rules = [
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+    ];
+
+    public function openModal(): void
+    {
+        $this->showModal = true;
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->reset(['name', 'email']);
+        $this->resetErrorBag();
+    }
+
+    public function save(): void
+    {
+        $this->validate();
+
+        User::create([
+            'name' => $this->name,
+            'email' => $this->email,
+        ]);
+
+        $this->closeModal();
+        $this->dispatch('userCreated');
+    }
+}
+```
+
+## Tips
+
+1. **Gunakan `wire:key` di loops** untuk reactivity yang benar
+2. **Reset pagination** saat filter/search berubah
+3. **Lazy load heavy components** dengan `#[Lazy]` attribute
+4. **Gunakan `wire:navigate`** untuk SPA-like experience
+5. **Profile dengan Laravel Telescope** untuk identifikasi bottleneck
+
+
+=== .ai/livewire-3-guide rules ===
+
+# Livewire 3 - Official Documentation Guide
+
+**Official Docs**: [Livewire 3 Documentation](https://livewire.laravel.com/docs/3.x)
+
+## Overview
+Livewire is a full-stack framework for Laravel that allows you to build dynamic, reactive interfaces without leaving PHP. Livewire 3 is a major rewrite with improved performance and new features.
+
+## Key Changes from Livewire 2
+
+### 1. Namespace Change
+```php
+// Livewire 3 (Correct)
+namespace App\Livewire;
+
+class UserProfile extends Component
+{
+    // ...
+}
+
+// Livewire 2 (Deprecated)
+namespace App\Http\Livewire; // ❌
+```
+
+### 2. wire:model Deferred by Default
+```blade
+<!-- Livewire 3: deferred by default -->
+<input wire:model="search" />
+
+<!-- For real-time updates, use .live -->
+<input wire:model.live="search" />
+
+<!-- Livewire 2 (Deprecated) -->
+<input wire:model.defer="search" /> ❌
+```
+
+### 3. Dispatch Events
+```php
+// Livewire 3
+$this->dispatch('postCreated');
+$this->dispatch('postCreated')->to(ComponentName::class);
+$this->dispatch('notify')->self();
+
+// Livewire 2 (Deprecated)
+$this->emit('postCreated'); ❌
+$this->emitTo('comments', 'postCreated'); ❌
+```
+
+### 4. Alpine.js Included
+Alpine.js is now included automatically. No need to manually include it.
+
+## Component Structure
+
+```php
+namespace App\Livewire;
+
+use Livewire\Component;
+use Livewire\Attributes\{Reactive, Locked, Computed};
+
+class UserProfile extends Component
+{
+    // Public properties = state
+    public string $search = '';
+    public int $userId;
+
+    // Computed properties
+    #[Computed]
+    public function user(): User
+    {
+        return User::find($this->userId);
+    }
+
+    // Reactive props (auto-update when parent changes)
+    #[Reactive]
+    public $todos = [];
+
+    // Locked props (client cannot modify)
+    #[Locked]
+    public string $apiKey;
+
+    // Actions
+    public function save(): void
+    {
+        $this->validate();
+        // Save logic
+    }
+
+    // Lifecycle hooks
+    public function mount(): void
+    {
+        // Initialize
+    }
+
+    public function updatingSearch(): void
+    {
+        // Before search updates
+    }
+
+    public function updatedSearch(): void
+    {
+        // After search updates - reset pagination
+        $this->resetPage();
+    }
+
+    public function render()
+    {
+        return view('livewire.user-profile');
+    }
+}
+```
+
+## New HTML Directives
+
+```blade
+<!-- Loading states -->
+<div wire:loading>Loading...</div>
+<div wire:loading.remove>Hide when loading</div>
+<div wire:loading.class="opacity-50">Add class when loading</div>
+<div wire:loading.target="save">Only for save action</div>
+
+<!-- Dirty state (unsaved changes) -->
+<div wire:dirty>You have unsaved changes</div>
+
+<!-- Conditional rendering -->
+<div wire:show="showModal">Show me</div>
+<div wire:hide="showModal">Hide me</div>
+
+<!-- Transitions -->
+<div wire:transition.fade>Fade effect</div>
+<div wire:transition.slide>Slide effect</div>
+
+<!-- Offline detection -->
+<div wire:offline>You are offline</div>
+
+<!-- Clock (auto-refresh) -->
+<div wire:clock>2024-01-01 12:00:00</div>
+
+<!-- Polling -->
+<div wire:poll.5s>Refresh every 5s</div>
+
+<!-- SPA navigation -->
+<a wire:navigate href="/other-page">No page reload</a>
+
+<!-- Current page link -->
+<a wire:current href="/about">Active class added</a>
+```
+
+## Validation
+
+```php
+use Livewire\Attributes\Validate;
+
+class CreatePost extends Component
+{
+    public string $title = '';
+    public string $content = '';
+
+    // Using attribute
+    #[Validate('required|min:3|max:255')]
+    public string $title = '';
+
+    // Or using property
+    protected $rules = [
+        'title' => 'required|min:3|max:255',
+        'content' => 'required|min:10',
+    ];
+
+    protected $messages = [
+        'title.required' => 'Judul wajib diisi',
+    ];
+
+    public function save(): void
+    {
+        $validated = $this->validate();
+
+        Post::create($validated);
+
+        session()->flash('message', 'Post berhasil dibuat!');
+    }
+
+    // Real-time validation
+    public function updated($property): void
+    {
+        $this->validateOnly($property);
+    }
+}
+```
+
+## Pagination
+
+```php
+use Livewire\WithPagination;
+
+class PostList extends Component
+{
+    use WithPagination;
+
+    public string $search = '';
+
+    protected $paginationTheme = 'tailwind';
+
+    public function render()
+    {
+        return view('livewire.post-list', [
+            'posts' => Post::where('title', 'like', '%' . $this->search . '%')
+                ->latest()
+                ->paginate(10),
+        ]);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+}
+```
+
+## Lazy Loading
+
+```php
+use Livewire\Attributes\Lazy;
+
+#[Lazy]
+class LazyComponent extends Component
+{
+    public function mount(): void
+    {
+        // Only runs when component is visible
+    }
+
+    public function placeholder(): string
+    {
+        return <<<'HTML'
+            <div>Loading...</div>
+        HTML;
+    }
+
+    public function render(): View
+    {
+        return view('livewire.lazy-component');
+    }
+}
+```
+
+## Morphing
+
+```php
+use Livewire\Attributes\Morph;
+
+<Morph
+    :attributes="$attributes"
+    :alpine="$enableAlpine"
+    :wire="$enableWire"
+>
+    {{ $slot }}
+</Morph>
+```
+
+## Best Practices
+
+### 1. Eager Loading
+```php
+// ❌ N+1 queries
+public function render(): View
+{
+    return view('livewire.posts', [
+        'posts' => Post::paginate(10),
+    ]);
+}
+
+// ✅ Eager load
+public function render(): View
+{
+    return view('livewire.posts', [
+        'posts' => Post::with(['author', 'category'])->paginate(10),
+    ]);
+}
+```
+
+### 2. Database Transactions
+```php
+use Illuminate\Support\Facades\DB;
+
+public function transferFunds(): void
+{
+    DB::transaction(function () {
+        // Multiple related operations
+    });
+}
+```
+
+### 3. Cache Expensive Queries
+```php
+public function render(): View
+{
+    $stats = cache()->remember('user.stats', now()->addHour(), function () {
+        return User::count();
+    });
+
+    return view('livewire.dashboard', compact('stats'));
+}
+```
+
+## Testing
+
+```php
+use Livewire\Attributes\Validate;
+
+test('user can create post', function () {
+    Livewire::test(CreatePost::class)
+        ->set('title', 'Test Post')
+        ->set('content', 'Test content here')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertRedirect();
+
+    $this->assertDatabaseHas(Post::class, [
+        'title' => 'Test Post',
+    ]);
+});
+
+// Test events
+Livewire::test(PostForm::class)
+    ->call('save')
+    ->assertDispatched('postCreated');
+```
+
+## Common Patterns
+
+### Datatable with Search & Filter
+```php
+use Livewire\WithPagination;
+
+class UserList extends Component
+{
+    use WithPagination;
+
+    public string $search = '';
+    public string $roleFilter = 'all';
+    public int $perPage = 10;
+
+    public function render(): View
+    {
+        $query = User::query();
+
+        if ($this->search) {
+            $query->where('name', 'like', '%' . $this->search . '%')
+                ->orWhere('email', 'like', '%' . $this->search . '%');
+        }
+
+        if ($this->roleFilter !== 'all') {
+            $query->where('role', $this->roleFilter);
+        }
+
+        return view('livewire.user-list', [
+            'users' => $query->paginate($this->perPage),
+        ]);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedRoleFilter(): void
+    {
+        $this->resetPage();
+    }
+}
+```
+
+### Modal Form
+```php
+class CreateUserModal extends Component
+{
+    public bool $showModal = false;
+    public string $name = '';
+    public string $email = '';
+
+    protected $rules = [
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+    ];
+
+    public function openModal(): void
+    {
+        $this->showModal = true;
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->reset(['name', 'email']);
+        $this->resetErrorBag();
+    }
+
+    public function save(): void
+    {
+        $this->validate();
+
+        User::create([
+            'name' => $this->name,
+            'email' => $this->email,
+        ]);
+
+        $this->closeModal();
+        $this->dispatch('userCreated');
+    }
+
+    public function render(): View
+    {
+        return view('livewire.create-user-modal');
+    }
+}
+```
+
+## Resources
+
+- [Official Documentation](https://livewire.laravel.com/docs/3.x)
+- [Livewire v3 Features - Scalybee](https://scalybee.com/whats-new-in-laravel-livewire-v3/)
+- [Livewire 3 Has Rekindled My Interest - Laracasts](https://laracasts.com/series/lukes-larabits/episodes/5)
+
+
+=== .ai/coding-style rules ===
+
+# Project Coding Guidelines - Perpustakaan
+
+## Overview
+Aplikasi perpustakaan dengan sistem peminjaman buku menggunakan Laravel 12, Filament 4, dan Livewire 3.
+
+## Conventions
+
+### Database
+- Selalu gunakan Eloquent relationships, hindari raw query
+- Gunakan eager loading untuk mencegah N+1 queries
+- Untuk date comparison yang database-agnostic, gunakan `now()->startOfDay()` bukan `CURDATE()` atau fungsi database spesifik lainnya
+
+### Frontend (Livewire/Volt)
+- Gunakan tag `<livewire:` untuk inline components dengan `:key` attribute
+- Hindari `@livewire()` directive dengan parameter `key:` (tidak supported)
+- Gunakan `wire:model.live` untuk real-time updates
+
+### Models
+- Status lookup gunakan relationship, bukan hardcode ID
+- Contoh: `$transaction->status->name === 'Dipinjam'` bukan `$transaction->status_id === 2`
+
+### Routes
+- Gunakan named routes: `route('catalog')` bukan URL hardcoded
+- Folio pages otomatis terdaftar, gunakan `name()` directive untuk named routes
+
+## Common Patterns
+
+### Pagination dengan filter dan search
+```php
+$query = Model::query();
+if ($this->filter !== 'all') {
+    $query->where('status', $this->filter);
+}
+if ($this->search) {
+    $query->where('name', 'like', '%' . $this->search . '%');
+}
+return $query->paginate(10);
+```
+
+### Stats query yang database-agnostic
+```php
+$today = now()->startOfDay();
+$result = Model::selectRaw('
+    COUNT(CASE WHEN status = ? AND date >= ? THEN 1 END) as active
+', [$statusId, $today])->first();
+```
+
+## Package Specific
+
+### Filament v4
+- Gunakan `Schemas\Components` untuk layout components (Grid, Section, dll)
+- Icons gunakan `Filament\Support\Icons\Heroicon` enum
+
+### Livewire 3
+- Dispatch events dengan `$this->dispatch()` bukan `emit()`
+- Components namespace: `App\Livewire`
+
+### Spatie Permission
+- Cek permission: `$user->can('permission name')` atau `@can('permission name')`
+- Assign role: `$user->assignRole('role name')`
+
+
 === foundation rules ===
 
 # Laravel Boost Guidelines
@@ -10,13 +1929,17 @@ This application is a Laravel application and its main Laravel ecosystems packag
 
 - php - 8.3.6
 - filament/filament (FILAMENT) - v4
+- laravel/folio (FOLIO) - v1
 - laravel/framework (LARAVEL) - v12
 - laravel/prompts (PROMPTS) - v0
 - livewire/livewire (LIVEWIRE) - v3
+- livewire/volt (VOLT) - v1
+- larastan/larastan (LARASTAN) - v3
 - laravel/mcp (MCP) - v0
 - laravel/pint (PINT) - v1
 - laravel/sail (SAIL) - v1
 - phpunit/phpunit (PHPUNIT) - v11
+- rector/rector (RECTOR) - v2
 - tailwindcss (TAILWINDCSS) - v4
 
 ## Conventions
@@ -108,6 +2031,51 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 ## Enums
 - Typically, keys in an Enum should be TitleCase. For example: `FavoritePerson`, `BestLake`, `Monthly`.
+
+
+=== folio/core rules ===
+
+## Laravel Folio
+
+- Laravel Folio is a file based router. With Laravel Folio, a new route is created for every Blade file within the configured Folio directory. For example, pages are usually in in `resources/views/pages/` and the file structure determines routes:
+    - `pages/index.blade.php` → `/`
+    - `pages/profile/index.blade.php` → `/profile`
+    - `pages/auth/login.blade.php` → `/auth/login`
+- You may list available Folio routes using `php artisan folio:list`  or using Boost's `list-routes` tool.
+
+### New Pages & Routes
+- Always create new `folio` pages and routes using `php artisan folio:page [name]` following existing naming conventions.
+
+<code-snippet name="Example folio:page Commands for Automatic Routing" lang="shell">
+    // Creates: resources/views/pages/products.blade.php → /products
+    php artisan folio:page "products"
+
+    // Creates: resources/views/pages/products/[id].blade.php → /products/{id}
+    php artisan folio:page "products/[id]"
+</code-snippet>
+
+- Add a 'name' to each new Folio page at the very top of the file so it has a named route available for other parts of the codebase to use.
+
+
+<code-snippet name="Adding named route to Folio page" lang="php">
+use function Laravel\Folio\name;
+
+name('products.index');
+</code-snippet>
+
+
+### Support & Documentation
+- Folio supports: middleware, serving pages from multiple paths, subdomain routing, named routes, nested routes, index routes, route parameters, and route model binding.
+- If available, use Boost's `search-docs` tool to use Folio to its full potential and help the user effectively.
+
+
+<code-snippet name="Folio Middleware Example" lang="php">
+use function Laravel\Folio\{name, middleware};
+
+name('admin.products');
+middleware(['auth', 'verified', 'can:manage-products']);
+?>
+</code-snippet>
 
 
 === laravel/core rules ===
@@ -258,6 +2226,139 @@ document.addEventListener('livewire:init', function () {
         console.error(message);
     });
 });
+</code-snippet>
+
+
+=== volt/core rules ===
+
+## Livewire Volt
+
+- This project uses Livewire Volt for interactivity within its pages. New pages requiring interactivity must also use Livewire Volt. There is documentation available for it.
+- Make new Volt components using `php artisan make:volt [name] [--test] [--pest]`
+- Volt is a **class-based** and **functional** API for Livewire that supports single-file components, allowing a component's PHP logic and Blade templates to co-exist in the same file
+- Livewire Volt allows PHP logic and Blade templates in one file. Components use the `@volt` directive.
+- You must check existing Volt components to determine if they're functional or class based. If you can't detect that, ask the user which they prefer before writing a Volt component.
+
+### Volt Functional Component Example
+
+<code-snippet name="Volt Functional Component Example" lang="php">
+@volt
+<?php
+use function Livewire\Volt\{state, computed};
+
+state(['count' => 0]);
+
+$increment = fn () => $this->count++;
+$decrement = fn () => $this->count--;
+
+$double = computed(fn () => $this->count * 2);
+?>
+
+<div>
+    <h1>Count: {{ $count }}</h1>
+    <h2>Double: {{ $this->double }}</h2>
+    <button wire:click="increment">+</button>
+    <button wire:click="decrement">-</button>
+</div>
+@endvolt
+</code-snippet>
+
+
+### Volt Class Based Component Example
+To get started, define an anonymous class that extends Livewire\Volt\Component. Within the class, you may utilize all of the features of Livewire using traditional Livewire syntax:
+
+
+<code-snippet name="Volt Class-based Volt Component Example" lang="php">
+use Livewire\Volt\Component;
+
+new class extends Component {
+    public $count = 0;
+
+    public function increment()
+    {
+        $this->count++;
+    }
+} ?>
+
+<div>
+    <h1>{{ $count }}</h1>
+    <button wire:click="increment">+</button>
+</div>
+</code-snippet>
+
+
+### Testing Volt & Volt Components
+- Use the existing directory for tests if it already exists. Otherwise, fallback to `tests/Feature/Volt`.
+
+<code-snippet name="Livewire Test Example" lang="php">
+use Livewire\Volt\Volt;
+
+test('counter increments', function () {
+    Volt::test('counter')
+        ->assertSee('Count: 0')
+        ->call('increment')
+        ->assertSee('Count: 1');
+});
+</code-snippet>
+
+
+<code-snippet name="Volt Component Test Using Pest" lang="php">
+declare(strict_types=1);
+
+use App\Models\{User, Product};
+use Livewire\Volt\Volt;
+
+test('product form creates product', function () {
+    $user = User::factory()->create();
+
+    Volt::test('pages.products.create')
+        ->actingAs($user)
+        ->set('form.name', 'Test Product')
+        ->set('form.description', 'Test Description')
+        ->set('form.price', 99.99)
+        ->call('create')
+        ->assertHasNoErrors();
+
+    expect(Product::where('name', 'Test Product')->exists())->toBeTrue();
+});
+</code-snippet>
+
+
+### Common Patterns
+
+
+<code-snippet name="CRUD With Volt" lang="php">
+<?php
+
+use App\Models\Product;
+use function Livewire\Volt\{state, computed};
+
+state(['editing' => null, 'search' => '']);
+
+$products = computed(fn() => Product::when($this->search,
+    fn($q) => $q->where('name', 'like', "%{$this->search}%")
+)->get());
+
+$edit = fn(Product $product) => $this->editing = $product->id;
+$delete = fn(Product $product) => $product->delete();
+
+?>
+
+<!-- HTML / UI Here -->
+</code-snippet>
+
+<code-snippet name="Real-Time Search With Volt" lang="php">
+    <flux:input
+        wire:model.live.debounce.300ms="search"
+        placeholder="Search..."
+    />
+</code-snippet>
+
+<code-snippet name="Loading States With Volt" lang="php">
+    <flux:button wire:click="save" wire:loading.attr="disabled">
+        <span wire:loading.remove>Save</span>
+        <span wire:loading>Saving...</span>
+    </flux:button>
 </code-snippet>
 
 

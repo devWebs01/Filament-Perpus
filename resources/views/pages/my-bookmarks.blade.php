@@ -75,7 +75,7 @@ $bookmarks = computed(function () {
                                     <!-- Tombol Bookmark & Detail -->
                                     <div class="mt-6 flex gap-2">
                                         <div class="flex-shrink-0">
-                                            @livewire('bookmark-button', ['bookId' => $bookmark->book->id, 'compact' => true], key: 'bookmark-' . $bookmark->book->id)
+                                            <livewire:bookmark-button :bookId="$bookmark->book->id" :compact="true" :key="'bookmark-' . $bookmark->book->id" />
                                         </div>
                                         <a href="{{ route('book-detail', ['book' => $bookmark->book->id]) }}" type="button"
                                             class="btn flex-1 justify-between bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white">
