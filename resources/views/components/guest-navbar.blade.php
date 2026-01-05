@@ -146,11 +146,14 @@ $bookmarkCount = computed(function () {
             </a>
         @else
             <!-- User dropdown menu -->
-            <div class="dropdown dropdown-end">
-                <div tabindex="0" role="button" class="btn btn-sm btn-circle avatar hidden md:flex bg-gray-50">
+            <div x-data="{ open: false }" class="relative">
+                <button @click="open = !open" @click.outside="open = false"
+                    class="btn btn-sm btn-circle avatar hidden md:flex bg-gray-50">
                     <i class="iconoir-user" style="transition: opacity 0.2s;"></i>
-                </div>
-                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                </button>
+                <ul x-show="open" x-transition.origin.top.right
+                    @click.outside="open = false"
+                    class="menu menu-sm absolute right-0 top-12 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
                     <li class="menu-title">
                         <span>{{ Str::limit(auth()->user()->name, '15', '...') }}</span>
                     </li>
@@ -228,42 +231,102 @@ $bookmarkCount = computed(function () {
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const openMenuBtn = document.getElementById('openMenu');
-        const closeMenuBtn = document.getElementById('closeMenu');
-        const menu = document.getElementById('menu');
+    (function() {
+        'use strict';
 
-        // Open menu
-        openMenuBtn?.addEventListener('click', function () {
-            menu?.classList.remove('max-md:w-0');
-            menu?.classList.add('max-md:w-screen');
-            menu?.classList.add('max-md:px-4');
-            menu?.classList.remove('max-md:overflow-hidden');
-            menu?.classList.add('max-md:overflow-auto');
-        });
+        let openMenuBtn, closeMenuBtn, menu;
+        let openMenuHandler, closeMenuHandler;
+        const linkHandlers = [];
 
-        // Close menu
-        closeMenuBtn?.addEventListener('click', function () {
-            menu?.classList.add('max-md:w-0');
-            menu?.classList.remove('max-md:w-screen');
-            menu?.classList.remove('max-md:px-4');
-            menu?.classList.add('max-md:overflow-hidden');
-            menu?.classList.remove('max-md:overflow-auto');
-        });
+        function init() {
+            openMenuBtn = document.getElementById('openMenu');
+            closeMenuBtn = document.getElementById('closeMenu');
+            menu = document.getElementById('menu');
 
-        // Close menu when clicking on links (mobile)
-        const menuLinks = menu?.querySelectorAll('a');
-        menuLinks?.forEach(link => {
-            link.addEventListener('click', function () {
-                if (window.innerWidth < 768) { // md breakpoint
-                    menu?.classList.add('max-md:w-0');
-                    menu?.classList.remove('max-md:w-screen');
-                    menu?.classList.remove('max-md:px-4');
-                    menu?.classList.add('max-md:overflow-hidden');
-                    menu?.classList.remove('max-md:overflow-auto');
-                }
+            if (!openMenuBtn || !closeMenuBtn || !menu) {
+                return;
+            }
+
+            cleanup();
+
+            openMenuHandler = function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                menu?.classList.remove('max-md:w-0');
+                menu?.classList.add('max-md:w-screen');
+                menu?.classList.add('max-md:px-4');
+                menu?.classList.remove('max-md:overflow-hidden');
+                menu?.classList.add('max-md:overflow-auto');
+            };
+
+            closeMenuHandler = function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                menu?.classList.add('max-md:w-0');
+                menu?.classList.remove('max-md:w-screen');
+                menu?.classList.remove('max-md:px-4');
+                menu?.classList.add('max-md:overflow-hidden');
+                menu?.classList.remove('max-md:overflow-auto');
+            };
+
+            openMenuBtn.addEventListener('click', openMenuHandler, { passive: false });
+            closeMenuBtn.addEventListener('click', closeMenuHandler, { passive: false });
+
+            const menuLinks = menu?.querySelectorAll('a');
+            if (menuLinks) {
+                menuLinks.forEach((link) => {
+                    const linkHandler = function (e) {
+                        if (window.innerWidth < 768) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            menu?.classList.add('max-md:w-0');
+                            menu?.classList.remove('max-md:w-screen');
+                            menu?.classList.remove('max-md:px-4');
+                            menu?.classList.add('max-md:overflow-hidden');
+                            menu?.classList.remove('max-md:overflow-auto');
+
+                            const href = link.getAttribute('href');
+                            if (href) {
+                                setTimeout(() => {
+                                    window.location.href = href;
+                                }, 100);
+                            }
+                        }
+                    };
+                    link.addEventListener('click', linkHandler, { passive: false });
+                    linkHandlers.push({ element: link, handler: linkHandler });
+                });
+            }
+        }
+
+        function cleanup() {
+            if (openMenuBtn && openMenuHandler) {
+                openMenuBtn.removeEventListener('click', openMenuHandler);
+            }
+            if (closeMenuBtn && closeMenuHandler) {
+                closeMenuBtn.removeEventListener('click', closeMenuHandler);
+            }
+            linkHandlers.forEach(({ element, handler }) => {
+                element.removeEventListener('click', handler);
             });
-        });
-    });
+            linkHandlers.length = 0;
+            openMenuHandler = null;
+            closeMenuHandler = null;
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        window.addEventListener('beforeunload', cleanup);
+
+        if (typeof Livewire !== 'undefined') {
+            Livewire.hook('message.failed', cleanup);
+            Livewire.hook('message.processed', cleanup);
+            Livewire.hook('element.removed', init);
+        }
+    })();
 </script>
 @endvolt

@@ -68,14 +68,40 @@ $cancel_borrow = function () {
 
     {{-- Tutup modal otomatis setelah berhasil --}}
     <script>
-        window.addEventListener('close-cancel-modal', () => {
-            document.getElementById('cancel_borrow')?.close();
-        });
+        (function() {
+            'use strict';
 
-        // Refresh daftar transaksi setelah pembatalan
-        window.addEventListener('refresh-transactions', () => {
-            // Anda bisa menambahkan logika refresh di sini
-            location.reload();
-        });
+            // Define handlers once
+            const closeCancelModalHandler = () => {
+                const modal = document.getElementById('cancel_borrow');
+                if (modal && typeof modal.close === 'function') {
+                    try {
+                        modal.close();
+                    } catch (e) {
+                        console.error('Error closing modal:', e);
+                    }
+                }
+            };
+
+            const refreshTransactionsHandler = () => {
+                try {
+                    location.reload();
+                } catch (e) {
+                    console.error('Error refreshing:', e);
+                }
+            };
+
+            // Add event listeners
+            window.addEventListener('close-cancel-modal', closeCancelModalHandler);
+            window.addEventListener('refresh-transactions', refreshTransactionsHandler);
+
+            // Cleanup on Livewire updates
+            if (typeof Livewire !== 'undefined') {
+                Livewire.hook('message.failed', () => {
+                    window.removeEventListener('close-cancel-modal', closeCancelModalHandler);
+                    window.removeEventListener('refresh-transactions', refreshTransactionsHandler);
+                });
+            }
+        })();
     </script>
 </div>

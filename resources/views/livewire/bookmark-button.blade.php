@@ -42,6 +42,7 @@ $toggleBookmark = function () {
         {{-- Compact mode - Icon only --}}
         <x-button
             wire:click="toggleBookmark"
+            wire:loading.attr="disabled"
             :icon="$this->isBookmarked ? 'o-trash' : 'o-bookmark'"
             icon-only
             squared
@@ -55,6 +56,7 @@ $toggleBookmark = function () {
         {{-- Full mode - Icon + Text --}}
         <x-button
             wire:click="toggleBookmark"
+            wire:loading.attr="disabled"
             :icon="$this->isBookmarked ? 'o-trash' : 'o-bookmark'"
             :label="$this->isBookmarked ? 'Tersimpan' : 'Simpan Buku'"
             :class="$this->isBookmarked

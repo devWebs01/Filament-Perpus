@@ -85,15 +85,45 @@ $borrow_transaction = function () {
 
     {{-- Tutup modal otomatis setelah berhasil --}}
     <script>
-        window.addEventListener('close-borrow-modal', () => {
-            document.getElementById('borrow_book')?.close();
-        });
+        (function() {
+            'use strict';
 
-        // Redirect setelah alert selesai ditampilkan
-        window.addEventListener('redirect-after-alert', (event) => {
-            setTimeout(() => {
-                window.location.href = event.detail;
-            }, 3000); // Delay 3 detik agar alert selesai ditampilkan
-        });
+            // Define handlers once
+            const closeBorrowModalHandler = () => {
+                const modal = document.getElementById('borrow_book');
+                if (modal && typeof modal.close === 'function') {
+                    try {
+                        modal.close();
+                    } catch (e) {
+                        console.error('Error closing modal:', e);
+                    }
+                }
+            };
+
+            const redirectAfterAlertHandler = (event) => {
+                const url = event.detail;
+                if (url && typeof url === 'string') {
+                    setTimeout(() => {
+                        try {
+                            window.location.href = url;
+                        } catch (e) {
+                            console.error('Error redirecting:', e);
+                        }
+                    }, 3000);
+                }
+            };
+
+            // Add event listeners
+            window.addEventListener('close-borrow-modal', closeBorrowModalHandler);
+            window.addEventListener('redirect-after-alert', redirectAfterAlertHandler);
+
+            // Cleanup on Livewire updates
+            if (typeof Livewire !== 'undefined') {
+                Livewire.hook('message.failed', () => {
+                    window.removeEventListener('close-borrow-modal', closeBorrowModalHandler);
+                    window.removeEventListener('redirect-after-alert', redirectAfterAlertHandler);
+                });
+            }
+        })();
     </script>
 </div>
