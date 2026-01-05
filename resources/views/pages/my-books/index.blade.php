@@ -50,24 +50,26 @@ with([
         $cacheKey = 'user_stats_' . auth()->id();
 
         return cache()->remember($cacheKey, now()->addMinutes(5), function () {
+            $today = now()->startOfDay();
+
             // Get status IDs once to avoid multiple queries
             $dipinjamStatusId = Status::where('name', 'Dipinjam')->value('id');
             $dikembalikanStatusId = Status::where('name', 'Dikembalikan')->value('id');
 
-            // Single database query with aggregation
+            // Single database query with aggregation using date comparison
             $result = Transaction::where('user_id', auth()->id())
                 ->leftJoin('statuses', 'transactions.status_id', '=', 'statuses.id')
                 ->selectRaw('
-                    COUNT(CASE WHEN transactions.status_id = ? AND transactions.due_date >= CURDATE() THEN 1 END) as active,
+                    COUNT(CASE WHEN transactions.status_id = ? AND transactions.due_date >= ? THEN 1 END) as active,
                     COUNT(CASE WHEN transactions.status_id = ? THEN 1 END) as returned,
-                    COUNT(CASE WHEN transactions.status_id = ? AND transactions.due_date < CURDATE() THEN 1 END) as overdue
-                ', [$dipinjamStatusId, $dikembalikanStatusId, $dipinjamStatusId])
+                    COUNT(CASE WHEN transactions.status_id = ? AND transactions.due_date < ? THEN 1 END) as overdue
+                ', [$dipinjamStatusId, $today, $dikembalikanStatusId, $dipinjamStatusId, $today])
                 ->first();
 
             return [
-                'active' => (int) $result->active,
-                'returned' => (int) $result->returned,
-                'overdue' => (int) $result->overdue,
+                'active' => (int) ($result->active ?? 0),
+                'returned' => (int) ($result->returned ?? 0),
+                'overdue' => (int) ($result->overdue ?? 0),
             ];
         });
     },
