@@ -77,7 +77,7 @@ $books_catalog = computed(function () {
                                                group-focus-within:text-primary-500
                                                transition-colors duration-200"></i>
 
-                            <input type="text" wire:model.live="search" placeholder="Cari judul buku..." maxlength="100" class="w-full pl-12 pr-4 py-3 rounded-xl
+                            <input type="text" wire:model.live="search" placeholder="Cari judul buku..." maxlength="100" class="w-full pl-12 pr-4 py-3 rounded-lg
                                            border border-neutral-300
                                            bg-white text-neutral-700
                                            placeholder-neutral-400
@@ -93,7 +93,7 @@ $books_catalog = computed(function () {
                     {{-- Category Dropdown with Modern Styling --}}
                     <div class="w-full md:w-1/3">
                         <div class="relative">
-                            <select wire:model.live="category_id" class="w-full appearance-none rounded-xl
+                            <select wire:model.live="category_id" class="w-full appearance-none rounded-lg
                                            border border-neutral-300
                                            bg-white text-neutral-700
                                            px-4 py-3 pr-10
@@ -157,10 +157,10 @@ $books_catalog = computed(function () {
                         <!-- Books Grid with Modern Card Styling -->
                         <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
                             @foreach ($this->books_catalog as $book)
-                                <div class="group bg-white rounded-xl border border-neutral-200 shadow-sm hover:shadow-lg p-3 flex flex-col transition-all duration-300">
+                                <div class="group bg-white rounded-lg border border-neutral-200 shadow-sm hover:shadow-lg p-3 flex flex-col transition-all duration-300">
                                     <!-- CONTENT -->
                                     <a href="{{ route('book-detail', ['book' => $book->id]) }}" class="block flex-grow min-w-0">
-                                        <div class="aspect-[12/11] bg-neutral-100 rounded-xl p-2 sm:p-3 overflow-hidden">
+                                        <div class="aspect-[12/11] bg-neutral-100 rounded-lg p-2 sm:p-3 overflow-hidden">
                                             <img src="{{ Storage::url($book->image) }}" alt="{{ $book->title }}" class="w-full h-full object-contain" />
                                         </div>
 

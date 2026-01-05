@@ -245,7 +245,7 @@ state([
                 <div id="contact" data-aos="fade-up-left"
                     class="max-w-4xl mx-auto flex flex-col md:flex-row items-start justify-center gap-8 px-4 md:px-0 py-10">
 
-                    <img class="max-w-sm w-full rounded-xl object-cover shadow-md"
+                    <img class="max-w-sm w-full rounded-lg object-cover shadow-md"
                         src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjjbpz-EWu36azT2Ms3hsz3K75ZzS6-dU6iaQY17VTSM1nxO1nTb1VKYfEdIYwJPITrvqGDmjcx-Lv5lM_pqlkVpprB75eBBQY7i_gqCER_wIlDv0sQpCv144yjohmWbu7JwhHfzcRU98aZ/s1600/IMG_20160824_100106.jpg"
                         alt="FAQ" style="height: 400px;" />
 

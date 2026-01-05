@@ -28,13 +28,6 @@ $overdueCount = computed(function () {
         ->where('due_date', '<', now())
         ->count();
 });
-
-$bookmarkCount = computed(function () {
-    if (!auth()->check()) {
-        return 0;
-    }
-    return Bookmark::where('user_id', auth()->id())->count();
-});
   
   ?>
 
@@ -92,19 +85,6 @@ $bookmarkCount = computed(function () {
                         <i class="iconoir-book"></i>
                         Buku Saya
                         @if ($this->overdueCount > 0)
-                            <span class="absolute -top-1 -right-1 flex h-4 w-4">
-                                <span
-                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                <span
-                                    class="relative inline-flex rounded-full h-4 w-4 bg-red-500 items-center justify-center text-xs text-white font-bold">!</span>
-                            </span>
-                        @endif
-                    </a>
-                    <a href="{{ route('my-bookmarks') }}"
-                        class="flex items-center justify-center gap-2 text-gray-700 hover:text-warning-600 py-2 relative">
-                        <i class="iconoir-bookmark-book"></i>
-                        Buku Tersimpan
-                        @if ($this->bookmarkCount > 0)
                             <span class="absolute -top-1 -right-1 flex h-4 w-4">
                                 <span
                                     class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -180,22 +160,6 @@ $bookmarkCount = computed(function () {
                                 Buku Saya
                             </span>
                             @if ($this->overdueCount > 0)
-                                <span class="flex h-5 w-5">
-                                    <span
-                                        class="animate-ping absolute inline-flex h-5 w-5 rounded-full bg-red-400 opacity-75"></span>
-                                    <span
-                                        class="relative inline-flex rounded-full h-5 w-5 bg-red-500 items-center justify-center text-xs text-white font-bold">!</span>
-                                </span>
-                            @endif
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('my-bookmarks') }}" class="flex items-center text-black gap-2 justify-between">
-                            <span class="flex items-center gap-2">
-                                <i class="iconoir-bookmark-book"></i>
-                                Buku Tersimpan
-                            </span>
-                            @if ($this->bookmarkCount > 0)
                                 <span class="flex h-5 w-5">
                                     <span
                                         class="animate-ping absolute inline-flex h-5 w-5 rounded-full bg-red-400 opacity-75"></span>

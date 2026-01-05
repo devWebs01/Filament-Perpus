@@ -1,7 +1,7 @@
 <div data-aos="fade-up" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
 
     {{-- Sedang Dipinjam --}}
-    <div class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900/40 rounded-xl p-6">
+    <div class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900/40 rounded-lg p-6">
         <div class="flex items-center justify-between">
             <div>
                 <div class="text-3xl font-bold text-gray-700 dark:text-gray-300">
@@ -22,7 +22,7 @@
     </div>
 
     {{-- Selesai Dibaca --}}
-    <div class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900/40 rounded-xl p-6">
+    <div class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900/40 rounded-lg p-6">
         <div class="flex items-center justify-between">
             <div>
                 <div class="text-3xl font-bold text-gray-700 dark:text-gray-300">
@@ -43,7 +43,7 @@
     </div>
 
     {{-- Terlambat --}}
-    <div class="rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900/40 p-6">
+    <div class="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900/40 p-6">
         <div class="flex items-center justify-between">
             <div>
                 <div class="text-3xl font-bold text-gray-700 dark:text-gray-300">

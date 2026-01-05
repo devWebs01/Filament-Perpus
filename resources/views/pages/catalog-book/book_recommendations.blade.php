@@ -16,11 +16,11 @@ state([
         <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
             @foreach ($books_populer as $book)
                 <div
-                    class="group bg-white rounded-xl border border-neutral-200 shadow-sm hover:shadow-lg p-3 flex flex-col h-full transition-all duration-300 hover:-translate-y-1">
+                    class="group bg-white rounded-lg border border-neutral-200 shadow-sm hover:shadow-lg p-3 flex flex-col h-full transition-all duration-300 hover:-translate-y-1">
                     <!-- Bagian isi -->
                     <a href="{{ route('book-detail', ['book' => $book->id]) }}" class="block flex-1 min-w-0">
                         <div
-                            class="aspect-[12/11] bg-neutral-100 rounded-xl p-2 sm:p-3 overflow-hidden group-hover:bg-neutral-50 transition-colors duration-300">
+                            class="aspect-[12/11] bg-neutral-100 rounded-lg p-2 sm:p-3 overflow-hidden group-hover:bg-neutral-50 transition-colors duration-300">
                             <img src="{{ Storage::url($book->image) }}" alt="{{ $book->title }}"
                                 class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" />
                         </div>
@@ -34,15 +34,18 @@ state([
                     <!-- Spacer otomatis dorong tombol ke bawah -->
                     <div class="flex-1"></div>
 
-                    <!-- Tombol Bookmark & Detail -->
-                    <div class="mt-6 flex gap-2">
-                        <div class="flex-shrink-0">
-                            @livewire('bookmark-button', ['bookId' => $book->id, 'compact' => true], key('book-rec-' . $book->id))
+                    <!-- FOOTER -->
+                    <div class="mt-3 sm:mt-4 flex gap-2 items-stretch">
+                        <!-- Bookmark Button -->
+                        <div class="flex-shrink-0 flex items-center">
+                            @livewire('bookmark-button', ['bookId' => $book->id, 'compact' => true])
                         </div>
-                        <a href="{{ route('book-detail', ['book' => $book->id]) }}" type="button"
-                            class="btn flex-1 justify-between bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white">
-                            <strong>Detail</strong>
-                            <i class="iconoir-arrow-right text-white dark:text-gray-100 text-xl"></i>
+
+                        <!-- Detail Button -->
+                        <a href="{{ route('book-detail', ['book' => $book->id]) }}"
+                            class="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-xs sm:text-sm font-semibold h-9 sm:h-10 px-3 transition-colors">
+                            Detail
+                            <i class="iconoir-arrow-right text-base sm:text-lg"></i>
                         </a>
                     </div>
                 </div>

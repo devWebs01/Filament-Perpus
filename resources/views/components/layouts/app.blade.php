@@ -64,7 +64,7 @@
         <div class="divider mt-20"></div>
 
         <footer
-            class="footer footer-horizontal footer-center text-neutral-900 rounded p-10 transition-colors duration-300">
+            class="footer footer-horizontal footer-center text-neutral-900 rounded-lg p-10 transition-colors duration-300">
             <nav class="grid grid-flow-col gap-4">
                 <a href="{{ route('welcome') }}"
                     class="link link-hover text-neutral-700 hover:text-primary-600 transition-colors">Beranda</a>
