@@ -38,25 +38,21 @@
 
                 <x-input label="Tempat Lahir" wire:model="birth_place" placeholder="Masukkan tempat lahir" />
 
-                <x-select label="Jenis Kelamin" wire:model="gender" :options="[
-                    '' => 'Pilih jenis kelamin',
-                    'male' => 'Laki-laki',
-                    'female' => 'Perempuan',
-                ]" />
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">Jenis Kelamin</legend>
+                    <select class="select w-full" wire:model="gender">
+                        <option disabled selected value="">Pilih jenis kelamin</option>
+                        <option value="male">Laki-laki</option>
+                        <option value="female">Perempuan</option>
+                    </select>
+                    @error('gender')
+                        <span class="label text-red-500">{{ $message }}</span>
+                    @enderror
+                </fieldset>
             </div>
 
             <!-- KOLOM KANAN -->
             <div class="space-y-6">
-                <x-select label="Agama" wire:model="religion" :options="[
-                    '' => 'Pilih agama',
-                    'islam' => 'Islam',
-                    'christian' => 'Kristen Protestan',
-                    'catholic' => 'Katolik',
-                    'hindu' => 'Hindu',
-                    'buddhist' => 'Buddha',
-                    'confucianism' => 'Konghucu',
-                    'other' => 'Lainnya',
-                ]" />
 
                 <x-input label="NIK" type="number" wire:model="nik" />
 
@@ -65,6 +61,23 @@
                 <x-input label="NISN" wire:model="nisn" />
 
                 <x-input label="Kelas" wire:model="class" placeholder="Contoh: XII IPA 2" />
+
+                <fieldset class="fieldset">
+                    <legend class="fieldset-legend">Agama</legend>
+                    <select class="select w-full" wire:model="religion">
+                        <option disabled selected value="">Pilih agama</option>
+                        <option value="islam">Islam</option>
+                        <option value="christian">Kristen Protestan</option>
+                        <option value="catholic">Katolik</option>
+                        <option value="hindu">Hindu</option>
+                        <option value="buddhist">Buddha</option>
+                        <option value="confucianism">Konghucu</option>
+                        <option value="other">Lainnya</option>
+                    </select>
+                    @error('religion')
+                        <span class="label text-red-500">{{ $message }}</span>
+                    @enderror
+                </fieldset>
             </div>
         </div>
 
