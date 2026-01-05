@@ -18,33 +18,42 @@ state([
     <x-slot name="title">Beranda</x-slot>
     @include('components.partials.aos')
     <!-- Flash Messages -->
-    @if(session()->has('success'))
-        <div class="bg-success-50 border border-success-200 text-success-800 px-4 py-3 rounded-lg mb-4 mx-auto max-w-7xl mt-4">
+    @if (session()->has('success'))
+        <div
+            class="bg-success-50 border border-success-200 text-success-800 px-4 py-3 rounded-lg mb-4 mx-auto max-w-7xl mt-4">
             <div class="flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd"></path>
                 </svg>
                 {{ session('success') }}
             </div>
         </div>
     @endif
 
-    @if(session()->has('verification_required'))
-        <div class="bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-lg mb-4 mx-auto max-w-7xl mt-4">
+    @if (session()->has('verification_required'))
+        <div
+            class="bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-lg mb-4 mx-auto max-w-7xl mt-4">
             <div class="flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clip-rule="evenodd"></path>
                 </svg>
                 {{ session('verification_required') }}
             </div>
         </div>
     @endif
 
-    @if(session()->has('error'))
-        <div class="bg-error-50 border border-error-200 text-error-800 px-4 py-3 rounded-lg mb-4 mx-auto max-w-7xl mt-4">
+    @if (session()->has('error'))
+        <div
+            class="bg-error-50 border border-error-200 text-error-800 px-4 py-3 rounded-lg mb-4 mx-auto max-w-7xl mt-4">
             <div class="flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clip-rule="evenodd"></path>
                 </svg>
                 {{ session('error') }}
             </div>
@@ -67,8 +76,7 @@ state([
                         </svg>
                     </span>
                 </button>
-                <h1
-                    class="text-center text-neutral-900 font-bold text-3xl sm:text-4xl md:text-5xl max-w-2xl leading-tight">
+                <h1 class="text-center text-neutral-900 font-bold text-3xl sm:text-4xl md:text-5xl max-w-2xl leading-tight">
                     Temukan
                     <span class="text-primary-600 fw-bold">
                         Ilmu Tanpa Batas
@@ -100,7 +108,8 @@ state([
                     alt="Perpustakaan modern dengan rak buku">
 
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 mt-16 w-max mx-auto">
-                    <div class="hover:bg-neutral-50 h-16 w-44 sm:w-60 sm:h-20 border border-neutral-200 border-t-0 border-l-0 transition-colors duration-200">
+                    <div
+                        class="hover:bg-neutral-50 h-16 w-44 sm:w-60 sm:h-20 border border-neutral-200 border-t-0 border-l-0 transition-colors duration-200">
                     </div>
                     <div
                         class="hover:bg-neutral-50 h-16 w-44 sm:w-60 sm:h-20 border border-neutral-200 border-t-0 border-x-0 md:border-r transition-colors duration-200">
@@ -141,7 +150,8 @@ state([
                             Buku Populer
                         </h1>
 
-                        <a href="{{ route('catalog') }}" class="text-lg font-semibold text-primary-600 hover:text-primary-700 underline underline-offset-4 transition-colors duration-200">
+                        <a href="{{ route('catalog') }}"
+                            class="text-lg font-semibold text-primary-600 hover:text-primary-700 underline underline-offset-4 transition-colors duration-200">
                             Lainnya
                         </a>
                     </div>
@@ -345,13 +355,14 @@ state([
                     Raih Prestasi Akademik Lebih Baik dengan
                     Perpustakaan Digital SMA
                 </h1>
-                <div class="h-[3px] w-32 my-3 bg-gradient-to-l from-transparent via-white/80 to-white/40 rounded-full"></div>
+                <div class="h-[3px] w-32 my-3 bg-gradient-to-l from-transparent via-white/80 to-white/40 rounded-full">
+                </div>
                 <p class="text-sm md:text-base text-white/95 max-w-xl drop-shadow-sm leading-relaxed">
                     Akses koleksi buku pelajaran dan literasi, kelola peminjaman dengan mudah,
                     dan tingkatkan prestasi belajarmu dengan fasilitas perpustakaan modern sekolah.
                 </p>
                 <a href="{{ route('catalog') }}"
-                   class="mt-6 px-10 py-3.5 bg-white text-primary-700 font-semibold rounded-full
+                    class="mt-6 px-10 py-3.5 bg-white text-primary-700 font-semibold rounded-full
                           hover:bg-primary-50 hover:shadow-primary-lg hover:-translate-y-0.5
                           transition-all duration-300 inline-flex items-center gap-2">
                     <span>Mulai Sekarang</span>
