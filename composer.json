@@ -9,6 +9,7 @@
         "php": "^8.2",
         "alperenersoy/filament-export": "^4.0",
         "bezhansalleh/filament-shield": "^4.0",
+        "dutchcodingcompany/filament-developer-logins": "^2.0",
         "filament/filament": "^4.0",
         "jantinnerezo/livewire-alert": "^4.0",
         "jeffersongoncalves/filament-qrcode-field": "^2.0",

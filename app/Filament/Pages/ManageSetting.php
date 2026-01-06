@@ -4,25 +4,25 @@ namespace App\Filament\Pages;
 
 use App\Models\Setting;
 use BackedEnum;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Concerns\InteractsWithSchemas;
+use Filament\Schemas\Contracts\HasSchemas;
+use Filament\Schemas\Schema;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
-class ManageSetting extends Page
+class ManageSetting extends Page implements HasSchemas
 {
-    use InteractsWithForms;
+    use HasPageShield, InteractsWithSchemas;
 
     protected string $view = 'filament.pages.manage-setting';
-
-    /** @var mixed */
-    public $form;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Manajemen Perpustakaan';
 
@@ -32,7 +32,7 @@ class ManageSetting extends Page
 
     protected static ?string $title = 'Pengaturan';
 
-    // protected static string|UnitEnum|null $navigationGroup = 'Manajemen Data';
+    public ?array $data = [];
 
     public function getBreadcrumbs(): array
     {
@@ -42,8 +42,6 @@ class ManageSetting extends Page
         ];
     }
 
-    public ?array $data = [];
-
     public function mount(): void
     {
         $setting = Setting::first();
@@ -51,94 +49,84 @@ class ManageSetting extends Page
         $this->form->fill($this->data);
     }
 
-    protected function getFormSchema(): array
+    public function form(Schema $schema): Schema
     {
-        return [
-            Section::make('')
-                ->schema([
-                    TextInput::make('data.name')
-                        ->label('Nama Aplikasi')
-                        ->required(),
+        return $schema
+            ->components([
+                Section::make('')
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Nama Aplikasi')
+                            ->required(),
 
-                    TextInput::make('data.phone')
-                        ->numeric()
-                        ->required()
-                        ->label('Telepon'),
+                        TextInput::make('phone')
+                            ->numeric()
+                            ->required()
+                            ->label('Telepon'),
 
-                    TextInput::make('data.limit_day')
-                        ->numeric()
-                        ->required()
-                        ->label('Batas Peminjaman'),
+                        TextInput::make('limit_day')
+                            ->numeric()
+                            ->required()
+                            ->label('Batas Peminjaman'),
 
-                    FileUpload::make('data.logo')
-                        ->image()
-                        ->imageEditor()
-                        ->label('Logo Aplikasi')
-                        ->directory('settings')
-                        ->disk('public')
-                        ->required(),
+                        FileUpload::make('logo')
+                            ->image()
+                            ->imageEditor()
+                            ->label('Logo Aplikasi')
+                            ->directory('settings')
+                            ->disk('public')
+                            ->required(),
 
-                    Textarea::make('data.address')
-                        ->required()
-                        ->label('Alamat')
-                        ->columnSpanFull()
-                        ->rows(5),
+                        Textarea::make('address')
+                            ->required()
+                            ->label('Alamat')
+                            ->columnSpanFull()
+                            ->rows(5),
 
-                ])
-                ->columns(1)
-                ->columnSpanFull(),
-        ];
+                    ])
+                    ->columns(1)
+                    ->columnSpanFull(),
+            ])
+            ->statePath('data');
     }
 
-    // OPTION: tetap sediakan tombol action, tapi arahkan ke method 'save'
     protected function getActions(): array
     {
         return [
             Action::make('save')
                 ->label('Simpan Perubahan')
                 ->button()
-                ->action('save'), // -> memanggil public method save()
+                ->action('save'),
         ];
     }
 
-    // PUBLIC method agar Livewire/Blade bisa memanggilnya (fix error)
     public function save(): void
     {
-        // 1) ambil seluruh state form
-        $state = $this->form->getState() ?? [];
+        $state = $this->form->getState();
+        $payload = $state;
 
-        // 2) ambil inner payload: prefer $state['data'] jika ada
-        $payload = $state['data'] ?? $state;
-
-        // 3) normalisasi logo (FileUpload kadang menghasilkan array atau string)
+        // Normalize logo (FileUpload sometimes returns array or string)
         if (isset($payload['logo'])) {
             $logo = $payload['logo'];
 
-            // jika FileUpload mengembalikan array (mis. multiple / struktur), ambil elemen pertama
             if (is_array($logo)) {
-                // cari string path di dalam array
                 $firstString = Arr::first($logo, function ($value) {
-                    return is_string($value) && ! Str::contains($value, 'data:'); // simplicity
+                    return is_string($value) && ! Str::contains($value, 'data:');
                 });
                 $payload['logo'] = $firstString ?? (string) Arr::first($logo);
             }
 
-            // jika null/empty -> hapus agar tidak menimpa nilai lama
             if (empty($payload['logo'])) {
                 unset($payload['logo']);
             }
         }
 
-        // 4) pastikan model Setting mengizinkan mass assign (cek $fillable)
-        // jika tidak, gunakan assign field-by-field
         $setting = Setting::first();
 
         if ($setting) {
-            // Jika Setting::$fillable sudah diset, update massal aman
             try {
                 $setting->update($payload);
             } catch (\Throwable $e) {
-                // fallback: assign field-by-field
                 foreach ($payload as $key => $value) {
                     if (in_array($key, $setting->getFillable())) {
                         $setting->{$key} = $value;
@@ -147,7 +135,6 @@ class ManageSetting extends Page
                 $setting->save();
             }
         } else {
-            // create new (pastikan Setting::$fillable ada)
             Setting::create($payload);
         }
 
@@ -156,8 +143,7 @@ class ManageSetting extends Page
             ->success()
             ->send();
 
-        // refill form state dari DB agar tampil konsisten
         $this->data = Setting::first()?->toArray() ?? [];
-        $this->form->fill(['data' => $this->data]);
+        $this->form->fill($this->data);
     }
 }

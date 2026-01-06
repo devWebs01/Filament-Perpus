@@ -35,7 +35,8 @@
       "mcp__laravel-boost__read-log-entries",
       "mcp__laravel-boost__search-docs",
       "mcp__laravel-boost__database-schema",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git checkout:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

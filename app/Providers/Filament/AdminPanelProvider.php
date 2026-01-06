@@ -8,6 +8,7 @@ use App\Filament\Widgets\RecentTransactionsWidget;
 use App\Http\Middleware\RedirectIfNotFilamentAdmin;
 use App\Models\Setting;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use DutchCodingCompany\FilamentDeveloperLogins\FilamentDeveloperLoginsPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -67,15 +68,29 @@ class AdminPanelProvider extends PanelProvider
                 // Authenticate::class,
                 RedirectIfNotFilamentAdmin::class,
             ])
+            ->navigationGroups([
+                'Manajemen Pengguna',
+                'Manajemen Perpustakaan',
+            ])
             ->brandName(Setting::first()->name ?? 'Perpustakaan')
             ->plugins([
-                FilamentShieldPlugin::make(),
+                FilamentShieldPlugin::make()
+                    ->navigationLabel('Hak Akses')
+                    ->navigationGroup('Manajemen Pengguna')
+                    ->modelLabel('Hak Akses')
+                    ->pluralModelLabel('Hak Akses'),
                 FilamentEditProfilePlugin::make()
                     ->setTitle('Profil Akun')
                     ->setNavigationLabel('Profil Akun')
                     ->setNavigationGroup('Manajemen Pengguna')
                     ->setIcon('heroicon-o-user'),
-
+                FilamentDeveloperLoginsPlugin::make()
+                    ->enabled(app()->environment('local'))
+                    ->users(fn () => \App\Models\User::query()->whereIn('email', [
+                        'kepala@testing.com',
+                        'siswa@testing.com',
+                        'petugas1@testing.com',
+                    ])->get()->pluck('email', 'name')->toArray()),
             ])
             ->unsavedChangesAlerts();
     }

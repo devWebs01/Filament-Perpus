@@ -22,6 +22,8 @@ class TransactionResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Manajemen Perpustakaan';
+
     protected static ?string $navigationLabel = 'Transaksi';
 
     protected static ?string $pluralLabel = 'Transaksi';

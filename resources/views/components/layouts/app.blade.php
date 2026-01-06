@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!--    Document Title-->
-    <title>{{ $title ? $title . ' - ' : '' }}{{ $setting->name ?? 'Sistem Informasi Perpustakaan' }}</title>
+    <title>{{ ($title ?? '') }}{{ ($title ?? '') ? ' - ' : '' }}{{ ($setting->name ?? config('app.name', 'Sistem Informasi Perpustakaan')) }}</title>
 
     <!-- Include SEO partial -->
     {{-- <x-partials.seo :setting="$setting" :title="$title ?? null" /> --}}
@@ -54,7 +54,9 @@
     <section id="section"
         class="bg-gradient-to-b px-3 sm:px-10 overflow-hidden from-neutral-50 via-neutral-100/50 to-neutral-50 pt-6 h-full transition-colors duration-300">
 
-        <x-guest-navbar :setting="$setting" />
+        @isset($setting)
+            <x-guest-navbar :setting="$setting" />
+        @endisset
 
         <main>
             {{ $slot }}
@@ -78,14 +80,16 @@
 
             <aside>
                 <p class="text-neutral-800 font-medium">Copyright © {{ date('Y') }} -
-                    {{ $setting->name ?? 'Sistem Informasi Perpustakaan' }}
+                    {{ $setting->name ?? config('app.name', 'Sistem Informasi Perpustakaan') }}
                 </p>
-                @if ($setting->address)
-                    <p class="text-sm mt-1 text-neutral-600">{{ $setting->address }}</p>
-                @endif
-                @if ($setting->phone)
-                    <p class="text-sm mt-1 text-neutral-600">{{ $setting->phone }}</p>
-                @endif
+                @isset($setting)
+                    @if ($setting->address)
+                        <p class="text-sm mt-1 text-neutral-600">{{ $setting->address }}</p>
+                    @endif
+                    @if ($setting->phone)
+                        <p class="text-sm mt-1 text-neutral-600">{{ $setting->phone }}</p>
+                    @endif
+                @endisset
             </aside>
         </footer>
     </section>

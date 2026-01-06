@@ -37,7 +37,7 @@ class User extends Authenticatable
     public function canAccessPanel(Panel $panel): bool
     {
         return auth()->check()
-            && auth()->user()->hasAnyRole(['admin', 'super_admin']);
+            && auth()->user()->hasAnyRole(['super_admin', 'petugas']);
     }
 
     /**
