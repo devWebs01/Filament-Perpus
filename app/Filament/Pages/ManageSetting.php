@@ -15,7 +15,6 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
-use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
@@ -146,10 +145,5 @@ class ManageSetting extends Page implements HasSchemas
 
         $this->data = Setting::first()?->toArray() ?? [];
         $this->form->fill($this->data);
-    }
-
-    public function render(): View
-    {
-        return view('filament.pages.manage-setting');
     }
 }
