@@ -52,6 +52,7 @@ class BooksTable
                     ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
 
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 TrashedFilter::make(),
             ])

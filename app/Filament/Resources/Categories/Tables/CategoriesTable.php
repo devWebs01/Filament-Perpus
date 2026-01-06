@@ -24,6 +24,7 @@ class CategoriesTable
                 TextColumn::make('slug')
                     ->searchable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 TrashedFilter::make(),
             ])
