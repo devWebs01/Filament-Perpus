@@ -68,6 +68,10 @@ class AdminPanelProvider extends PanelProvider
                 // Authenticate::class,
                 RedirectIfNotFilamentAdmin::class,
             ])
+            ->navigationGroups([
+                'Manajemen Pengguna',
+                'Manajemen Perpustakaan',
+            ])
             ->brandName(Setting::first()->name ?? 'Perpustakaan')
             ->plugins([
                 FilamentShieldPlugin::make()
