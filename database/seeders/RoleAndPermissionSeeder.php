@@ -143,57 +143,7 @@ class RoleAndPermissionSeeder extends Seeder
         ]);
         $superAdminRole->givePermissionTo(Permission::all());
 
-        // Ketua Perpustakaan - can manage most things except user roles
-        $ketuaRole = Role::firstOrCreate([
-            'name' => 'ketua_perpustakaan',
-            'guard_name' => 'web',
-        ]);
-        $ketuaRole->givePermissionTo([
-            'view_user',
-            'view_any_user',
-            'create_user',
-            'update_user',
-            'view_book',
-            'view_any_book',
-            'create_book',
-            'update_book',
-            'delete_book',
-            'delete_any_book',
-            'view_category',
-            'view_any_category',
-            'create_category',
-            'update_category',
-            'delete_category',
-            'delete_any_category',
-            'view_transaction',
-            'view_any_transaction',
-            'create_transaction',
-            'update_transaction',
-            'delete_transaction',
-            'delete_any_transaction',
-            'view_report',
-            'view_any_report',
-            'create_report',
-            'update_report',
-            'view_setting',
-            'view_any_setting',
-            'update_setting',
-            'view_shelf',
-            'view_any_shelf',
-            'create_shelf',
-            'update_shelf',
-            'delete_shelf',
-            'delete_any_shelf',
-            'view_status',
-            'view_any_status',
-            'create_status',
-            'update_status',
-            'delete_status',
-            'delete_any_status',
-            'view_dashboard',
-        ]);
-
-        // Petugas - limited permissions
+        // Petugas - limited permissions for operational staff
         $petugasRole = Role::firstOrCreate([
             'name' => 'petugas',
             'guard_name' => 'web',
@@ -209,6 +159,8 @@ class RoleAndPermissionSeeder extends Seeder
             'update_transaction',
             'view_shelf',
             'view_any_shelf',
+            'create_shelf',
+            'update_shelf',
             'view_status',
             'view_any_status',
             'view_dashboard',
