@@ -74,7 +74,7 @@ class UpdateProfile extends Component
             'birth_place' => 'nullable|string|max:100',
             'gender' => 'nullable|in:male,female',
             'religion' => 'nullable|string|in:islam,christian,catholic,hindu,buddhist,confucianism,other|max:50',
-            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|mime-types:image/jpeg,image/png,image/jpg,image/gif',
         ];
 
         $this->validate($rules);

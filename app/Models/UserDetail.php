@@ -136,8 +136,8 @@ class UserDetail extends Model
             return $this->barcode_image;
         }
 
-        // Return as asset URL
-        return asset('storage/'.$this->barcode_image);
+        // Use Storage::url() for consistent URL generation
+        return \Storage::url($this->barcode_image);
     }
 
     /**
@@ -145,6 +145,11 @@ class UserDetail extends Model
      */
     public function hasQrCode(): bool
     {
-        return ! empty($this->barcode) && ! empty($this->barcode_image);
+        if (empty($this->barcode) || empty($this->barcode_image)) {
+            return false;
+        }
+
+        // Check if file actually exists in storage
+        return \Storage::disk('public')->exists($this->barcode_image);
     }
 }

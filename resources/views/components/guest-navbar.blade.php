@@ -126,13 +126,13 @@ $overdueCount = computed(function () {
             </a>
         @else
             <!-- User dropdown menu -->
-            <div x-data="{ open: false }" class="relative">
-                <button @click="open = !open" @click.outside="open = false"
+            <div x-data="{ isDropdownOpen: false }" class="relative">
+                <button @click="isDropdownOpen = !isDropdownOpen" @click.outside="isDropdownOpen = false"
                     class="btn btn-sm btn-circle avatar hidden md:flex bg-gray-50">
                     <i class="iconoir-user" style="transition: opacity 0.2s;"></i>
                 </button>
-                <ul x-show="open" x-transition.origin.top.right
-                    @click.outside="open = false"
+                <ul x-show="isDropdownOpen" x-transition.origin.top.right
+                    @click.outside="isDropdownOpen = false"
                     class="menu menu-sm absolute right-0 top-12 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
                     <li class="menu-title">
                         <span>{{ Str::limit(auth()->user()->name, '15', '...') }}</span>

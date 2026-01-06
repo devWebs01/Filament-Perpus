@@ -1,10 +1,13 @@
 <?php
 
 use function Laravel\Folio\name;
-use function Livewire\Volt\{state, with};
+use function Livewire\Volt\{state, with, usesPagination};
 use App\Models\{Transaction, Book, Setting, Status};
+use App\Services\BorrowBookService;
+use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 
 name('my-books');
+usesPagination();
 
 state([
     'user' => auth()->user(),
@@ -44,7 +47,7 @@ with([
             });
         }
 
-        return $query->paginate(10);
+        return $query->latest()->paginate(10);
     },
     'stats' => function () {
         // Optimized: Database-level aggregation with caching
@@ -98,6 +101,40 @@ $extendLoan = function ($transactionId) {
         cache()->forget('user_stats_' . auth()->id());
 
         session()->flash('message', "Masa peminjaman berhasil diperpanjang {$extensionDays} hari!");
+    }
+};
+
+$cancel_borrow = function ($transactionId) {
+    $alertDuration = config('app.library.alert_duration', 3000);
+
+    try {
+        // Ambil transaksi
+        $transaction = Transaction::find($transactionId);
+
+        if (!$transaction) {
+            LivewireAlert::title('Gagal')->position('center')->timer($alertDuration)->text('Transaksi tidak ditemukan')->error()->show();
+
+            return;
+        }
+
+        // Inisialisasi service
+        $borrowBookService = app(BorrowBookService::class);
+
+        // Proses pembatalan peminjaman
+        $result = $borrowBookService->cancelBorrow($transaction);
+
+        if ($result['success']) {
+            LivewireAlert::title('Berhasil')->position('center')->timer($alertDuration)->text($result['message'])->success()->show();
+        } else {
+            LivewireAlert::title('Gagal')->position('center')->timer($alertDuration)->text($result['message'])->error()->show();
+        }
+
+        // Refresh data dan cache
+        $this->refreshData();
+    } catch (\Throwable $th) {
+        report($th);
+
+        LivewireAlert::title('Gagal')->position('center')->timer($alertDuration)->text('Terjadi kesalahan sistem. Silakan coba lagi nanti')->error()->show();
     }
 };
 
@@ -283,12 +320,37 @@ $extendLoan = function ($transactionId) {
                                                                     </x-button>
                                                                 @endif
                                                             @elseif ($transaction->status->id === 1)
-                                                                @livewire('cancel-borrow-modal', ['transactionId' => $transaction->id])
+                                                                <button type="button"
+                                                                    wire:click="cancel_borrow({{ $transaction->id }})"
+                                                                    wire:loading.attr="disabled"
+                                                                    class="btn flex-1 rounded-lg bg-red-600 text-white
+                                   hover:bg-red-700 disabled:bg-neutral-400 disabled:cursor-not-allowed
+                                   dark:bg-red-500 dark:hover:bg-red-600 py-2">
+                                                                    <!-- Normal state -->
+                                                                    <span wire:loading.remove wire:target="cancel_borrow"
+                                                                        class="flex items-center justify-center gap-2">
+                                                                        <i class="iconoir-xmark text-xl"></i>
+                                                                        <span>Batalkan Peminjaman</span>
+                                                                    </span>
 
-                                                                <x-button icon="o-x-mark" class="w-full"
-                                                                    onclick="cancel_borrow.showModal()">
-                                                                    Batalkan Peminjaman Buku
-                                                                </x-button>
+                                                                    <!-- Loading state -->
+                                                                    <span wire:loading wire:target="cancel_borrow"
+                                                                        class="flex items-center justify-center gap-2">
+                                                                        <svg class="h-5 w-5 animate-spin text-white"
+                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                            fill="none" viewBox="0 0 24 24"
+                                                                            aria-hidden="true">
+                                                                            <circle class="opacity-25" cx="12"
+                                                                                cy="12" r="10" stroke="currentColor"
+                                                                                stroke-width="4" />
+                                                                            <path class="opacity-75" fill="currentColor"
+                                                                                d="M4 12a8 8 0 018-8V0
+                                                                                                           C5.373 0 0 5.373 0 12h4
+                                                                                                           zm2 5.291A7.962 7.962 0 014 12H0
+                                                                                                           c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                                        </svg>
+                                                                    </span>
+                                                                </button>
                                                             @endif
 
                                                         </div>
@@ -301,7 +363,7 @@ $extendLoan = function ($transactionId) {
                                     </div>
 
                                     {{-- Pagination --}}
-                                    <div class="mt-12 flex justify-center">
+                                    <div class="mt-12 justify-between items-center">
                                         {{ $transactions->links() }}
                                     </div>
                                 @else

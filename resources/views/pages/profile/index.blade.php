@@ -1,8 +1,10 @@
 <?php
 
-use function Laravel\Folio\name;
-use function Livewire\Volt\{state, computed};
 use App\Models\Setting;
+
+use function Laravel\Folio\name;
+use function Livewire\Volt\computed;
+use function Livewire\Volt\state;
 
 name('profile');
 
@@ -10,12 +12,12 @@ state([
     'user' => auth()->user(),
     'userDetail' => auth()->user()->userDetail ?? null,
     'activeTab' => 'user_detail',
-    'setting' => fn() => Setting::first(),
+    'setting' => fn () => Setting::first(),
 ]);
 
 // Badge counters - computed, hanya dihitung saat dibutuhkan
 $profileStatus = computed(function () {
-    if (!auth()->check()) {
+    if (! auth()->check()) {
         return [];
     }
 
@@ -24,7 +26,7 @@ $profileStatus = computed(function () {
 
     $missing = [];
 
-    if (!$userDetail || !$userDetail->nis || !$userDetail->phone_number) {
+    if (! $userDetail || ! $userDetail->nis || ! $userDetail->phone_number) {
         $missing[] = 'profil belum lengkap';
     }
 
@@ -245,16 +247,16 @@ $profileStatus = computed(function () {
 
                     <!-- Modal Content -->
                     <div
-                        class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full">
+                        class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full relative">
                         <!-- Modal Header -->
-                        <div class="bg-white px-4 py-3 border-b border-gray-200 sm:px-6">
+                        <div class="bg-white px-4 py-3 border-b border-gray-200 sm:px-6 relative z-10">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-lg leading-6 font-medium text-gray-900">
                                     Kartu Anggota Perpustakaan
                                 </h3>
                                 <div class="flex items-center space-x-2">
                                     <button onclick="printProfileCard()"
-                                        class="inline-flex items-center px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                                        class="inline-flex items-center px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 relative z-10">
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -262,7 +264,7 @@ $profileStatus = computed(function () {
                                         Cetak
                                     </button>
                                     <button onclick="closeProfileCardModal()"
-                                        class="inline-flex items-center px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                                        class="inline-flex items-center px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 relative z-10">
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M6 18L18 6M6 6l12 12" />
@@ -274,7 +276,7 @@ $profileStatus = computed(function () {
                         </div>
 
                         <!-- Modal Body with Profile Cards -->
-                        <div class="bg-white px-4 py-4 sm:px-6 sm:py-6">
+                        <div class="bg-white px-4 py-4 sm:px-6 sm:py-6 overflow-y-auto">
                             <div id="printArea">
                                 <div id="profileCardContainer" class="flex justify-center">
                                     @include('pages.profile.preview_card')

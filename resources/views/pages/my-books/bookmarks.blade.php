@@ -71,7 +71,7 @@ $bookmarks = computed(function () {
                                         <livewire:bookmark-button :bookId="$bookmark->book->id" :compact="true" :key="'bookmark-' . $bookmark->book->id" />
                                     </div>
                                     <a href="{{ route('book-detail', ['book' => $bookmark->book->id]) }}" type="button"
-                                        class="btn flex-1 justify-between bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white">
+                                        class="btn flex-1 justify-between rounded-lg bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white">
                                         <strong>Detail</strong>
                                         <i class="iconoir-arrow-right text-white dark:text-gray-100 text-xl"></i>
                                     </a>

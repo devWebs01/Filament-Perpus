@@ -1,15 +1,16 @@
 <?php
 
+use App\Models\Setting;
+
 use function Laravel\Folio\name;
-use App\Models\{Setting};
-use function Livewire\Volt\{state};
+use function Livewire\Volt\state;
 
 name('profile.card-print');
 
 state([
-    'user' => fn() => auth()->user(),
-    'userDetail' => fn() => $this->user->userDetail ?? null,
-    'setting' => fn() => Setting::first(),
+    'user' => fn () => auth()->user(),
+    'userDetail' => fn () => $this->user->userDetail ?? null,
+    'setting' => fn () => Setting::first(),
 ]);
 
 ?>
@@ -273,7 +274,7 @@ state([
                 justify-content: center;
                 box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
             }
-            
+
             .qr-code-image {
                 width: 100%;
                 height: 100%;
@@ -532,11 +533,11 @@ state([
                                 <div class="additional-info">
                                     <div class="info-row mb-0">
                                         <span class="info-value">
-                                            {{ $userDetail?->nisn ?? '-' }}
+                                            {{ __('membership.status.' . ($userDetail?->membership_status ?? 'active')) }}
                                         </span>
                                     </div>
                                     <div class="info-row mb-0">
-                                        <span class="info-value">{{ $userDetail?->phone_number ?? '-' }}</span>
+                                        <span class="info-value">{{ __('membership.member_since') }} {{ $userDetail?->join_date?->format('d M Y') ?? '-' }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -559,29 +560,23 @@ state([
                                 <div class="nis-number">{{ $userDetail->nis ?? '12345678' }}</div>
                             </div>
 
-                            <!-- QR Code Section -->
+                            {{-- QR Code Section --}}
                             <div class="qr-code-section">
                                 <div class="qr-code-container">
-                                    @if ($userDetail?->barcode)
-                                        @php
-                                            $qrCodeExists = Storage::disk('public')->exists($userDetail->barcode);
-                                        @endphp
-                                        @if ($qrCodeExists)
-                                            <img src="{{ Storage::url($userDetail->barcode) }}" alt="QR Code - {{ $user->name }}"
-                                                class="qr-code-image">
-                                        @else
-                                            <div class="qr-code-placeholder">
-                                                <div class="qr-code-text">
-                                                    <div class="qr-code-title">QR Code</div>
-                                                    <div class="qr-code-subtitle">File tidak ditemukan</div>
-                                                </div>
-                                            </div>
-                                        @endif
+                                    @if ($userDetail?->hasQrCode() && $userDetail?->qr_code_image_url)
+                                        <img src="{{ $userDetail->qr_code_image_url }}"
+                                            alt="QR Code - {{ $user->name }}" class="qr-code-image">
                                     @else
                                         <div class="qr-code-placeholder">
                                             <div class="qr-code-text">
                                                 <div class="qr-code-title">QR Code</div>
-                                                <div class="qr-code-subtitle">Belum dibuat</div>
+                                                <div class="qr-code-subtitle">
+                                                    @if($userDetail?->barcode)
+                                                        File tidak ditemukan
+                                                    @else
+                                                        Belum dibuat
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
                                     @endif
@@ -590,7 +585,8 @@ state([
                                 <!-- Institution Information -->
                                 <div class="institution-section">
                                     <div class="institution-name">{{ $setting?->name ?? 'Perpustakaan Digital' }}</div>
-                                    <div class="institution-address">{{ $setting?->address ?? 'Jl. Pendidikan No. 123, Jakarta' }}</div>
+                                    <div class="institution-address">
+                                        {{ $setting?->address ?? 'Jl. Pendidikan No. 123, Jakarta' }}</div>
                                 </div>
                             </div>
                         </div>

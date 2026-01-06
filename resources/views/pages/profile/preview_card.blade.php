@@ -405,11 +405,11 @@
             <div class="additional-info">
                 <div class="info-row mb-0">
                     <span class="info-value">
-                        {{ $userDetail?->nisn ?? '-' }}
+                        {{ __('membership.status.' . ($userDetail?->membership_status ?? 'active')) }}
                     </span>
                 </div>
                 <div class="info-row mb-0">
-                    <span class="info-value">{{ $userDetail?->phone_number ?? '-' }}</span>
+                    <span class="info-value">{{ __('membership.member_since') }} {{ $userDetail?->join_date?->format('d M Y') ?? '-' }}</span>
                 </div>
             </div>
         </div>
@@ -435,26 +435,20 @@
         {{-- QR Code Section --}}
         <div class="qr-code-section">
             <div class="qr-code-container">
-                @if ($userDetail?->barcode)
-                    @php
-                        $qrCodeExists = Storage::disk('public')->exists($userDetail->barcode);
-                    @endphp
-                    @if ($qrCodeExists)
-                        <img src="{{ Storage::url($userDetail->barcode) }}" alt="QR Code - {{ $user->name }}"
-                            class="qr-code-image">
-                    @else
-                        <div class="qr-code-placeholder">
-                            <div class="qr-code-text">
-                                <div class="qr-code-title">QR Code</div>
-                                <div class="qr-code-subtitle">File tidak ditemukan</div>
-                            </div>
-                        </div>
-                    @endif
+                @if ($userDetail?->hasQrCode() && $userDetail?->qr_code_image_url)
+                    <img src="{{ $userDetail->qr_code_image_url }}" alt="QR Code - {{ $user->name }}"
+                        class="qr-code-image">
                 @else
                     <div class="qr-code-placeholder">
                         <div class="qr-code-text">
                             <div class="qr-code-title">QR Code</div>
-                            <div class="qr-code-subtitle">Belum dibuat</div>
+                            <div class="qr-code-subtitle">
+                                @if($userDetail?->barcode)
+                                    File tidak ditemukan
+                                @else
+                                    Belum dibuat
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @endif
