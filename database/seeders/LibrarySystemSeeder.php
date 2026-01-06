@@ -64,37 +64,19 @@ class LibrarySystemSeeder extends Seeder
     {
         $this->command->info('👤 Membuat users dengan details...');
 
-        // Super Admin (Hidden - untuk system maintenance)
+        // Kepala Perpustakaan (Super Admin)
         $this->createUserWithDetails([
-            'email' => 'admin@testing.com',
-            'name' => 'Super Admin Perpustakaan',
+            'email' => 'kepala@testing.com',
+            'name' => 'Kepala Perpustakaan',
             'role' => 'super_admin',
             'user_details' => [
-                'nik' => '1234567890123456',
+                'nik' => '3201011234560001',
                 'phone_number' => '+6281234567890',
-                'birth_date' => '1985-05-15',
+                'birth_date' => '1975-05-15',
                 'birth_place' => 'Jakarta',
                 'gender' => 'male',
                 'address' => 'Jl. Pendidikan No. 1, Jakarta Pusat, Indonesia',
                 'religion' => 'Islam',
-                'join_date' => '2020-01-15',
-                'membership_status' => 'active',
-            ],
-        ]);
-
-        // Ketua Perpustakaan
-        $this->createUserWithDetails([
-            'email' => 'ketua@testing.com',
-            'name' => 'Dr. Budi Santoso, M.Pd',
-            'role' => 'ketua_perpustakaan',
-            'user_details' => [
-                'nik' => '3201011234560001',
-                'address' => 'Jl. Pendidikan No. 1, Jakarta',
-                'phone_number' => '081234567890',
-                'birth_date' => '1975-05-15',
-                'birth_place' => 'Jakarta',
-                'gender' => 'male',
-                'religion' => 'islam',
                 'join_date' => '2020-01-01',
                 'membership_status' => 'active',
             ],
@@ -322,8 +304,8 @@ class LibrarySystemSeeder extends Seeder
             foreach ($userDetails as $detail) {
                 $userType = match (true) {
                     ! empty($detail->nis) || ! empty($detail->nisn) => '👨‍🎓 Siswa',
-                    $detail->user?->email === 'admin@testing.com' => '👔‍💼 Admin',
-                    $detail->user?->hasRole(['ketua_perpustakaan', 'petugas']) => '👨‍💼 Staff',
+                    $detail->user?->email === 'kepala@testing.com' => '📚 Kepala Perpus (Super Admin)',
+                    $detail->user?->hasRole('petugas') => '👨‍💼 Petugas',
                     default => '👤 Unknown'
                 };
 
@@ -393,8 +375,7 @@ class LibrarySystemSeeder extends Seeder
         $this->command->info('');
         $this->command->info('🔑 LOGIN INFORMATION (Password: password):');
         $this->command->info('═══════════════════════════════════════════════════════════════');
-        $this->command->info('👑 Super Admin      : admin@testing.com (System Maintenance Only)');
-        $this->command->info('📚 Ketua Perpus    : ketua@testing.com');
+        $this->command->info('📚 Kepala Perpus   : kepala@testing.com (Super Admin)');
         $this->command->info('👨‍💼 Petugas         : petugas1@testing.com / petugas2@testing.com');
         $this->command->info('👨‍🎓 Siswa           : siswa@testing.com / siswa2@testing.com');
         $this->command->info('                     : anggota@testing.com / siti.aminah@testing.com');
@@ -402,13 +383,12 @@ class LibrarySystemSeeder extends Seeder
         $this->command->info('');
         $this->command->info('🎯 3 ROLE UTAMA SISTEM:');
         $this->command->info('═══════════════════════════════════════════════════════════════');
-        $this->command->info('📚 Ketua Perpustakaan: Manajerial level, mengatur seluruh sistem');
-        $this->command->info('👨‍💼 Petugas         : Operasional level, melayani siswa & kelola buku');
-        $this->command->info('👨‍🎓 Siswa           : User level, pinjam & akses buku');
+        $this->command->info('📚 Kepala Perpustakaan: Super Admin, akses penuh ke seluruh sistem');
+        $this->command->info('👨‍💼 Petugas / Admin  : Operasional, melayani siswa & kelola buku');
+        $this->command->info('👨‍🎓 Siswa           : User biasa, pinjam & akses buku');
         $this->command->info('');
         $this->command->info('🎯 Total Users Created:');
-        $this->command->info('   • Super Admin: 1 (Hidden - System Only)');
-        $this->command->info('   • Ketua Perpustakaan: 1');
+        $this->command->info('   • Kepala Perpustakaan (Super Admin): 1');
         $this->command->info('   • Petugas: 3');
         $this->command->info('   • Siswa: 6 (manual) + 5 (factory) + 3 (various status) = 14');
         $this->command->info('');
@@ -434,7 +414,7 @@ class LibrarySystemSeeder extends Seeder
      */
     private function verifyRolesExist(): void
     {
-        $requiredRoles = ['super_admin', 'ketua_perpustakaan', 'petugas', 'siswa'];
+        $requiredRoles = ['super_admin', 'petugas', 'siswa'];
         $missingRoles = [];
 
         foreach ($requiredRoles as $roleName) {
