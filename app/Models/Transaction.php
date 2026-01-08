@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Mattiverse\Userstamps\Traits\Userstamps;
 
+/**
+ * @property \Carbon\Carbon $due_date
+ * @property \Carbon\Carbon $borrow_date
+ * @property \Carbon\Carbon $return_date
+ */
 class Transaction extends Model
 {
     use HasFactory;
@@ -147,7 +152,7 @@ class Transaction extends Model
      */
     public function isBorrowed(): bool
     {
-        return $this->status && $this->status->name === 'Dipinjam';
+        return $this->status && in_array($this->status->name, ['Dipinjam', 'Terlambat']);
     }
 
     /**

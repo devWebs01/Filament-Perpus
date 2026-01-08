@@ -15,6 +15,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 use JeffersonGoncalves\Filament\QrCodeField\Forms\Components\QrCodeInput;
 
@@ -114,17 +115,17 @@ class TransactionForm
                 Select::make('user_id')
                     ->label('Anggota')
                     ->placeholder('Pilih anggota atau scan kartu')
+                    ->relationship(
+                        name: 'user',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn (Builder $query, ?string $search) => $search
+                            ? $query->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                            : $query
+                    )
                     ->searchable()
                     ->preload()
                     ->allowHtml()
-                    ->getSearchResultsUsing(function (string $search): array {
-                        return User::where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%")
-                            ->limit(10)
-                            ->pluck('name', 'id')
-                            ->toArray();
-                    })
-                    ->getOptionLabelUsing(fn ($value) => User::find($value)?->name ?? '-')
                     ->required()
                     ->live(debounce: 300)
                     ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
@@ -162,22 +163,17 @@ class TransactionForm
                 Select::make('book_id')
                     ->label('Buku')
                     ->placeholder('Pilih buku atau scan barcode')
+                    ->relationship(
+                        name: 'book',
+                        titleAttribute: 'title',
+                        modifyQueryUsing: fn (Builder $query, ?string $search) => $search
+                            ? $query->where('title', 'like', "%{$search}%")
+                                ->orWhere('isbn', 'like', "%{$search}%")
+                            : $query
+                    )
                     ->searchable()
                     ->preload()
                     ->allowHtml()
-                    ->getSearchResultsUsing(function (string $search): array {
-                        return Book::where('title', 'like', "%{$search}%")
-                            ->orWhere('isbn', 'like', "%{$search}%")
-                            ->whereColumn('book_count', '>', 0)
-                            ->limit(10)
-                            ->pluck('title', 'id')
-                            ->toArray();
-                    })
-                    ->getOptionLabelUsing(function ($value) {
-                        $book = Book::find($value);
-
-                        return $book ? "{$book->title} ({$book->author})" : '-';
-                    })
                     ->required()
                     ->live(debounce: 300)
                     ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {

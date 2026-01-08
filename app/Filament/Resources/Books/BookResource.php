@@ -40,7 +40,8 @@ class BookResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return BooksTable::configure($table);
+        return BooksTable::configure($table)
+            ->modifyQueryUsing(fn (Builder $query) => $query->with('category'));
     }
 
     public static function infolist(Schema $schema): Schema

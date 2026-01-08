@@ -69,9 +69,42 @@ class ViewTransaction extends ViewRecord
                 ->icon('heroicon-o-arrow-uturn-left')
                 ->color('primary')
                 ->modalHeading('Proses Pengembalian Buku')
-                ->modalDescription('Pilih status pengembalian dan sesuaikan denda jika diperlukan.')
+                ->modalDescription(function ($record) {
+                    if (! $record->due_date) {
+                        return 'Pilih status pengembalian dan sesuaikan denda jika diperlukan.';
+                    }
+
+                    if ($record->isOverdue()) {
+                        $daysOverdue = $record->getDaysOverdue();
+                        $penalty = $record->getPenalty();
+
+                        return "Buku terlambat {$daysOverdue} hari. Denda otomatis: Rp ".number_format($penalty);
+                    }
+
+                    return 'Pilih status pengembalian dan sesuaikan denda jika diperlukan.';
+                })
                 ->modalSubmitActionLabel('Proses Pengembalian')
                 ->form([
+                    \Filament\Forms\Components\Placeholder::make('overdue_info')
+                        ->label('Informasi Keterlambatan')
+                        ->content(function ($record) {
+                            if (! $record->isOverdue()) {
+                                return new \Illuminate\Support\HtmlString(
+                                    '<div class="fi-ta-placeholder-text text-success-600 dark:text-success-400">✅ Dikembalikan tepat waktu</div>'
+                                );
+                            }
+
+                            $daysOverdue = $record->getDaysOverdue();
+                            $penalty = $record->getPenalty();
+
+                            return new \Illuminate\Support\HtmlString(
+                                '<div class="fi-ta-placeholder-text space-y-1">'.
+                                '<div class="text-danger-600 dark:text-danger-400 font-semibold">Terlambat '.$daysOverdue.' hari</div>'.
+                                '<div class="text-sm">Denda otomatis: <strong>Rp '.number_format($penalty).'</strong></div>'.
+                                '</div>'
+                            );
+                        })
+                        ->visible(fn ($record) => $record->due_date && $record->due_date->isPast()),
                     \Filament\Forms\Components\Select::make('return_status_id')
                         ->label('Status Pengembalian')
                         ->options(function () {
@@ -93,19 +126,40 @@ class ViewTransaction extends ViewRecord
                     \Filament\Forms\Components\TextInput::make('fine_amount')
                         ->label('Denda (Rp)')
                         ->numeric()
+                        ->integer()
+                        ->step(1)
                         ->prefix('Rp')
-                        ->default(function () {
-                            return \App\Models\Status::where('name', 'Dikembalikan')->first()?->amount ?? 0;
+                        ->default(function ($record) {
+                            if ($record->isOverdue()) {
+                                return $record->getPenalty();
+                            }
+
+                            return \App\Models\Status::where('name', 'Dikembalikan')
+                                ->value('amount') ?? 0;
                         })
                         ->required()
                         ->minValue(0)
-                        ->suffixIcon('heroicon-o-banknotes'),
+                        ->suffixIcon('heroicon-o-banknotes')
+                        ->hint(function ($record) {
+                            if (! $record->isOverdue()) {
+                                return null;
+                            }
+
+                            $daysOverdue = $record->getDaysOverdue();
+                            $penalty = $record->getPenalty();
+
+                            return sprintf(
+                                'Denda keterlambatan: %d hari × Rp 1.000 = Rp %s',
+                                $daysOverdue,
+                                number_format($penalty)
+                            );
+                        }),
                     \Filament\Forms\Components\Textarea::make('notes')
                         ->label('Catatan')
                         ->rows(2)
                         ->placeholder('Tambahkan catatan jika diperlukan...'),
                 ])
-                ->visible(fn ($record) => $record->status && in_array($record->status->name, ['Dipinjam', 'Terlambat'], true))
+                ->visible(fn ($record) => $record->isBorrowed())
                 ->action(function ($record, array $data) {
                     $service = app(\App\Services\TransactionService::class);
                     $result = $service->returnBook($record->id, $data);
@@ -121,10 +175,10 @@ class ViewTransaction extends ViewRecord
                 ),
 
             EditAction::make()
-                ->hidden(fn ($record) => $record->status && in_array($record->status->name, ['Dikembalikan', 'Dibatalkan'], true)),
+                ->hidden(fn ($record) => $record->isReturned() || $record->status?->name === 'Dibatalkan'),
 
             \Filament\Actions\DeleteAction::make()
-                ->hidden(fn ($record) => $record->status && in_array($record->status->name, ['Dipinjam', 'Terlambat'], true)),
+                ->hidden(fn ($record) => $record->isBorrowed()),
             \Filament\Actions\ForceDeleteAction::make(),
             \Filament\Actions\RestoreAction::make(),
         ];

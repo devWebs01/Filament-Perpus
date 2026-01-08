@@ -19,6 +19,7 @@ class BooksTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->deferLoading()
             ->columns([
                 TextColumn::make('title')
                     ->label('Judul')
