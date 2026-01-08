@@ -86,11 +86,21 @@ class AdminPanelProvider extends PanelProvider
                     ->setIcon('heroicon-o-user'),
                 FilamentDeveloperLoginsPlugin::make()
                     ->enabled(app()->environment('local'))
-                    ->users(fn () => \App\Models\User::query()->whereIn('email', [
-                        'kepala@testing.com',
-                        'siswa@testing.com',
-                        'petugas1@testing.com',
-                    ])->get()->pluck('email', 'name')->toArray()),
+                    ->users(function () {
+                        // Mengambil satu user pertama untuk setiap role yang diinginkan
+                        $roles = ['super_admin', 'petugas', 'siswa'];
+                        $devUsers = [];
+
+                        foreach ($roles as $role) {
+                            $user = \App\Models\User::role($role)->first();
+                            if ($user) {
+                                // Format: 'Nama Role (Nama User)' => 'email@user.com'
+                                $devUsers[ucfirst($role)] = $user->email;
+                            }
+                        }
+
+                        return $devUsers;
+                    }),
             ])
             ->unsavedChangesAlerts();
     }
