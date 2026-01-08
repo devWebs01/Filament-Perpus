@@ -6,7 +6,6 @@ use App\Filament\Widgets\LibraryStatsWidget;
 use App\Filament\Widgets\OverdueBooksWidget;
 use App\Filament\Widgets\RecentTransactionsWidget;
 use App\Http\Middleware\RedirectIfNotFilamentAdmin;
-use App\Models\Setting;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use DutchCodingCompany\FilamentDeveloperLogins\FilamentDeveloperLoginsPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -72,7 +71,7 @@ class AdminPanelProvider extends PanelProvider
                 'Manajemen Pengguna',
                 'Manajemen Perpustakaan',
             ])
-            ->brandName(Setting::first()->name ?? 'Perpustakaan')
+            ->brandName(fn () => \Illuminate\Support\Facades\Schema::hasTable('settings') ? (\App\Models\Setting::first()?->name ?? 'Perpustakaan') : 'Perpustakaan')
             ->plugins([
                 FilamentShieldPlugin::make()
                     ->navigationLabel('Hak Akses')

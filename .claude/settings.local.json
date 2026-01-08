@@ -36,7 +36,8 @@
       "mcp__laravel-boost__search-docs",
       "mcp__laravel-boost__database-schema",
       "Bash(curl:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "WebSearch"
     ]
   },
   "enableAllProjectMcpServers": true,

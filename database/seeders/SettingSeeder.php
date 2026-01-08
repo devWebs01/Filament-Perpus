@@ -15,19 +15,19 @@ class SettingSeeder extends Seeder
      */
     public function run(): void
     {
-        $imageContents = file_get_contents('https://sman1singgahan.sch.id/wp-content/uploads/2023/04/Logo-Tut-Wuri-Handayani-PNG-Warna.png');
+        $imageContents = file_get_contents('https://assets.nsd.co.id/images/kampus/logo/download_(19).png');
         if ($imageContents === false) {
             throw new \Exception('Could not get contents from URL.');
         }
-        $imageName = Str::random(20).'.jpg';
-        $imagePath = 'setting/'.$imageName;
+        $imageName = Str::random(20) . '.jpg';
+        $imagePath = 'setting/' . $imageName;
         Storage::disk('public')->put($imagePath, $imageContents);
 
-        Log::info('Image for Library System saved to '.$imagePath);
+        Log::info('Image for Library System saved to ' . $imagePath);
         Setting::create([
-            'name' => 'Library System',
+            'name' => "MADRASAH ALIYAH MAMBA'UL ULUM",
             'logo' => $imagePath,
-            'address' => fake()->address(),
+            'address' => '9M89+V87, Jambi,Talang Bakung, Paal Merah, Kec, Kota Jambi, Jambi 36139',
             'phone' => '089786545677',
             'limit_day' => 7,
             'max_borrow' => 3,

@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Mattiverse\Userstamps\Traits\Userstamps;
 
+/**
+ * @property string $name
+ * @property int $amount
+ */
 class Status extends Model
 {
     use HasFactory;

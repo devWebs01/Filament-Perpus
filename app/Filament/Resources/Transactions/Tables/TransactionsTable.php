@@ -16,6 +16,7 @@ class TransactionsTable
     {
         return $table
             ->defaultSort('created_at', 'desc')
+            ->deferLoading()
             ->columns([
                 TextColumn::make('code')
                     ->label('Kode')
