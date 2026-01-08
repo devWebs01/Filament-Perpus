@@ -247,7 +247,50 @@ sequenceDiagram
     Frontend->>Backend: Update Status (Dipinjam)
     Backend->>DB: Update Transaction & Kurangi Stok
     DB-->>Backend: Success
+    Backend->>DB: Update Transaction & Kurangi Stok
+    DB-->>Backend: Success
     Backend-->>Siswa: Kirim Email Notifikasi (Optional)
+```
+
+---
+
+## Flowchart (Business Process)
+
+Diagram alir proses peminjaman dan pengembalian lengkap dengan logika dendanya.
+
+```mermaid
+flowchart TD
+    Start([Mulai]) --> Search[Cari Buku]
+    Search --> Available{Stok Ada?}
+    
+    Available -->|Tidak| Wait[Masuk Waiting List / Cari Lain]
+    Available -->|Ya| Request[Request Peminjaman]
+    
+    Request --> Approve{Admin Setuju?}
+    Approve -->|Tidak/Ditolak| End([Selesai])
+    Approve -->|Ya| Borrowed[Buku Dipinjam]
+    
+    Borrowed --> Return[Proses Pengembalian]
+    Return --> Condition{Cek Kondisi}
+    
+    Condition -->|Baik| Overdue{Terlambat?}
+    Condition -->|Rusak Ringan| Fine1[Denda Rp 5.000]
+    Condition -->|Rusak Berat| Fine2[Denda Rp 10.000]
+    Condition -->|Hilang| Fine3[Denda Rp 50.000]
+    
+    Overdue -->|Ya| LateFine[Hitung Denda Harian]
+    Overdue -->|Tidak| NoFine[Tanpa Denda]
+    
+    LateFine --> TotalFine[Total Denda]
+    Fine1 --> TotalFine
+    Fine2 --> TotalFine
+    Fine3 --> TotalFine
+    
+    TotalFine --> Pay[Pembayaran Denda]
+    NoFine --> Finish[Update Stok & Status]
+    Pay --> Finish
+    
+    Finish --> End
 ```
 
 ---
