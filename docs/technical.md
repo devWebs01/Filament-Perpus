@@ -175,7 +175,79 @@ classDiagram
     User "1" --> "*" Book : Bookmarks
     Category "1" --> "*" Book : HasMany
     Book "1" --> "*" Transaction : HasMany
+    Book "1" --> "*" Transaction : HasMany
     Transaction "*" --> "1" Status : BelongsTo
+```
+
+---
+
+## State Diagram (Transaction Lifecycle)
+
+Diagram status transaksi peminjaman buku.
+
+```mermaid
+stateDiagram-v2
+    [*] --> MenungguPersetujuan: Request Peminjaman
+    
+    MenungguPersetujuan --> Dipinjam: Disetujui Admin
+    MenungguPersetujuan --> Ditolak: Ditolak Admin
+    MenungguPersetujuan --> Dibatalkan: Dibatalkan User
+    
+    Dipinjam --> Terlambat: Melewati Due Date
+    
+    state "Pengembalian (Selesai)" as Selesai {
+        [*] --> Dikembalikan: Kondisi Baik
+        [*] --> RusakRingan: Denda Ringan
+        [*] --> RusakBerat: Denda Berat
+        [*] --> Hilang: Denda Hilang
+    }
+
+    Dipinjam --> Selesai: Proses Pengembalian
+    Terlambat --> Selesai: Proses Pengembalian
+
+    Ditolak --> [*]
+    Dibatalkan --> [*]
+    Selesai --> [*]
+```
+
+---
+
+## Sequence Diagram
+
+Alur proses peminjaman buku oleh siswa.
+
+```mermaid
+sequenceDiagram
+    actor Siswa
+    participant Frontend (Livewire)
+    participant Backend (Controller)
+    participant DB (Database)
+    actor Admin
+
+    Siswa->>Frontend: Pilih Buku & Klik "Pinjam"
+    Frontend->>Backend: Request Peminjaman (book_id, user_id)
+    Backend->>DB: Cek Stok & Eligibility
+    alt Stok Kosong / Max Pinjam
+        DB-->>Backend: Gagal
+        Backend-->>Frontend: Tampilkan Error
+        Frontend-->>Siswa: Notifikasi Gagal
+    else Eligible
+        Backend->>DB: Create Transaction (Status: Menunggu)
+        DB-->>Backend: Success
+        Backend-->>Frontend: Success Message
+        Frontend-->>Siswa: Notifikasi "Menunggu Persetujuan"
+    end
+
+    Note over Admin: Proses Approval
+
+    Admin->>Frontend: Buka Menu Transaksi
+    Frontend->>DB: Fetch Pending Transactions
+    DB-->>Frontend: List Transaksi
+    Admin->>Frontend: Klik "Setujui"
+    Frontend->>Backend: Update Status (Dipinjam)
+    Backend->>DB: Update Transaction & Kurangi Stok
+    DB-->>Backend: Success
+    Backend-->>Siswa: Kirim Email Notifikasi (Optional)
 ```
 
 ---
