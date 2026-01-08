@@ -24,11 +24,11 @@ class TransactionResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Manajemen Perpustakaan';
 
-    protected static ?string $navigationLabel = 'Transaksi';
+    protected static ?string $navigationLabel = 'Peminjaman';
 
-    protected static ?string $pluralLabel = 'Transaksi';
+    protected static ?string $pluralLabel = 'Peminjaman';
 
-    protected static ?string $label = 'Transaksi';
+    protected static ?string $label = 'Peminjaman';
 
     protected static ?int $navigationSort = 3;
 

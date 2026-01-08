@@ -13,72 +13,76 @@ class RegenerateQRCodes extends Command
      *
      * @var string
      */
-    protected $signature = 'lib:regenerate-qr-codes {--user-id= : Regenerate QR code for specific user ID}';
+    protected $signature = 'lib:regenerate-qr-codes
+                            {--user-id= : Regenerate QR code for specific user ID}
+                            {--book-id= : Regenerate QR code for specific book ID}
+                            {--force : Force regenerate even if exists}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Regenerate all QR codes as files (users stored in user_barcode/, books in book_barcode/)';
+    protected $description = 'Regenerate QR codes (defaults to missing only, use --force to overwrite)';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $this->info('🔄 Regenerating QR codes as files...');
+        $this->info('🔄 Checking QR codes...');
+
+        $force = $this->option('force');
 
         if ($this->option('user-id')) {
-            $this->regenerateSingleUserQRCode((int) $this->option('user-id'));
+            $this->regenerateSingleUserQRCode((int) $this->option('user-id'), $force);
+        } elseif ($this->option('book-id')) {
+            $this->regenerateSingleBookQRCode((int) $this->option('book-id'), $force);
         } else {
-            $this->regenerateAllQRCodes();
+            $this->regenerateAllQRCodes($force);
         }
 
-        $this->info('✅ QR code regeneration completed!');
+        $this->info('✅ Operation completed!');
         $this->displayStorageInfo();
     }
 
     /**
-     * Regenerate QR codes for all users
+     * Regenerate all QR codes
      */
-    private function regenerateAllQRCodes(): void
+    private function regenerateAllQRCodes(bool $force): void
     {
+        // 1. Process Users
         $userDetails = UserDetail::with('user')->get();
+        $this->info('👥 Processing '.$userDetails->count().' users...');
 
-        $this->info('📱 Regenerating QR codes for '.$userDetails->count().' users...');
-
+        $userCount = 0;
         foreach ($userDetails as $userDetail) {
-            try {
-                // Delete old QR code file if exists
-                $oldImagePath = $userDetail->barcode_image;
-                if ($oldImagePath && ! str_starts_with($oldImagePath, 'data:')) {
-                    app(BarcodeService::class)->deleteBarcode($oldImagePath);
-                }
-
-                // Generate new QR code (returns array with code and image_path)
-                $result = app(BarcodeService::class)->generateUserBarcode($userDetail->user_id);
-
-                // Update user detail with separate fields
-                $userDetail->update([
-                    'barcode' => $result['code'],
-                    'barcode_image' => $result['image_path'],
-                ]);
-
-                $this->info("   ✅ {$userDetail->user?->name}: {$result['code']}");
-                $this->info("      📁 {$result['image_path']}");
-            } catch (\Exception $e) {
-                $this->error("   ❌ Failed for {$userDetail->user?->name}: {$e->getMessage()}");
+            if ($this->processUserQRCode($userDetail, $force)) {
+                $userCount++;
             }
         }
+
+        // 2. Process Books
+        $books = \App\Models\Book::all();
+        $this->info('📚 Processing '.$books->count().' books...');
+
+        $bookCount = 0;
+        foreach ($books as $book) {
+            if ($this->processBookQRCode($book, $force)) {
+                $bookCount++;
+            }
+        }
+
+        $this->newLine();
+        $this->info("Summary: Generated {$userCount} user codes and {$bookCount} book codes.");
     }
 
     /**
      * Regenerate QR code for a specific user
      */
-    private function regenerateSingleUserQRCode(int $userId): void
+    private function regenerateSingleUserQRCode(int $userId, bool $force): void
     {
-        $userDetail = UserDetail::with('user')->find($userId);
+        $userDetail = UserDetail::with('user')->where('user_id', $userId)->first();
 
         if (! $userDetail) {
             $this->error("❌ User with ID {$userId} not found!");
@@ -86,28 +90,97 @@ class RegenerateQRCodes extends Command
             return;
         }
 
-        try {
-            $this->info("🔄 Regenerating QR code for {$userDetail->user?->name}...");
+        $this->processUserQRCode($userDetail, $force);
+    }
 
-            // Delete old QR code file if exists
+    /**
+     * Regenerate QR code for a specific book
+     */
+    private function regenerateSingleBookQRCode(int $bookId, bool $force): void
+    {
+        $book = \App\Models\Book::find($bookId);
+
+        if (! $book) {
+            $this->error("❌ Book with ID {$bookId} not found!");
+
+            return;
+        }
+
+        $this->processBookQRCode($book, $force);
+    }
+
+    /**
+     * Process User Logic (Generate if missing or force)
+     * Returns true if generated
+     */
+    private function processUserQRCode(UserDetail $userDetail, bool $force): bool
+    {
+        // Check if exists
+        if (! $force && $userDetail->barcode && $userDetail->barcode_image && app(BarcodeService::class)->barcodeExists($userDetail->barcode_image)) {
+            // $this->line("   ⏩ Skipped {$userDetail->user?->name} (already exists)");
+            return false;
+        }
+
+        try {
+            // Delete old if exists (only if strictly regenerating)
             $oldImagePath = $userDetail->barcode_image;
             if ($oldImagePath && ! str_starts_with($oldImagePath, 'data:')) {
                 app(BarcodeService::class)->deleteBarcode($oldImagePath);
             }
 
-            // Generate new QR code (returns array with code and image_path)
+            // Generate
             $result = app(BarcodeService::class)->generateUserBarcode($userDetail->user_id);
 
-            // Update user detail with separate fields
+            // Update
             $userDetail->update([
                 'barcode' => $result['code'],
                 'barcode_image' => $result['image_path'],
             ]);
 
-            $this->info("   ✅ QR Code generated: {$result['code']}");
-            $this->info("      📁 {$result['image_path']}");
+            $this->info("   ✅ User generated: {$userDetail->user?->name}");
+
+            return true;
         } catch (\Exception $e) {
-            $this->error("❌ Failed: {$e->getMessage()}");
+            $this->error("   ❌ Failed User {$userDetail->user_id}: {$e->getMessage()}");
+
+            return false;
+        }
+    }
+
+    /**
+     * Process Book Logic
+     * Returns true if generated
+     */
+    private function processBookQRCode(\App\Models\Book $book, bool $force): bool
+    {
+        // Check if exists
+        if (! $force && $book->barcode && $book->barcode_image && app(BarcodeService::class)->barcodeExists($book->barcode_image)) {
+            return false;
+        }
+
+        try {
+            // Delete old
+            $oldImagePath = $book->barcode_image;
+            if ($oldImagePath) {
+                app(BarcodeService::class)->deleteBarcode($oldImagePath);
+            }
+
+            // Generate
+            $result = app(BarcodeService::class)->generateBookBarcodeWithCode($book->id);
+
+            // Update
+            $book->update([
+                'barcode' => $result['code'],
+                'barcode_image' => $result['image_path'],
+            ]);
+
+            $this->info("   ✅ Book generated: {$book->title}");
+
+            return true;
+        } catch (\Exception $e) {
+            $this->error("   ❌ Failed Book {$book->id}: {$e->getMessage()}");
+
+            return false;
         }
     }
 

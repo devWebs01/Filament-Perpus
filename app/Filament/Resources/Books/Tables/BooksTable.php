@@ -10,7 +10,6 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -27,17 +26,6 @@ class BooksTable
                     ->sortable()
                     ->weight('bold')
                     ->wrap(),
-
-                ImageColumn::make('image')
-                    ->label('Sampul Buku')
-                    ->disk('public')
-                    ->circular()
-                    ->defaultImageUrl(url('/images/no-cover.png')),
-
-                ImageColumn::make('barcode_image')
-                    ->label('Barcode Buku')
-                    ->disk('public')
-                    ->height(50),
 
                 TextColumn::make('category.name')
                     ->label('Kategori')
