@@ -28,269 +28,280 @@ $overdueCount = computed(function () {
         ->where('due_date', '<', now())
         ->count();
 });
-  
-  ?>
+
+?>
 
 @volt
-<div
-    class="flex items-center justify-between px-6 py-3 md:py-4 shadow-sm w-full max-w-7xl mx-auto rounded-full bg-white transition-colors duration-300">
-    <a href="{{ route('welcome') }}">
-        <img src="{{ $setting?->logo ? Storage::url($setting->logo) : 'https://sman1singgahan.sch.id/wp-content/uploads/2023/04/Logo-Tut-Wuri-Handayani-PNG-Warna.png' }}"
-            style="width: 30px;" />
-    </a>
-    <nav id="menu"
-        class="max-md:absolute max-md:top-0 max-md:left-0 max-md:overflow-hidden max-md:inset-y-0 items-center justify-center max-md:h-full max-md:w-0 transition-[width] bg-white/95 backdrop-blur flex-col md:flex-row flex gap-6 md:gap-8 text-gray-900 text-sm font-normal z-10">
+    <div
+        class="flex items-center justify-between px-6 py-3 md:py-4 shadow-sm w-full max-w-7xl mx-auto rounded-full bg-white transition-colors duration-300">
+        <a href="{{ route('welcome') }}">
+            <img src="{{ $setting?->logo ? Storage::url($setting->logo) : 'https://sman1singgahan.sch.id/wp-content/uploads/2023/04/Logo-Tut-Wuri-Handayani-PNG-Warna.png' }}"
+                style="width: 30px;" />
+        </a>
+        <nav id="menu"
+            class="max-md:absolute max-md:top-0 max-md:left-0 max-md:overflow-hidden max-md:inset-y-0 items-center justify-center max-md:h-full max-md:w-0 transition-[width] bg-white/95 backdrop-blur flex-col md:flex-row flex gap-6 md:gap-8 text-gray-900 text-sm font-normal z-10">
 
-        <!-- Navigation Links -->
-        <div class="flex flex-col md:flex-row gap-4 md:gap-8 w-full md:w-auto">
-            <a class="hover:text-warning-600 transition-colors py-2 text-center" href="{{ route('welcome') }}">
-                Beranda
-            </a>
-            <a class="hover:text-warning-600 transition-colors py-2 text-center" href="{{ route('catalog') }}">
-                Katalog Buku
-            </a>
-        </div>
-        @guest
-            <div class="flex flex-col md:hidden gap-3 w-full px-6 border-t border-gray-200 pt-4 mt-4">
-                <a class="bg-warning-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-warning-700 transition text-center"
-                    href="/admin/login">
-                    Sign In
+            <!-- Navigation Links -->
+            <div class="flex flex-col md:flex-row gap-4 md:gap-8 w-full md:w-auto">
+                <a class="hover:text-warning-600 transition-colors py-2 text-center" href="{{ route('welcome') }}">
+                    Beranda
                 </a>
-                <a class="border border-warning-600 text-warning-600 px-5 py-2 rounded-full text-sm font-medium hover:bg-warning-50 transition text-center"
-                    href="/admin/register">
-                    Sign Up
+                <a class="hover:text-warning-600 transition-colors py-2 text-center" href="{{ route('catalog') }}">
+                    Katalog Buku
                 </a>
             </div>
-        @else
-            <div class="flex flex-col md:hidden w-full px-6 border-t border-gray-200 pt-4 mt-4">
-                <div class="flex items-center justify-center mb-4">
-                    <span class="ml-3 font-medium text-gray-900">{{ auth()->user()->name }}</span>
+            @guest
+                <div class="flex flex-col md:hidden gap-3 w-full px-6 border-t border-gray-200 pt-4 mt-4">
+                    <a class="bg-warning-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-warning-700 transition text-center"
+                        href="/admin/login">
+                        Masuk
+                    </a>
+                    <a class="border border-warning-600 text-warning-600 px-5 py-2 rounded-full text-sm font-medium hover:bg-warning-50 transition text-center"
+                        href="/admin/register">
+                        Sign Up
+                    </a>
                 </div>
-                <div class="space-y-2">
-                    <a href="{{ route('profile') }}"
-                        class="flex items-center justify-center gap-2 text-gray-700 hover:text-warning-600 py-2 relative">
-                        <i class="iconoir-user"></i>
-                        Profil
-                        @if ($this->profileIncomplete)
-                            <span class="absolute -top-1 -right-1 flex h-4 w-4">
-                                <span
-                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                <span
-                                    class="relative inline-flex rounded-full h-4 w-4 bg-red-500 items-center justify-center text-xs text-white font-bold">!</span>
-                            </span>
-                        @endif
-                    </a>
-                    <a href="{{ route('my-books') }}"
-                        class="flex items-center justify-center gap-2 text-gray-700 hover:text-warning-600 py-2 relative">
-                        <i class="iconoir-book"></i>
-                        Buku Saya
-                        @if ($this->overdueCount > 0)
-                            <span class="absolute -top-1 -right-1 flex h-4 w-4">
-                                <span
-                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                <span
-                                    class="relative inline-flex rounded-full h-4 w-4 bg-red-500 items-center justify-center text-xs text-white font-bold">!</span>
-                            </span>
-                        @endif
-                    </a>
-                    <div class="border-t border-gray-200 pt-2">
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit"
-                                class="flex items-center justify-center gap-2 text-error hover:bg-red-50 rounded-lg p-2 w-full transition-colors">
-                                <i class="iconoir-log-out"></i>
-                                Keluar
-                            </button>
-                        </form>
+            @else
+                <div class="flex flex-col md:hidden w-full px-6 border-t border-gray-200 pt-4 mt-4">
+                    <div class="flex items-center justify-center mb-4">
+                        <span class="ml-3 font-medium text-gray-900">{{ auth()->user()->name }}</span>
+                    </div>
+                    <div class="space-y-2">
+                        <a href="{{ route('profile') }}"
+                            class="flex items-center justify-center gap-2 text-gray-700 hover:text-warning-600 py-2 relative">
+                            <i class="iconoir-user"></i>
+                            Profil
+                            @if ($this->profileIncomplete)
+                                <span class="absolute -top-1 -right-1 flex h-4 w-4">
+                                    <span
+                                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span
+                                        class="relative inline-flex rounded-full h-4 w-4 bg-red-500 items-center justify-center text-xs text-white font-bold">!</span>
+                                </span>
+                            @endif
+                        </a>
+                        <a href="{{ route('my-books') }}"
+                            class="flex items-center justify-center gap-2 text-gray-700 hover:text-warning-600 py-2 relative">
+                            <i class="iconoir-book"></i>
+                            Buku Saya
+                            @if ($this->overdueCount > 0)
+                                <span class="absolute -top-1 -right-1 flex h-4 w-4">
+                                    <span
+                                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span
+                                        class="relative inline-flex rounded-full h-4 w-4 bg-red-500 items-center justify-center text-xs text-white font-bold">!</span>
+                                </span>
+                            @endif
+                        </a>
+                        <div class="border-t border-gray-200 pt-2">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit"
+                                    class="flex items-center justify-center gap-2 text-error hover:bg-red-50 rounded-lg p-2 w-full transition-colors">
+                                    <i class="iconoir-log-out"></i>
+                                    Keluar
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
-        @endguest
+            @endguest
 
-        <!-- Close Menu Button -->
-        <button id="closeMenu"
-            class="md:hidden absolute top-4 right-4 text-gray-600 hover:text-gray-800 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
-    </nav>
+            <!-- Close Menu Button -->
+            <button id="closeMenu"
+                class="md:hidden absolute top-4 right-4 text-gray-600 hover:text-gray-800 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </nav>
 
-    <div class="flex items-center space-x-4">
-        <!-- Desktop Authentication Buttons -->
-        @guest
-            <a class="hidden md:flex bg-warning-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-warning-700 transition"
-                href="/admin/login">
-                Sign In
-            </a>
-        @else
-            <!-- User dropdown menu -->
-            <div x-data="{ isDropdownOpen: false }" class="relative">
-                <button @click="isDropdownOpen = !isDropdownOpen" @click.outside="isDropdownOpen = false"
-                    class="btn btn-sm btn-circle avatar hidden md:flex bg-gray-50">
-                    <i class="iconoir-user" style="transition: opacity 0.2s;"></i>
-                </button>
-                <ul x-show="isDropdownOpen" x-transition.origin.top.right
-                    @click.outside="isDropdownOpen = false"
-                    class="menu menu-sm absolute right-0 top-12 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-                    <li class="menu-title">
-                        <span>{{ Str::limit(auth()->user()->name, '15', '...') }}</span>
-                    </li>
-                    <li>
-                        <a href="{{ route('profile') }}" class="flex items-center text-black gap-2 justify-between">
-                            <span class="flex items-center gap-2">
-                                <i class="iconoir-user"></i>
-                                Profil
-                            </span>
-                            @if ($this->profileIncomplete)
-                                <span class="flex h-5 w-5">
-                                    <span
-                                        class="animate-ping absolute inline-flex h-5 w-5 rounded-full bg-red-400 opacity-75"></span>
-                                    <span
-                                        class="relative inline-flex rounded-full h-5 w-5 bg-red-500 items-center justify-center text-xs text-white font-bold">!</span>
+        <div class="flex items-center space-x-4">
+            <!-- Desktop Authentication Buttons -->
+            @guest
+                <a class="hidden md:flex bg-warning-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-warning-700 transition"
+                    href="/admin/login">
+                    Masuk
+                </a>
+            @else
+                <!-- User dropdown menu -->
+                <div x-data="{ isDropdownOpen: false }" class="relative">
+                    <button @click="isDropdownOpen = !isDropdownOpen" @click.outside="isDropdownOpen = false"
+                        class="btn btn-sm btn-circle avatar hidden md:flex bg-gray-50">
+                        <i class="iconoir-user" style="transition: opacity 0.2s;"></i>
+                    </button>
+                    <ul x-show="isDropdownOpen" x-transition.origin.top.right @click.outside="isDropdownOpen = false"
+                        class="menu menu-sm absolute right-0 top-12 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                        <li class="menu-title">
+                            <span>{{ Str::limit(auth()->user()->name, '15', '...') }}</span>
+                        </li>
+                        <li>
+                            <a href="{{ route('profile') }}" class="flex items-center text-black gap-2 justify-between">
+                                <span class="flex items-center gap-2">
+                                    <i class="iconoir-user"></i>
+                                    Profil
                                 </span>
-                            @endif
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('my-books') }}" class="flex items-center text-black gap-2 justify-between">
-                            <span class="flex items-center gap-2">
-                                <i class="iconoir-book"></i>
-                                Buku Saya
-                            </span>
-                            @if ($this->overdueCount > 0)
-                                <span class="flex h-5 w-5">
-                                    <span
-                                        class="animate-ping absolute inline-flex h-5 w-5 rounded-full bg-red-400 opacity-75"></span>
-                                    <span
-                                        class="relative inline-flex rounded-full h-5 w-5 bg-red-500 items-center justify-center text-xs text-white font-bold">!</span>
+                                @if ($this->profileIncomplete)
+                                    <span class="flex h-5 w-5">
+                                        <span
+                                            class="animate-ping absolute inline-flex h-5 w-5 rounded-full bg-red-400 opacity-75"></span>
+                                        <span
+                                            class="relative inline-flex rounded-full h-5 w-5 bg-red-500 items-center justify-center text-xs text-white font-bold">!</span>
+                                    </span>
+                                @endif
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('my-books') }}" class="flex items-center text-black gap-2 justify-between">
+                                <span class="flex items-center gap-2">
+                                    <i class="iconoir-book"></i>
+                                    Buku Saya
                                 </span>
-                            @endif
-                        </a>
-                    </li>
-                    <div class="divider my-1"></div>
-                    <li>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit"
-                                class="flex items-center gap-2 text-error rounded-lg p-2 w-full text-left">
-                                <i class="iconoir-log-out"></i>
-                                Keluar
-                            </button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-        @endguest
+                                @if ($this->overdueCount > 0)
+                                    <span class="flex h-5 w-5">
+                                        <span
+                                            class="animate-ping absolute inline-flex h-5 w-5 rounded-full bg-red-400 opacity-75"></span>
+                                        <span
+                                            class="relative inline-flex rounded-full h-5 w-5 bg-red-500 items-center justify-center text-xs text-white font-bold">!</span>
+                                    </span>
+                                @endif
+                            </a>
+                        </li>
+                        <div class="divider my-1"></div>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit"
+                                    class="flex items-center gap-2 text-error rounded-lg p-2 w-full text-left">
+                                    <i class="iconoir-log-out"></i>
+                                    Keluar
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            @endguest
 
-        <button id="openMenu" class="md:hidden text-gray-600 hover:text-gray-800 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-        </button>
+            <button id="openMenu" class="md:hidden text-gray-600 hover:text-gray-800 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+
     </div>
 
-</div>
+    <script>
+        (function() {
+            'use strict';
 
-<script>
-    (function() {
-        'use strict';
+            let openMenuBtn, closeMenuBtn, menu;
+            let openMenuHandler, closeMenuHandler;
+            const linkHandlers = [];
 
-        let openMenuBtn, closeMenuBtn, menu;
-        let openMenuHandler, closeMenuHandler;
-        const linkHandlers = [];
+            function init() {
+                openMenuBtn = document.getElementById('openMenu');
+                closeMenuBtn = document.getElementById('closeMenu');
+                menu = document.getElementById('menu');
 
-        function init() {
-            openMenuBtn = document.getElementById('openMenu');
-            closeMenuBtn = document.getElementById('closeMenu');
-            menu = document.getElementById('menu');
+                if (!openMenuBtn || !closeMenuBtn || !menu) {
+                    return;
+                }
 
-            if (!openMenuBtn || !closeMenuBtn || !menu) {
-                return;
-            }
+                cleanup();
 
-            cleanup();
+                openMenuHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    menu?.classList.remove('max-md:w-0');
+                    menu?.classList.add('max-md:w-screen');
+                    menu?.classList.add('max-md:px-4');
+                    menu?.classList.remove('max-md:overflow-hidden');
+                    menu?.classList.add('max-md:overflow-auto');
+                };
 
-            openMenuHandler = function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                menu?.classList.remove('max-md:w-0');
-                menu?.classList.add('max-md:w-screen');
-                menu?.classList.add('max-md:px-4');
-                menu?.classList.remove('max-md:overflow-hidden');
-                menu?.classList.add('max-md:overflow-auto');
-            };
+                closeMenuHandler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    menu?.classList.add('max-md:w-0');
+                    menu?.classList.remove('max-md:w-screen');
+                    menu?.classList.remove('max-md:px-4');
+                    menu?.classList.add('max-md:overflow-hidden');
+                    menu?.classList.remove('max-md:overflow-auto');
+                };
 
-            closeMenuHandler = function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                menu?.classList.add('max-md:w-0');
-                menu?.classList.remove('max-md:w-screen');
-                menu?.classList.remove('max-md:px-4');
-                menu?.classList.add('max-md:overflow-hidden');
-                menu?.classList.remove('max-md:overflow-auto');
-            };
-
-            openMenuBtn.addEventListener('click', openMenuHandler, { passive: false });
-            closeMenuBtn.addEventListener('click', closeMenuHandler, { passive: false });
-
-            const menuLinks = menu?.querySelectorAll('a');
-            if (menuLinks) {
-                menuLinks.forEach((link) => {
-                    const linkHandler = function (e) {
-                        if (window.innerWidth < 768) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            menu?.classList.add('max-md:w-0');
-                            menu?.classList.remove('max-md:w-screen');
-                            menu?.classList.remove('max-md:px-4');
-                            menu?.classList.add('max-md:overflow-hidden');
-                            menu?.classList.remove('max-md:overflow-auto');
-
-                            const href = link.getAttribute('href');
-                            if (href) {
-                                setTimeout(() => {
-                                    window.location.href = href;
-                                }, 100);
-                            }
-                        }
-                    };
-                    link.addEventListener('click', linkHandler, { passive: false });
-                    linkHandlers.push({ element: link, handler: linkHandler });
+                openMenuBtn.addEventListener('click', openMenuHandler, {
+                    passive: false
                 });
+                closeMenuBtn.addEventListener('click', closeMenuHandler, {
+                    passive: false
+                });
+
+                const menuLinks = menu?.querySelectorAll('a');
+                if (menuLinks) {
+                    menuLinks.forEach((link) => {
+                        const linkHandler = function(e) {
+                            if (window.innerWidth < 768) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                menu?.classList.add('max-md:w-0');
+                                menu?.classList.remove('max-md:w-screen');
+                                menu?.classList.remove('max-md:px-4');
+                                menu?.classList.add('max-md:overflow-hidden');
+                                menu?.classList.remove('max-md:overflow-auto');
+
+                                const href = link.getAttribute('href');
+                                if (href) {
+                                    setTimeout(() => {
+                                        window.location.href = href;
+                                    }, 100);
+                                }
+                            }
+                        };
+                        link.addEventListener('click', linkHandler, {
+                            passive: false
+                        });
+                        linkHandlers.push({
+                            element: link,
+                            handler: linkHandler
+                        });
+                    });
+                }
             }
-        }
 
-        function cleanup() {
-            if (openMenuBtn && openMenuHandler) {
-                openMenuBtn.removeEventListener('click', openMenuHandler);
+            function cleanup() {
+                if (openMenuBtn && openMenuHandler) {
+                    openMenuBtn.removeEventListener('click', openMenuHandler);
+                }
+                if (closeMenuBtn && closeMenuHandler) {
+                    closeMenuBtn.removeEventListener('click', closeMenuHandler);
+                }
+                linkHandlers.forEach(({
+                    element,
+                    handler
+                }) => {
+                    element.removeEventListener('click', handler);
+                });
+                linkHandlers.length = 0;
+                openMenuHandler = null;
+                closeMenuHandler = null;
             }
-            if (closeMenuBtn && closeMenuHandler) {
-                closeMenuBtn.removeEventListener('click', closeMenuHandler);
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
             }
-            linkHandlers.forEach(({ element, handler }) => {
-                element.removeEventListener('click', handler);
-            });
-            linkHandlers.length = 0;
-            openMenuHandler = null;
-            closeMenuHandler = null;
-        }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
-        }
+            window.addEventListener('beforeunload', cleanup);
 
-        window.addEventListener('beforeunload', cleanup);
-
-        if (typeof Livewire !== 'undefined') {
-            Livewire.hook('message.failed', cleanup);
-            Livewire.hook('message.processed', cleanup);
-            Livewire.hook('element.removed', init);
-        }
-    })();
-</script>
+            if (typeof Livewire !== 'undefined') {
+                Livewire.hook('message.failed', cleanup);
+                Livewire.hook('message.processed', cleanup);
+                Livewire.hook('element.removed', init);
+            }
+        })();
+    </script>
 @endvolt
