@@ -44,6 +44,140 @@ Mencatat sirkulasi peminjaman.
 - `code` (Unique), `user_id`, `book_id`, `borrow_date`, `due_date`, `return_date`, `status_id`.
 - `penalty_total`: Total denda jika ada.
 
+```mermaid
+erDiagram
+    users ||--o{ user_details : has
+    users ||--o{ transactions : makes
+    users ||--o{ bookmarks : creates
+    users ||--o{ model_has_roles : has
+    users ||--o{ model_has_permissions : has
+
+    roles ||--o{ model_has_roles : assigned_to
+    permissions ||--o{ model_has_permissions : assigned_to
+    role_has_permissions }o--|| roles : belongs_to
+    role_has_permissions }o--|| permissions : belongs_to
+
+    categories ||--o{ books : categorizes
+    books ||--o{ transactions : borrowed_in
+    books ||--o{ bookmarks : saved_in
+    statuses ||--o{ transactions : defines
+
+    users {
+        int id PK
+        string name
+        string email UK
+        datetime email_verified_at
+        string password
+        string role
+        string avatar_url
+    }
+
+    user_details {
+        int id PK
+        int user_id FK
+        string nik
+        string nis
+        string nisn
+        string class
+        string address
+        string phone_number
+        string barcode
+    }
+
+    categories {
+        int id PK
+        string name
+        string slug
+    }
+
+    books {
+        int id PK
+        string title
+        string isbn
+        string author
+        int year_published
+        string publisher
+        int book_count
+        string barcode
+        int category_id FK
+    }
+
+    transactions {
+        int id PK
+        string code UK
+        date borrow_date
+        date due_date
+        date return_date
+        int book_id FK
+        int user_id FK
+        int status_id FK
+        decimal penalty_total
+    }
+```
+
+---
+
+## Class Diagram
+
+Diagram kelas level aplikasi yang menunjukkan relasi antar Model Eloquent.
+
+```mermaid
+classDiagram
+    class User {
+        +int id
+        +string name
+        +string email
+        +detail() HasOne
+        +transactions() HasMany
+        +bookmarks() HasMany
+        +roles() BelongsToMany
+    }
+
+    class UserDetail {
+        +int id
+        +string nis
+        +string phone_number
+        +user() BelongsTo
+    }
+
+    class Book {
+        +int id
+        +string title
+        +string isbn
+        +category() BelongsTo
+        +transactions() HasMany
+        +bookmarks() HasMany
+    }
+
+    class Category {
+        +int id
+        +string name
+        +books() HasMany
+    }
+
+    class Transaction {
+        +int id
+        +string code
+        +date borrow_date
+        +status() BelongsTo
+        +user() BelongsTo
+        +book() BelongsTo
+    }
+
+    class Status {
+        +int id
+        +string name
+        +transactions() HasMany
+    }
+
+    User "1" --> "1" UserDetail : HasOne
+    User "1" --> "*" Transaction : HasMany
+    User "1" --> "*" Book : Bookmarks
+    Category "1" --> "*" Book : HasMany
+    Book "1" --> "*" Transaction : HasMany
+    Transaction "*" --> "1" Status : BelongsTo
+```
+
 ---
 
 ## Project Structure
