@@ -175,7 +175,7 @@ class Transaction extends Model
             return 0;
         }
 
-        return (int) now()->diffInDays($this->due_date);
+        return (int) $this->due_date->diffInDays(now()->startOfDay());
     }
 
     /**

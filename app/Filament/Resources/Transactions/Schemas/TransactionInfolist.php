@@ -63,14 +63,16 @@ class TransactionInfolist
                                     ->color(fn ($record) => $record->getStatusColor()),
                                 TextEntry::make('borrow_date')
                                     ->label('Tanggal Pinjam')
-                                    ->date('d M Y'),
+                                    ->formatStateUsing(fn ($state) => (is_string($state) && ! empty($state)) ? $state : (($state && ! is_string($state)) ? $state->format('d M Y') : '-'))
+                                    ->default('-'),
                                 TextEntry::make('due_date')
                                     ->label('Jatuh Tempo')
-                                    ->date('d M Y'),
+                                    ->formatStateUsing(fn ($state) => (is_string($state) && ! empty($state)) ? $state : (($state && ! is_string($state)) ? $state->format('d M Y') : '-'))
+                                    ->default('-'),
                                 TextEntry::make('return_date')
                                     ->label('Tanggal Kembali')
-                                    ->date('d M Y')
-                                    ->placeholder('Belum dikembalikan'),
+                                    ->formatStateUsing(fn ($state) => (is_string($state) && ! empty($state)) ? $state : (($state && ! is_string($state)) ? $state->format('d M Y') : 'Belum dikembalikan'))
+                                    ->default('Belum dikembalikan'),
                                 TextEntry::make('penalty_total')
                                     ->label('Denda')
                                     ->money('IDR')

@@ -121,12 +121,12 @@ class UserInfolist
 
                                 TextEntry::make('userDetail.birth_date')
                                     ->label('Tanggal Lahir')
-                                    ->date('d M Y')
+                                    ->formatStateUsing(fn ($state) => (is_string($state) && ! empty($state)) ? $state : (($state && ! is_string($state)) ? $state->format('d M Y') : '-'))
                                     ->default('-'),
 
                                 TextEntry::make('userDetail.join_date')
                                     ->label('Tanggal Bergabung')
-                                    ->date('d M Y')
+                                    ->formatStateUsing(fn ($state) => (is_string($state) && ! empty($state)) ? $state : (($state && ! is_string($state)) ? $state->format('d M Y') : '-'))
                                     ->default('-'),
                             ]),
 

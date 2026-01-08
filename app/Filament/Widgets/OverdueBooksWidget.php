@@ -52,7 +52,7 @@ class OverdueBooksWidget extends BaseWidget
 
                 TextColumn::make('days_overdue')
                     ->label('Terlambat')
-                    ->getStateUsing(fn (Transaction $record): string => $record->due_date->diffInDays(now()).' hari')
+                    ->getStateUsing(fn (Transaction $record): string => $record->due_date ? $record->due_date->diffInDays(now()).' hari' : '-')
                     ->color('danger')
                     ->weight('bold'),
 
