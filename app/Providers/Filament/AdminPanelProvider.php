@@ -8,6 +8,7 @@ use App\Filament\Widgets\RecentTransactionsWidget;
 use App\Http\Middleware\RedirectIfNotFilamentAdmin;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use DutchCodingCompany\FilamentDeveloperLogins\FilamentDeveloperLoginsPlugin;
+use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -23,6 +24,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
+use Joaopaulolndev\FilamentEditProfile\Pages\EditProfilePage;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -78,11 +80,6 @@ class AdminPanelProvider extends PanelProvider
                     ->navigationGroup('Manajemen Pengguna')
                     ->modelLabel('Hak Akses')
                     ->pluralModelLabel('Hak Akses'),
-                FilamentEditProfilePlugin::make()
-                    ->setTitle('Profil Akun')
-                    ->setNavigationLabel('Profil Akun')
-                    ->setNavigationGroup('Manajemen Pengguna')
-                    ->setIcon('heroicon-o-user'),
                 FilamentDeveloperLoginsPlugin::make()
                     ->enabled(app()->environment('local'))
                     ->users(function () {
@@ -100,6 +97,14 @@ class AdminPanelProvider extends PanelProvider
 
                         return $devUsers;
                     }),
+                FilamentEditProfilePlugin::make()
+                    ->shouldRegisterNavigation(false),
+            ])
+            ->userMenuItems([
+                'profile' => Action::make('profile')
+                    ->label(fn () => auth()->user()->name)
+                    ->url(fn (): string => EditProfilePage::getUrl())
+                    ->icon('heroicon-m-user-circle'),
             ])
             ->unsavedChangesAlerts();
     }
