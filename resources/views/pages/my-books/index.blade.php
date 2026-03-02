@@ -314,7 +314,7 @@ $cancel_borrow = function ($transactionId) {
                                                         <div class="flex flex-col gap-3 mt-2">
                                                             @if ($transaction->isBorrowed())
                                                                 @if ($transaction->due_date > now())
-                                                                    <x-button icon="clock" class="w-full"
+                                                                    <x-button icon="o-arrow-right" class="w-full"
                                                                         onclick="Livewire.dispatch('extendLoan', { id: {{ $transaction->id }} })">
                                                                         Perpanjang 7 Hari
                                                                     </x-button>

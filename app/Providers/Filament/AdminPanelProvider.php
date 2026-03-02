@@ -25,6 +25,8 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
 use Joaopaulolndev\FilamentEditProfile\Pages\EditProfilePage;
+use Swis\Filament\Backgrounds\FilamentBackgroundsPlugin;
+use Swis\Filament\Backgrounds\ImageProviders\MyImages;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -99,6 +101,12 @@ class AdminPanelProvider extends PanelProvider
                     }),
                 FilamentEditProfilePlugin::make()
                     ->shouldRegisterNavigation(false),
+                FilamentBackgroundsPlugin::make()
+                    ->imageProvider(
+                        MyImages::make()
+                            ->directory('images/backgrounds')
+                    ),
+
             ])
             ->userMenuItems([
                 'profile' => Action::make('profile')
