@@ -109,10 +109,10 @@ class AdminPanelProvider extends PanelProvider
 
             ])
             ->userMenuItems([
-                    'profile' => Action::make('profile')
-                        ->label(fn () => auth()->user()->name)
-                        ->url(fn (): string => EditProfilePage::getUrl())
-                        ->icon('heroicon-m-user-circle'),
+                'profile' => Action::make('profile')
+                    ->label(fn () => auth()->user()->name)
+                    ->url(fn (): string => EditProfilePage::getUrl())
+                    ->icon('heroicon-m-user-circle'),
             ])
             ->unsavedChangesAlerts();
     }
